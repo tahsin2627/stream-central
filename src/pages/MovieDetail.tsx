@@ -1,9 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Play, Star, Clock, Calendar, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
-import { VideoPlayer } from '@/components/player/VideoPlayer';
 import { WatchlistButton } from '@/components/content/WatchlistButton';
 import { ShareStoryDialog } from '@/components/share/ShareStoryDialog';
 import { Button } from '@/components/ui/button';
@@ -14,7 +12,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 const MovieDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [isPlaying, setIsPlaying] = useState(false);
   
   const { data: movie, isLoading, error } = useMovieDetails(Number(id));
 
@@ -38,9 +35,7 @@ const MovieDetail = () => {
       <Layout>
         <div className="pt-32 container mx-auto px-4 text-center">
           <h1 className="text-2xl font-bold mb-4">Movie Not Found</h1>
-          <p className="text-muted-foreground mb-8">
-            {error?.message || "We couldn't find the movie you're looking for."}
-          </p>
+          <p className="text-muted-foreground mb-8">We couldn't find the movie you're looking for.</p>
           <Button onClick={() => navigate('/')}>Go Home</Button>
         </div>
       </Layout>
@@ -54,24 +49,6 @@ const MovieDetail = () => {
 
   return (
     <Layout>
-      {/* Video Player (Full Screen when playing) */}
-      {isPlaying && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-50 bg-black"
-        >
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsPlaying(false)}
-            className="absolute top-4 left-4 z-10 text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="h-6 w-6" />
-          </Button>
-          <VideoPlayer tmdbId={movie.id} mediaType="movie" title={movie.title} />
-        </motion.div>
-      )}
 
       {/* Backdrop Hero - Improved mobile layout */}
       <section className="relative min-h-[85vh] sm:h-[70vh] sm:min-h-[500px] overflow-hidden">
@@ -167,7 +144,7 @@ const MovieDetail = () => {
 
               {/* Actions */}
               <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-4">
-                <Button size="default" className="gap-2 px-6 md:px-8 flex-1 sm:flex-none" onClick={() => setIsPlaying(true)}>
+                <Button size="default" className="gap-2 px-6 md:px-8 flex-1 sm:flex-none" onClick={() => navigate(`/watch/movie/${movie.id}`)}>
                   <Play className="h-4 w-4 md:h-5 md:w-5" fill="currentColor" />
                   Play
                 </Button>
