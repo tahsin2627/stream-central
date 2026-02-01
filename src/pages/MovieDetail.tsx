@@ -69,7 +69,7 @@ const MovieDetail = () => {
           >
             <ArrowLeft className="h-6 w-6" />
           </Button>
-          <VideoPlayer tmdbId={movie.id} mediaType="movie" />
+          <VideoPlayer tmdbId={movie.id} mediaType="movie" title={movie.title} />
         </motion.div>
       )}
 
