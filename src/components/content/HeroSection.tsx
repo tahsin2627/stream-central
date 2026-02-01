@@ -48,7 +48,7 @@ export const HeroSection = ({ featured, isLoading }: HeroSectionProps) => {
   };
 
   return (
-    <section className="relative h-[80vh] min-h-[600px] max-h-[900px] overflow-hidden">
+    <section className="relative h-[85vh] sm:h-[80vh] min-h-[500px] max-h-[900px] overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         {backdropUrl ? (
@@ -60,14 +60,14 @@ export const HeroSection = ({ featured, isLoading }: HeroSectionProps) => {
         ) : (
           <div className="w-full h-full bg-secondary" />
         )}
-        {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+        {/* Gradient overlays - enhanced for mobile readability */}
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-background/20 md:via-background/60 md:to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent md:via-transparent" />
       </div>
 
       {/* Content */}
-      <div className="relative h-full container mx-auto px-4 flex items-center">
-        <div className="max-w-2xl">
+      <div className="relative h-full container mx-auto px-4 flex items-end pb-8 md:items-center md:pb-0">
+        <div className="max-w-2xl w-full">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -75,11 +75,11 @@ export const HeroSection = ({ featured, isLoading }: HeroSectionProps) => {
           >
             {/* Genres */}
             {genres.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-4">
+              <div className="flex flex-wrap gap-2 mb-3 md:mb-4">
                 {genres.map((genre) => (
                   <span
                     key={genre.id}
-                    className="text-xs px-3 py-1 rounded-full bg-secondary/60 text-muted-foreground backdrop-blur-sm"
+                    className="text-[10px] md:text-xs px-2 md:px-3 py-0.5 md:py-1 rounded-full bg-secondary/60 text-muted-foreground backdrop-blur-sm"
                   >
                     {genre.name}
                   </span>
@@ -88,40 +88,40 @@ export const HeroSection = ({ featured, isLoading }: HeroSectionProps) => {
             )}
 
             {/* Title */}
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-3 md:mb-4 tracking-tight leading-tight">
               {title}
             </h1>
 
             {/* Meta info */}
-            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+            <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
               <span className="flex items-center gap-1">
-                <Star className="h-4 w-4 text-yellow-500" fill="currentColor" />
+                <Star className="h-3 w-3 md:h-4 md:w-4 text-yellow-500" fill="currentColor" />
                 <span className="text-foreground font-medium">{featured.vote_average.toFixed(1)}</span>
               </span>
               <span className="flex items-center gap-1">
-                <Calendar className="h-4 w-4" />
+                <Calendar className="h-3 w-3 md:h-4 md:w-4" />
                 {releaseDate ? new Date(releaseDate).getFullYear() : 'N/A'}
               </span>
               <span className="capitalize">{mediaType}</span>
             </div>
 
-            {/* Overview */}
-            <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-8 line-clamp-3 md:line-clamp-4">
+            {/* Overview - shorter on mobile */}
+            <p className="text-muted-foreground text-sm md:text-base lg:text-lg leading-relaxed mb-6 md:mb-8 line-clamp-2 md:line-clamp-3 lg:line-clamp-4">
               {featured.overview}
             </p>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap gap-4">
-              <Button size="lg" className="gap-2 px-8" onClick={handlePlay}>
-                <Play className="h-5 w-5" fill="currentColor" />
+            {/* Action Buttons - stacked on small mobile */}
+            <div className="flex flex-wrap gap-3 md:gap-4">
+              <Button size="default" className="gap-2 px-6 md:px-8 flex-1 sm:flex-none" onClick={handlePlay}>
+                <Play className="h-4 w-4 md:h-5 md:w-5" fill="currentColor" />
                 Play
               </Button>
-              <Button size="lg" variant="secondary" className="gap-2">
-                <Plus className="h-5 w-5" />
+              <Button size="default" variant="secondary" className="gap-2 flex-1 sm:flex-none">
+                <Plus className="h-4 w-4 md:h-5 md:w-5" />
                 My List
               </Button>
-              <Button size="lg" variant="ghost" className="gap-2" onClick={handlePlay}>
-                <Info className="h-5 w-5" />
+              <Button size="default" variant="ghost" className="gap-2 hidden sm:flex" onClick={handlePlay}>
+                <Info className="h-4 w-4 md:h-5 md:w-5" />
                 More Info
               </Button>
             </div>
