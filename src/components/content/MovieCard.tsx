@@ -75,7 +75,7 @@ export const MovieCard = ({ item, index = 0, size = 'default' }: MovieCardProps)
 
             <div className="flex items-center gap-2 text-sm">
               <Star className="h-4 w-4 text-yellow-500" fill="currentColor" />
-              <span className="font-medium">{item.vote_average.toFixed(1)}</span>
+              <span className="font-medium">{item.vote_average?.toFixed(1) ?? 'N/A'}</span>
               <span className="text-muted-foreground">•</span>
               <span className="text-muted-foreground">
                 {releaseDate ? new Date(releaseDate).getFullYear() : 'N/A'}
