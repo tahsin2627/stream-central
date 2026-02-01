@@ -77,6 +77,7 @@ const TVShowDetail = () => {
             mediaType="tv" 
             season={selectedSeason}
             episode={selectedEpisode}
+            title={show.name}
           />
         </motion.div>
       )}
