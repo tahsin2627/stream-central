@@ -23,6 +23,7 @@ interface ShareStoryDialogProps {
   mediaType: 'movie' | 'tv';
   genres?: { id: number; name: string }[];
   trigger?: React.ReactNode;
+  tmdbId?: number;
 }
 
 export const ShareStoryDialog = ({
@@ -34,7 +35,16 @@ export const ShareStoryDialog = ({
   mediaType,
   genres,
   trigger,
+  tmdbId,
 }: ShareStoryDialogProps) => {
+  // Build shareable URL for the content
+  const getShareUrl = () => {
+    const baseUrl = window.location.origin;
+    if (tmdbId) {
+      return `${baseUrl}/${mediaType}/${tmdbId}`;
+    }
+    return baseUrl;
+  };
   const [opinion, setOpinion] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -95,6 +105,11 @@ export const ShareStoryDialog = ({
     const dataUrl = await generateImage();
     if (!dataUrl) return;
 
+    const shareUrl = getShareUrl();
+    const shareText = opinion 
+      ? `${opinion}\n\nWatch "${title}" on Wellplayer 🎬\n${shareUrl}`
+      : `Check out "${title}" on Wellplayer! 🎬\n${shareUrl}`;
+
     try {
       const response = await fetch(dataUrl);
       const blob = await response.blob();
@@ -103,12 +118,15 @@ export const ShareStoryDialog = ({
       if (navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           title: `${title} on Wellplayer`,
-          text: opinion || `Check out ${title} on Wellplayer!`,
+          text: shareText,
+          url: shareUrl,
           files: [file],
         });
       } else {
-        // Fallback to download
+        // Fallback to download with URL copy
         handleDownload();
+        await navigator.clipboard.writeText(shareUrl);
+        toast.success('Image downloaded & link copied!');
       }
     } catch (error) {
       if ((error as Error).name !== 'AbortError') {

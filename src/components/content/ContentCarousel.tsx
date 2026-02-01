@@ -50,32 +50,33 @@ export const ContentCarousel = ({ title, items, size = 'default', isLoading }: C
   if (items.length === 0) return null;
 
   return (
-    <section className="relative py-6">
+    <section className="relative py-4 md:py-6">
       <div className="container mx-auto px-4">
         <motion.h2
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          className="text-xl md:text-2xl font-semibold mb-4"
+          className="text-lg md:text-xl lg:text-2xl font-semibold mb-3 md:mb-4"
         >
           {title}
         </motion.h2>
       </div>
 
       <div className="relative group">
-        {/* Scroll Buttons */}
+        {/* Scroll Buttons - hidden on touch devices */}
         <Button
           variant="ghost"
           size="icon"
           onClick={() => scroll('left')}
           className={cn(
-            'absolute left-2 top-1/2 -translate-y-1/2 z-10',
+            'absolute left-1 md:left-2 top-1/2 -translate-y-1/2 z-10',
             'bg-background/80 backdrop-blur-sm shadow-lg',
             'opacity-0 group-hover:opacity-100 transition-opacity',
-            'h-12 w-12 rounded-full'
+            'h-8 w-8 md:h-12 md:w-12 rounded-full',
+            'hidden md:flex'
           )}
         >
-          <ChevronLeft className="h-6 w-6" />
+          <ChevronLeft className="h-4 w-4 md:h-6 md:w-6" />
         </Button>
 
         <Button
@@ -83,26 +84,26 @@ export const ContentCarousel = ({ title, items, size = 'default', isLoading }: C
           size="icon"
           onClick={() => scroll('right')}
           className={cn(
-            'absolute right-2 top-1/2 -translate-y-1/2 z-10',
+            'absolute right-1 md:right-2 top-1/2 -translate-y-1/2 z-10',
             'bg-background/80 backdrop-blur-sm shadow-lg',
             'opacity-0 group-hover:opacity-100 transition-opacity',
-            'h-12 w-12 rounded-full'
+            'h-8 w-8 md:h-12 md:w-12 rounded-full',
+            'hidden md:flex'
           )}
         >
-          <ChevronRight className="h-6 w-6" />
+          <ChevronRight className="h-4 w-4 md:h-6 md:w-6" />
         </Button>
 
         {/* Carousel Content */}
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto hide-scrollbar px-4 md:px-8"
-          style={{ scrollSnapType: 'x mandatory' }}
+          className="flex gap-3 md:gap-4 overflow-x-auto hide-scrollbar px-4 md:px-8 scroll-smooth snap-x snap-mandatory"
         >
           {/* Left padding for container alignment */}
           <div className="flex-shrink-0 w-[calc((100vw-1400px)/2)] hidden 2xl:block" />
           
           {items.map((item, index) => (
-            <div key={item.id} style={{ scrollSnapAlign: 'start' }}>
+            <div key={item.id} className="snap-start">
               <MovieCard item={item} index={index} size={size} />
             </div>
           ))}

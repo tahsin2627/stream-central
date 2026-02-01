@@ -82,8 +82,8 @@ const TVShowDetail = () => {
         </motion.div>
       )}
 
-      {/* Backdrop Hero */}
-      <section className="relative h-[70vh] min-h-[500px] overflow-hidden">
+      {/* Backdrop Hero - Mobile optimized */}
+      <section className="relative min-h-[90vh] sm:h-[70vh] sm:min-h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           {backdropUrl ? (
             <img
@@ -94,8 +94,8 @@ const TVShowDetail = () => {
           ) : (
             <div className="w-full h-full bg-secondary" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/30 md:to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent md:via-background/30" />
         </div>
 
         <Button
@@ -104,21 +104,21 @@ const TVShowDetail = () => {
           onClick={() => navigate(-1)}
           className="absolute top-20 left-4 z-10 text-foreground hover:bg-secondary/50"
         >
-          <ArrowLeft className="h-6 w-6" />
+          <ArrowLeft className="h-5 w-5 md:h-6 md:w-6" />
         </Button>
 
-        <div className="relative h-full container mx-auto px-4 flex items-end pb-12">
-          <div className="flex gap-8 items-end">
+        <div className="relative h-full container mx-auto px-4 flex items-end pb-6 md:pb-12">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-start md:items-end w-full">
             {posterUrl && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="hidden md:block flex-shrink-0"
+                className="flex-shrink-0 mx-auto md:mx-0"
               >
                 <img
                   src={posterUrl}
                   alt={show.name}
-                  className="w-48 lg:w-64 rounded-lg shadow-2xl"
+                  className="w-32 sm:w-40 md:w-48 lg:w-64 rounded-lg shadow-2xl"
                 />
               </motion.div>
             )}
@@ -127,31 +127,31 @@ const TVShowDetail = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="flex-1 max-w-2xl"
+              className="flex-1 max-w-2xl text-center md:text-left"
             >
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 tracking-tight">
+              <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-4 tracking-tight">
                 {show.name}
               </h1>
 
-              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-6">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground mb-4 md:mb-6">
                 <span className="flex items-center gap-1">
-                  <Star className="h-4 w-4 text-yellow-500" fill="currentColor" />
+                  <Star className="h-3 w-3 md:h-4 md:w-4 text-yellow-500" fill="currentColor" />
                   <span className="text-foreground font-medium">{show.vote_average.toFixed(1)}</span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
+                  <Calendar className="h-3 w-3 md:h-4 md:w-4" />
                   {releaseYear}
                 </span>
                 <span>{seasons} Season{seasons > 1 ? 's' : ''}</span>
-                {show.status && <span className="capitalize">{show.status}</span>}
+                {show.status && <span className="capitalize hidden sm:inline">{show.status}</span>}
               </div>
 
               {show.genres && show.genres.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
+                <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4 md:mb-6">
                   {show.genres.map((genre) => (
                     <span
                       key={genre.id}
-                      className="px-3 py-1 text-xs rounded-full bg-secondary text-muted-foreground"
+                      className="px-2 md:px-3 py-0.5 md:py-1 text-[10px] md:text-xs rounded-full bg-secondary text-muted-foreground"
                     >
                       {genre.name}
                     </span>
@@ -159,15 +159,15 @@ const TVShowDetail = () => {
                 </div>
               )}
 
-              {/* Season/Episode Selector */}
-              <div className="flex flex-wrap gap-4 mb-6">
+              {/* Season/Episode Selector - Mobile optimized */}
+              <div className="flex flex-wrap justify-center md:justify-start gap-3 md:gap-4 mb-4 md:mb-6">
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Season:</span>
+                  <span className="text-xs md:text-sm text-muted-foreground">Season:</span>
                   <Select 
                     value={String(selectedSeason)} 
                     onValueChange={(v) => setSelectedSeason(Number(v))}
                   >
-                    <SelectTrigger className="w-24 bg-secondary border-none">
+                    <SelectTrigger className="w-16 md:w-24 h-8 md:h-10 text-xs md:text-sm bg-secondary border-none">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -180,12 +180,12 @@ const TVShowDetail = () => {
                   </Select>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Episode:</span>
+                  <span className="text-xs md:text-sm text-muted-foreground">Episode:</span>
                   <Select 
                     value={String(selectedEpisode)} 
                     onValueChange={(v) => setSelectedEpisode(Number(v))}
                   >
-                    <SelectTrigger className="w-24 bg-secondary border-none">
+                    <SelectTrigger className="w-16 md:w-24 h-8 md:h-10 text-xs md:text-sm bg-secondary border-none">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -199,10 +199,10 @@ const TVShowDetail = () => {
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-4">
-                <Button size="lg" className="gap-2 px-8" onClick={() => setIsPlaying(true)}>
-                  <Play className="h-5 w-5" fill="currentColor" />
-                  Play S{selectedSeason} E{selectedEpisode}
+              <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-4">
+                <Button size="default" className="gap-2 px-4 md:px-8 flex-1 sm:flex-none" onClick={() => setIsPlaying(true)}>
+                  <Play className="h-4 w-4 md:h-5 md:w-5" fill="currentColor" />
+                  <span className="text-xs md:text-sm">S{selectedSeason} E{selectedEpisode}</span>
                 </Button>
                 <WatchlistButton
                   tmdbId={show.id}
@@ -211,7 +211,7 @@ const TVShowDetail = () => {
                   posterPath={show.poster_path}
                   voteAverage={show.vote_average}
                   releaseDate={show.first_air_date}
-                  size="lg"
+                  size="default"
                 />
                 <ShareStoryDialog
                   title={show.name}
@@ -221,10 +221,11 @@ const TVShowDetail = () => {
                   year={releaseYear}
                   mediaType="tv"
                   genres={show.genres}
+                  tmdbId={show.id}
                   trigger={
-                    <Button variant="secondary" size="lg" className="gap-2">
-                      <Share2 className="h-5 w-5" />
-                      Share
+                    <Button variant="secondary" size="default" className="gap-2">
+                      <Share2 className="h-4 w-4 md:h-5 md:w-5" />
+                      <span className="hidden sm:inline">Share</span>
                     </Button>
                   }
                 />
@@ -234,9 +235,9 @@ const TVShowDetail = () => {
         </div>
       </section>
 
-      <section className="container mx-auto px-4 py-12">
-        <h2 className="text-2xl font-semibold mb-4">Overview</h2>
-        <p className="text-muted-foreground text-lg leading-relaxed max-w-4xl">
+      <section className="container mx-auto px-4 py-8 md:py-12">
+        <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4">Overview</h2>
+        <p className="text-muted-foreground text-sm md:text-lg leading-relaxed max-w-4xl">
           {show.overview || 'No overview available.'}
         </p>
       </section>

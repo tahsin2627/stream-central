@@ -73,8 +73,8 @@ const MovieDetail = () => {
         </motion.div>
       )}
 
-      {/* Backdrop Hero */}
-      <section className="relative h-[70vh] min-h-[500px] overflow-hidden">
+      {/* Backdrop Hero - Improved mobile layout */}
+      <section className="relative min-h-[85vh] sm:h-[70vh] sm:min-h-[500px] overflow-hidden">
         <div className="absolute inset-0">
           {backdropUrl ? (
             <img
@@ -85,8 +85,8 @@ const MovieDetail = () => {
           ) : (
             <div className="w-full h-full bg-secondary" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/30 md:to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent md:via-background/30" />
         </div>
 
         {/* Back Button */}
@@ -96,23 +96,23 @@ const MovieDetail = () => {
           onClick={() => navigate(-1)}
           className="absolute top-20 left-4 z-10 text-foreground hover:bg-secondary/50"
         >
-          <ArrowLeft className="h-6 w-6" />
+          <ArrowLeft className="h-5 w-5 md:h-6 md:w-6" />
         </Button>
 
         {/* Content */}
-        <div className="relative h-full container mx-auto px-4 flex items-end pb-12">
-          <div className="flex gap-8 items-end">
-            {/* Poster */}
+        <div className="relative h-full container mx-auto px-4 flex items-end pb-6 md:pb-12">
+          <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-start md:items-end w-full">
+            {/* Poster - visible on mobile too */}
             {posterUrl && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="hidden md:block flex-shrink-0"
+                className="flex-shrink-0 mx-auto md:mx-0"
               >
                 <img
                   src={posterUrl}
                   alt={movie.title}
-                  className="w-48 lg:w-64 rounded-lg shadow-2xl"
+                  className="w-32 sm:w-40 md:w-48 lg:w-64 rounded-lg shadow-2xl"
                 />
               </motion.div>
             )}
@@ -122,30 +122,30 @@ const MovieDetail = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="flex-1 max-w-2xl"
+              className="flex-1 max-w-2xl text-center md:text-left"
             >
               {movie.tagline && (
-                <p className="text-muted-foreground italic mb-2">{movie.tagline}</p>
+                <p className="text-muted-foreground italic text-sm md:text-base mb-2">{movie.tagline}</p>
               )}
               
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 tracking-tight">
+              <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-4 tracking-tight">
                 {movie.title}
               </h1>
 
               {/* Meta */}
-              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-6">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground mb-4 md:mb-6">
                 <span className="flex items-center gap-1">
-                  <Star className="h-4 w-4 text-yellow-500" fill="currentColor" />
+                  <Star className="h-3 w-3 md:h-4 md:w-4 text-yellow-500" fill="currentColor" />
                   <span className="text-foreground font-medium">{movie.vote_average.toFixed(1)}</span>
-                  <span>({movie.vote_count.toLocaleString()} votes)</span>
+                  <span className="hidden sm:inline">({movie.vote_count.toLocaleString()} votes)</span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
+                  <Calendar className="h-3 w-3 md:h-4 md:w-4" />
                   {releaseYear}
                 </span>
                 {runtime && (
                   <span className="flex items-center gap-1">
-                    <Clock className="h-4 w-4" />
+                    <Clock className="h-3 w-3 md:h-4 md:w-4" />
                     {runtime}
                   </span>
                 )}
@@ -153,11 +153,11 @@ const MovieDetail = () => {
 
               {/* Genres */}
               {movie.genres && movie.genres.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
+                <div className="flex flex-wrap justify-center md:justify-start gap-2 mb-4 md:mb-6">
                   {movie.genres.map((genre) => (
                     <span
                       key={genre.id}
-                      className="px-3 py-1 text-xs rounded-full bg-secondary text-muted-foreground"
+                      className="px-2 md:px-3 py-0.5 md:py-1 text-[10px] md:text-xs rounded-full bg-secondary text-muted-foreground"
                     >
                       {genre.name}
                     </span>
@@ -166,9 +166,9 @@ const MovieDetail = () => {
               )}
 
               {/* Actions */}
-              <div className="flex flex-wrap gap-4">
-                <Button size="lg" className="gap-2 px-8" onClick={() => setIsPlaying(true)}>
-                  <Play className="h-5 w-5" fill="currentColor" />
+              <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-4">
+                <Button size="default" className="gap-2 px-6 md:px-8 flex-1 sm:flex-none" onClick={() => setIsPlaying(true)}>
+                  <Play className="h-4 w-4 md:h-5 md:w-5" fill="currentColor" />
                   Play
                 </Button>
                 <WatchlistButton
@@ -178,7 +178,7 @@ const MovieDetail = () => {
                   posterPath={movie.poster_path}
                   voteAverage={movie.vote_average}
                   releaseDate={movie.release_date}
-                  size="lg"
+                  size="default"
                 />
                 <ShareStoryDialog
                   title={movie.title}
@@ -188,10 +188,11 @@ const MovieDetail = () => {
                   year={releaseYear}
                   mediaType="movie"
                   genres={movie.genres}
+                  tmdbId={movie.id}
                   trigger={
-                    <Button variant="secondary" size="lg" className="gap-2">
-                      <Share2 className="h-5 w-5" />
-                      Share
+                    <Button variant="secondary" size="default" className="gap-2">
+                      <Share2 className="h-4 w-4 md:h-5 md:w-5" />
+                      <span className="hidden sm:inline">Share</span>
                     </Button>
                   }
                 />
@@ -202,9 +203,9 @@ const MovieDetail = () => {
       </section>
 
       {/* Overview */}
-      <section className="container mx-auto px-4 py-12">
-        <h2 className="text-2xl font-semibold mb-4">Overview</h2>
-        <p className="text-muted-foreground text-lg leading-relaxed max-w-4xl">
+      <section className="container mx-auto px-4 py-8 md:py-12">
+        <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4">Overview</h2>
+        <p className="text-muted-foreground text-sm md:text-lg leading-relaxed max-w-4xl">
           {movie.overview || 'No overview available.'}
         </p>
       </section>

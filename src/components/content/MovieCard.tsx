@@ -26,10 +26,12 @@ export const MovieCard = ({ item, index = 0, size = 'default' }: MovieCardProps)
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.05 }}
+      transition={{ duration: 0.4, delay: Math.min(index * 0.05, 0.3) }}
       className={cn(
         'group relative flex-shrink-0 cursor-pointer',
-        size === 'large' ? 'w-[280px] md:w-[320px]' : 'w-[160px] md:w-[200px]'
+        size === 'large' 
+          ? 'w-[140px] sm:w-[200px] md:w-[280px] lg:w-[320px]' 
+          : 'w-[120px] sm:w-[140px] md:w-[160px] lg:w-[200px]'
       )}
     >
       <Link to={`/${mediaType}/${item.id}`}>
@@ -48,19 +50,25 @@ export const MovieCard = ({ item, index = 0, size = 'default' }: MovieCardProps)
               loading="lazy"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs md:text-sm">
               No Image
             </div>
           )}
 
-          {/* Overlay on hover */}
-          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
+          {/* Mobile: Show rating badge always */}
+          <div className="absolute top-2 right-2 md:hidden flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-sm">
+            <Star className="h-3 w-3 text-yellow-500" fill="currentColor" />
+            <span className="text-[10px] text-white font-medium">{item.vote_average?.toFixed(1) ?? 'N/A'}</span>
+          </div>
+
+          {/* Desktop: Overlay on hover */}
+          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-col justify-end p-3 md:p-4 hidden md:flex">
             <div className="flex gap-2 mb-3" onClick={(e) => e.preventDefault()}>
               <Link
                 to={`/${mediaType}/${item.id}`}
-                className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+                className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
               >
-                <Play className="h-5 w-5 ml-0.5" fill="currentColor" />
+                <Play className="h-4 w-4 md:h-5 md:w-5 ml-0.5" fill="currentColor" />
               </Link>
               <WatchlistButton
                 tmdbId={item.id}
@@ -73,8 +81,8 @@ export const MovieCard = ({ item, index = 0, size = 'default' }: MovieCardProps)
               />
             </div>
 
-            <div className="flex items-center gap-2 text-sm">
-              <Star className="h-4 w-4 text-yellow-500" fill="currentColor" />
+            <div className="flex items-center gap-2 text-xs md:text-sm">
+              <Star className="h-3 w-3 md:h-4 md:w-4 text-yellow-500" fill="currentColor" />
               <span className="font-medium">{item.vote_average?.toFixed(1) ?? 'N/A'}</span>
               <span className="text-muted-foreground">•</span>
               <span className="text-muted-foreground">
@@ -85,7 +93,7 @@ export const MovieCard = ({ item, index = 0, size = 'default' }: MovieCardProps)
         </div>
 
         {/* Title */}
-        <h3 className="mt-3 text-sm font-medium line-clamp-1 group-hover:text-foreground transition-colors">
+        <h3 className="mt-2 md:mt-3 text-xs md:text-sm font-medium line-clamp-1 group-hover:text-foreground transition-colors">
           {title}
         </h3>
       </Link>
