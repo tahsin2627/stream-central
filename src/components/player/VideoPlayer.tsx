@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, AlertCircle, RefreshCw, Maximize, Film, Tv } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCw, Film, Tv, Server, ChevronDown, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
 
 interface VideoPlayerProps {
@@ -12,21 +18,96 @@ interface VideoPlayerProps {
   title?: string;
 }
 
+interface VideoServer {
+  id: string;
+  name: string;
+  flag: string;
+  getUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => string;
+}
+
+const VIDEO_SERVERS: VideoServer[] = [
+  {
+    id: 'autoembed',
+    name: 'Autoembed',
+    flag: '🇺🇸',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      let url = `https://player.autoembed.cc/embed/${mediaType}/${tmdbId}`;
+      if (mediaType === 'tv' && season && episode) url += `/${season}/${episode}`;
+      return url;
+    },
+  },
+  {
+    id: 'vidsrc',
+    name: 'VidSrc',
+    flag: '🇬🇧',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidsrc.cc/v2/embed/${mediaType}/${tmdbId}`;
+    },
+  },
+  {
+    id: 'vidsrcpro',
+    name: 'VidSrc Pro',
+    flag: '🇬🇧',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.pro/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidsrc.pro/embed/${mediaType}/${tmdbId}`;
+    },
+  },
+  {
+    id: '2embed',
+    name: '2Embed',
+    flag: '🇦🇺',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`;
+      }
+      return `https://www.2embed.cc/embed/${tmdbId}`;
+    },
+  },
+  {
+    id: 'multiembed',
+    name: 'MultiEmbed',
+    flag: '🇺🇸',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`;
+      }
+      return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`;
+    },
+  },
+  {
+    id: 'embedsu',
+    name: 'EmbedSu',
+    flag: '🇮🇳',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://embed.su/embed/movie/${tmdbId}`;
+    },
+  },
+];
+
 export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: VideoPlayerProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [showOverlay, setShowOverlay] = useState(true);
+  const [selectedServer, setSelectedServer] = useState<VideoServer>(VIDEO_SERVERS[0]);
 
-  // Build the embed URL using the correct autoembed player format
-  let embedUrl = `https://player.autoembed.cc/embed/${mediaType}/${tmdbId}`;
-  
-  // Add season/episode for TV shows
-  if (mediaType === 'tv' && season && episode) {
-    embedUrl += `/${season}/${episode}`;
-  }
+  // Build the embed URL using the selected server
+  const embedUrl = selectedServer.getUrl(tmdbId, mediaType, season, episode);
 
   useEffect(() => {
-    // Hide loading overlay after a delay
+    // Reset loading state when server changes
+    setIsLoading(true);
+    setHasError(false);
+    setShowOverlay(true);
+    
     const timer = setTimeout(() => {
       setIsLoading(false);
       setShowOverlay(false);
@@ -51,6 +132,12 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
     setIsLoading(false);
   };
 
+  const handleServerChange = (server: VideoServer) => {
+    if (server.id !== selectedServer.id) {
+      setSelectedServer(server);
+    }
+  };
+
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
       {/* Ambient Background Glow */}
@@ -58,6 +145,7 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
 
       {/* Video iframe */}
       <iframe
+        key={embedUrl}
         src={embedUrl}
         className="absolute inset-0 w-full h-full z-10"
         allowFullScreen
@@ -67,6 +155,44 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
         onLoad={handleIframeLoad}
         onError={handleIframeError}
       />
+
+      {/* Server Selector - Always visible */}
+      <div className="absolute top-4 left-4 z-30">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="gap-2 bg-black/60 backdrop-blur-sm border border-white/10 hover:bg-black/80 text-white"
+            >
+              <Server className="h-4 w-4" />
+              <span className="hidden sm:inline">{selectedServer.flag} {selectedServer.name}</span>
+              <span className="sm:hidden">{selectedServer.flag}</span>
+              <ChevronDown className="h-3 w-3 opacity-60" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent 
+            align="start" 
+            className="w-48 bg-black/95 backdrop-blur-md border-white/10"
+          >
+            {VIDEO_SERVERS.map((server) => (
+              <DropdownMenuItem
+                key={server.id}
+                onClick={() => handleServerChange(server)}
+                className="flex items-center justify-between gap-2 text-white hover:bg-white/10 cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <span>{server.flag}</span>
+                  <span>{server.name}</span>
+                </span>
+                {selectedServer.id === server.id && (
+                  <Check className="h-4 w-4 text-primary" />
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
 
       {/* Loading/Branding Overlay */}
       <AnimatePresence>
@@ -116,6 +242,14 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
                 </div>
               )}
 
+              {/* Server Info */}
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                <Server className="h-3 w-3 text-white/60" />
+                <span className="text-white/60 text-xs">
+                  {selectedServer.flag} {selectedServer.name}
+                </span>
+              </div>
+
               {/* Loading Spinner */}
               {isLoading && !hasError && (
                 <div className="flex items-center gap-3 text-white/70">
@@ -135,15 +269,37 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
                     <AlertCircle className="h-5 w-5" />
                     <span className="text-sm">Failed to load video</span>
                   </div>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={handleRetry}
-                    className="gap-2"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    Try Again
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={handleRetry}
+                      className="gap-2"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Retry
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm" className="gap-2">
+                          <Server className="h-4 w-4" />
+                          Try Another Server
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-black/95 backdrop-blur-md border-white/10">
+                        {VIDEO_SERVERS.filter(s => s.id !== selectedServer.id).map((server) => (
+                          <DropdownMenuItem
+                            key={server.id}
+                            onClick={() => handleServerChange(server)}
+                            className="text-white hover:bg-white/10 cursor-pointer"
+                          >
+                            <span>{server.flag}</span>
+                            <span className="ml-2">{server.name}</span>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </motion.div>
               )}
 
