@@ -122,6 +122,24 @@ export const tmdbApi = {
     return tmdbRequest<TMDBTVShow>(`/tv/${id}`);
   },
 
+  // Get season details with episodes
+  getSeasonDetails: (tvId: number, seasonNumber: number) => {
+    return tmdbRequest<{
+      id: number;
+      name: string;
+      overview: string;
+      episodes: Array<{
+        id: number;
+        name: string;
+        overview: string;
+        episode_number: number;
+        still_path: string | null;
+        air_date: string;
+        runtime: number | null;
+      }>;
+    }>(`/tv/${tvId}/season/${seasonNumber}`);
+  },
+
   getTVShowsByGenre: (genreId: number, page = 1) => {
     return tmdbRequest<TMDBPaginatedResponse<TMDBTVShow>>('/discover/tv', { 
       with_genres: genreId, 
