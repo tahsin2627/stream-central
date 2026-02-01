@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Film, Tv, Heart, Search } from 'lucide-react';
+import wellplayerLogo from '@/assets/wellplayer-logo.png';
 
 export const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -10,7 +11,8 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div className="md:col-span-1">
-            <Link to="/" className="inline-block">
+            <Link to="/" className="inline-flex items-center gap-2">
+              <img src={wellplayerLogo} alt="Wellplayer" className="h-8 w-8 rounded-lg" />
               <span className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                 Wellplayer
               </span>

@@ -41,6 +41,54 @@ export type Database = {
         }
         Relationships: []
       }
+      watch_history: {
+        Row: {
+          backdrop_path: string | null
+          created_at: string
+          duration_seconds: number | null
+          episode: number | null
+          id: string
+          last_watched_at: string
+          media_type: string
+          poster_path: string | null
+          progress_seconds: number
+          season: number | null
+          title: string
+          tmdb_id: number
+          user_id: string
+        }
+        Insert: {
+          backdrop_path?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          episode?: number | null
+          id?: string
+          last_watched_at?: string
+          media_type: string
+          poster_path?: string | null
+          progress_seconds?: number
+          season?: number | null
+          title: string
+          tmdb_id: number
+          user_id: string
+        }
+        Update: {
+          backdrop_path?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          episode?: number | null
+          id?: string
+          last_watched_at?: string
+          media_type?: string
+          poster_path?: string | null
+          progress_seconds?: number
+          season?: number | null
+          title?: string
+          tmdb_id?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       watchlist: {
         Row: {
           added_at: string
