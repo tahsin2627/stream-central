@@ -56,7 +56,7 @@ export const Navbar = () => {
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <span className="text-xl font-bold tracking-tight">StreamVault</span>
+          <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Wellplayer</span>
         </Link>
 
         {/* Desktop Navigation */}

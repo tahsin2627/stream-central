@@ -6,8 +6,8 @@ interface VideoPlayerProps {
 }
 
 export const VideoPlayer = ({ tmdbId, mediaType, season, episode }: VideoPlayerProps) => {
-  // Build the embed URL based on media type
-  let embedUrl = `https://watch-v2.autoembed.cc/${mediaType}/${tmdbId}`;
+  // Build the embed URL using the correct autoembed player format
+  let embedUrl = `https://player.autoembed.cc/embed/${mediaType}/${tmdbId}`;
   
   // Add season/episode for TV shows
   if (mediaType === 'tv' && season && episode) {
@@ -15,7 +15,7 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode }: VideoPlayerP
   }
 
   return (
-    <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+    <div className="relative w-full h-full bg-black">
       <iframe
         src={embedUrl}
         className="absolute inset-0 w-full h-full"
