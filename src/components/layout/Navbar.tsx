@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import wellplayerLogo from '@/assets/wellplayer-logo.png';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,7 +57,8 @@ export const Navbar = () => {
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Wellplayer</span>
+          <img src={wellplayerLogo} alt="Wellplayer" className="h-8 w-8 rounded-lg" />
+          <span className="text-xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent hidden sm:inline">Wellplayer</span>
         </Link>
 
         {/* Desktop Navigation */}

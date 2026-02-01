@@ -1,10 +1,13 @@
 import { Layout } from '@/components/layout/Layout';
 import { HeroSection } from '@/components/content/HeroSection';
 import { ContentCarousel } from '@/components/content/ContentCarousel';
+import { ContinueWatchingCarousel } from '@/components/content/ContinueWatchingCarousel';
 import { useTrending, usePopularMovies, useTopRatedMovies, usePopularTVShows } from '@/hooks/useTMDB';
 import { TMDBMovie, TMDBTVShow } from '@/lib/api/tmdb';
+import { useAuth } from '@/contexts/AuthContext';
 
 const Index = () => {
+  const { user } = useAuth();
   const { data: trending, isLoading: trendingLoading } = useTrending('all', 'week');
   const { data: popularMovies, isLoading: moviesLoading } = usePopularMovies();
   const { data: topRatedMovies, isLoading: topRatedLoading } = useTopRatedMovies();
@@ -19,6 +22,9 @@ const Index = () => {
       <HeroSection featured={featured || null} isLoading={trendingLoading} />
       
       <div className="relative -mt-32 z-10 pb-16">
+        {/* Continue Watching - Only show when logged in */}
+        {user && <ContinueWatchingCarousel />}
+
         <ContentCarousel 
           title="Trending This Week" 
           items={(trending?.results || []) as (TMDBMovie | TMDBTVShow)[]} 
