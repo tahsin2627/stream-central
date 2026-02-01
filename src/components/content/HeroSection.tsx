@@ -1,27 +1,60 @@
-import { Play, Plus, Info } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Play, Plus, Info, Star, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { ContentItem } from '@/types/content';
-import { GENRES } from '@/data/mockContent';
+import { TMDBMovie, TMDBTVShow, tmdbApi } from '@/lib/api/tmdb';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface HeroSectionProps {
-  featured: ContentItem;
+  featured: TMDBMovie | TMDBTVShow | null;
+  isLoading?: boolean;
 }
 
-export const HeroSection = ({ featured }: HeroSectionProps) => {
-  const genres = featured.genreIds
-    .slice(0, 3)
-    .map((id) => GENRES[id])
-    .filter(Boolean);
+// Type guard to check if it's a movie
+const isMovie = (item: TMDBMovie | TMDBTVShow): item is TMDBMovie => {
+  return 'title' in item;
+};
+
+export const HeroSection = ({ featured, isLoading }: HeroSectionProps) => {
+  const navigate = useNavigate();
+
+  if (isLoading || !featured) {
+    return (
+      <section className="relative h-[80vh] min-h-[600px] max-h-[900px] overflow-hidden">
+        <Skeleton className="absolute inset-0" />
+        <div className="relative h-full container mx-auto px-4 flex items-center">
+          <div className="max-w-2xl">
+            <Skeleton className="h-16 w-3/4 mb-4" />
+            <Skeleton className="h-6 w-1/2 mb-4" />
+            <Skeleton className="h-24 w-full mb-8" />
+            <div className="flex gap-4">
+              <Skeleton className="h-12 w-32" />
+              <Skeleton className="h-12 w-32" />
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  const title = isMovie(featured) ? featured.title : featured.name;
+  const releaseDate = isMovie(featured) ? featured.release_date : featured.first_air_date;
+  const mediaType = isMovie(featured) ? 'movie' : 'tv';
+  const backdropUrl = tmdbApi.getBackdropUrl(featured.backdrop_path);
+  const genres = featured.genres?.slice(0, 3) || [];
+
+  const handlePlay = () => {
+    navigate(`/${mediaType}/${featured.id}`);
+  };
 
   return (
     <section className="relative h-[80vh] min-h-[600px] max-h-[900px] overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
-        {featured.backdropPath ? (
+        {backdropUrl ? (
           <img
-            src={featured.backdropPath}
-            alt={featured.title}
+            src={backdropUrl}
+            alt={title}
             className="w-full h-full object-cover"
           />
         ) : (
@@ -45,10 +78,10 @@ export const HeroSection = ({ featured }: HeroSectionProps) => {
               <div className="flex flex-wrap gap-2 mb-4">
                 {genres.map((genre) => (
                   <span
-                    key={genre}
+                    key={genre.id}
                     className="text-xs px-3 py-1 rounded-full bg-secondary/60 text-muted-foreground backdrop-blur-sm"
                   >
-                    {genre}
+                    {genre.name}
                   </span>
                 ))}
               </div>
@@ -56,17 +89,20 @@ export const HeroSection = ({ featured }: HeroSectionProps) => {
 
             {/* Title */}
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4 tracking-tight">
-              {featured.title}
+              {title}
             </h1>
 
             {/* Meta info */}
             <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
               <span className="flex items-center gap-1">
-                <span className="text-yellow-500">★</span>
-                <span className="text-foreground font-medium">{featured.rating.toFixed(1)}</span>
+                <Star className="h-4 w-4 text-yellow-500" fill="currentColor" />
+                <span className="text-foreground font-medium">{featured.vote_average.toFixed(1)}</span>
               </span>
-              <span>{new Date(featured.releaseDate).getFullYear()}</span>
-              <span className="capitalize">{featured.mediaType}</span>
+              <span className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                {releaseDate ? new Date(releaseDate).getFullYear() : 'N/A'}
+              </span>
+              <span className="capitalize">{mediaType}</span>
             </div>
 
             {/* Overview */}
@@ -76,7 +112,7 @@ export const HeroSection = ({ featured }: HeroSectionProps) => {
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-4">
-              <Button size="lg" className="gap-2 px-8">
+              <Button size="lg" className="gap-2 px-8" onClick={handlePlay}>
                 <Play className="h-5 w-5" fill="currentColor" />
                 Play
               </Button>
@@ -84,7 +120,7 @@ export const HeroSection = ({ featured }: HeroSectionProps) => {
                 <Plus className="h-5 w-5" />
                 My List
               </Button>
-              <Button size="lg" variant="ghost" className="gap-2">
+              <Button size="lg" variant="ghost" className="gap-2" onClick={handlePlay}>
                 <Info className="h-5 w-5" />
                 More Info
               </Button>

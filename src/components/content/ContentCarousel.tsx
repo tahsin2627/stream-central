@@ -1,18 +1,20 @@
 import { useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { ContentItem } from '@/types/content';
+import { TMDBMovie, TMDBTVShow } from '@/lib/api/tmdb';
 import { MovieCard } from './MovieCard';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ContentCarouselProps {
   title: string;
-  items: ContentItem[];
+  items: (TMDBMovie | TMDBTVShow)[];
   size?: 'default' | 'large';
+  isLoading?: boolean;
 }
 
-export const ContentCarousel = ({ title, items, size = 'default' }: ContentCarouselProps) => {
+export const ContentCarousel = ({ title, items, size = 'default', isLoading }: ContentCarouselProps) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: 'left' | 'right') => {
@@ -21,6 +23,29 @@ export const ContentCarousel = ({ title, items, size = 'default' }: ContentCarou
     const scrollAmount = direction === 'left' ? -400 : 400;
     scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
   };
+
+  if (isLoading) {
+    return (
+      <section className="relative py-6">
+        <div className="container mx-auto px-4">
+          <Skeleton className="h-8 w-48 mb-4" />
+        </div>
+        <div className="flex gap-4 px-4 md:px-8 overflow-hidden">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton 
+              key={i} 
+              className={cn(
+                'flex-shrink-0 rounded-lg',
+                size === 'large' 
+                  ? 'w-[280px] md:w-[320px] aspect-[2/3]' 
+                  : 'w-[160px] md:w-[200px] aspect-[2/3]'
+              )} 
+            />
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   if (items.length === 0) return null;
 
