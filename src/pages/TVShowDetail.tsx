@@ -3,7 +3,6 @@ import { ArrowLeft, Play, Star, Calendar, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
-import { VideoPlayer } from '@/components/player/VideoPlayer';
 import { WatchlistButton } from '@/components/content/WatchlistButton';
 import { ShareStoryDialog } from '@/components/share/ShareStoryDialog';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 const TVShowDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [isPlaying, setIsPlaying] = useState(false);
   const [selectedSeason, setSelectedSeason] = useState(1);
   const [selectedEpisode, setSelectedEpisode] = useState(1);
   
@@ -57,30 +55,6 @@ const TVShowDetail = () => {
 
   return (
     <Layout>
-      {/* Video Player */}
-      {isPlaying && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="fixed inset-0 z-50 bg-black"
-        >
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsPlaying(false)}
-            className="absolute top-4 left-4 z-10 text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="h-6 w-6" />
-          </Button>
-          <VideoPlayer 
-            tmdbId={show.id} 
-            mediaType="tv" 
-            season={selectedSeason}
-            episode={selectedEpisode}
-            title={show.name}
-          />
-        </motion.div>
-      )}
 
       {/* Backdrop Hero - Mobile optimized */}
       <section className="relative min-h-[90vh] sm:h-[70vh] sm:min-h-[500px] overflow-hidden">
@@ -200,7 +174,7 @@ const TVShowDetail = () => {
               </div>
 
               <div className="flex flex-wrap justify-center md:justify-start gap-2 md:gap-4">
-                <Button size="default" className="gap-2 px-4 md:px-8 flex-1 sm:flex-none" onClick={() => setIsPlaying(true)}>
+                <Button size="default" className="gap-2 px-4 md:px-8 flex-1 sm:flex-none" onClick={() => navigate(`/watch/tv/${show.id}?s=${selectedSeason}&e=${selectedEpisode}`)}>
                   <Play className="h-4 w-4 md:h-5 md:w-5" fill="currentColor" />
                   <span className="text-xs md:text-sm">S{selectedSeason} E{selectedEpisode}</span>
                 </Button>

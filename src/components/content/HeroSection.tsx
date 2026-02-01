@@ -48,7 +48,7 @@ export const HeroSection = ({ featured, isLoading }: HeroSectionProps) => {
   };
 
   return (
-    <section className="relative h-[70vh] sm:h-[75vh] md:h-[80vh] min-h-[450px] max-h-[800px] overflow-hidden">
+    <section className="relative h-[60vh] sm:h-[70vh] md:h-[80vh] min-h-[400px] max-h-[800px] overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         {backdropUrl ? (
@@ -66,7 +66,7 @@ export const HeroSection = ({ featured, isLoading }: HeroSectionProps) => {
       </div>
 
       {/* Content */}
-      <div className="relative h-full container mx-auto px-4 flex items-end pb-16 md:items-center md:pb-0">
+      <div className="relative h-full container mx-auto px-4 flex items-end pb-24 sm:pb-16 md:items-center md:pb-0">
         <div className="max-w-2xl w-full">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
