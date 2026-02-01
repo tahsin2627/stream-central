@@ -48,7 +48,7 @@ export const HeroSection = ({ featured, isLoading }: HeroSectionProps) => {
   };
 
   return (
-    <section className="relative h-[85vh] sm:h-[80vh] min-h-[500px] max-h-[900px] overflow-hidden">
+    <section className="relative h-[70vh] sm:h-[75vh] md:h-[80vh] min-h-[450px] max-h-[800px] overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         {backdropUrl ? (
@@ -62,11 +62,11 @@ export const HeroSection = ({ featured, isLoading }: HeroSectionProps) => {
         )}
         {/* Gradient overlays - enhanced for mobile readability */}
         <div className="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-background/20 md:via-background/60 md:to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent md:via-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent md:via-transparent" />
       </div>
 
       {/* Content */}
-      <div className="relative h-full container mx-auto px-4 flex items-end pb-8 md:items-center md:pb-0">
+      <div className="relative h-full container mx-auto px-4 flex items-end pb-16 md:items-center md:pb-0">
         <div className="max-w-2xl w-full">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
@@ -105,8 +105,8 @@ export const HeroSection = ({ featured, isLoading }: HeroSectionProps) => {
               <span className="capitalize">{mediaType}</span>
             </div>
 
-            {/* Overview - shorter on mobile */}
-            <p className="text-muted-foreground text-sm md:text-base lg:text-lg leading-relaxed mb-6 md:mb-8 line-clamp-2 md:line-clamp-3 lg:line-clamp-4">
+            {/* Overview - shorter on mobile, hidden below sm for cleaner look */}
+            <p className="hidden sm:block text-muted-foreground text-sm md:text-base lg:text-lg leading-relaxed mb-6 md:mb-8 line-clamp-2 md:line-clamp-3 lg:line-clamp-4">
               {featured.overview}
             </p>
 

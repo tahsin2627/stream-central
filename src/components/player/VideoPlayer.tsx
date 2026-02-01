@@ -17,8 +17,8 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
   const [hasError, setHasError] = useState(false);
   const [showOverlay, setShowOverlay] = useState(true);
 
-  // Build the embed URL using autoembed v2 player (no countdown ads)
-  let embedUrl = `https://watch-v2.autoembed.cc/${mediaType}/${tmdbId}`;
+  // Build the embed URL using the correct autoembed player format
+  let embedUrl = `https://player.autoembed.cc/embed/${mediaType}/${tmdbId}`;
   
   // Add season/episode for TV shows
   if (mediaType === 'tv' && season && episode) {
