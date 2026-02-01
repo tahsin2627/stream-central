@@ -1,10 +1,11 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Star, Calendar } from 'lucide-react';
+import { ArrowLeft, Play, Star, Calendar, Share2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { VideoPlayer } from '@/components/player/VideoPlayer';
 import { WatchlistButton } from '@/components/content/WatchlistButton';
+import { ShareStoryDialog } from '@/components/share/ShareStoryDialog';
 import { Button } from '@/components/ui/button';
 import { useTVShowDetails } from '@/hooks/useTMDB';
 import { tmdbApi } from '@/lib/api/tmdb';
@@ -210,6 +211,21 @@ const TVShowDetail = () => {
                   voteAverage={show.vote_average}
                   releaseDate={show.first_air_date}
                   size="lg"
+                />
+                <ShareStoryDialog
+                  title={show.name}
+                  posterUrl={posterUrl}
+                  backdropUrl={backdropUrl}
+                  rating={show.vote_average}
+                  year={releaseYear}
+                  mediaType="tv"
+                  genres={show.genres}
+                  trigger={
+                    <Button variant="secondary" size="lg" className="gap-2">
+                      <Share2 className="h-5 w-5" />
+                      Share
+                    </Button>
+                  }
                 />
               </div>
             </motion.div>
