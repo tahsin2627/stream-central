@@ -137,6 +137,21 @@ export const useTVShowDetails = (id: number) => {
   });
 };
 
+// Season episodes
+export const useSeasonDetails = (tvId: number, seasonNumber: number) => {
+  return useQuery({
+    queryKey: ['tv', tvId, 'season', seasonNumber],
+    queryFn: async () => {
+      const response = await tmdbApi.getSeasonDetails(tvId, seasonNumber);
+      if (!response.success) throw new Error(response.error);
+      return response.data;
+    },
+    enabled: !!tvId && !!seasonNumber,
+    staleTime: STALE_TIME_LONG,
+    gcTime: GC_TIME,
+  });
+};
+
 export const useSearchMulti = (query: string, page = 1) => {
   return useQuery({
     queryKey: ['search', query, page],

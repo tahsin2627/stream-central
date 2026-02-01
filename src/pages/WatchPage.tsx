@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useMovieDetails, useTVShowDetails } from '@/hooks/useTMDB';
+import { useMovieDetails, useTVShowDetails, useSeasonDetails } from '@/hooks/useTMDB';
 import { tmdbApi } from '@/lib/api/tmdb';
 import { EpisodeList } from '@/components/player/EpisodeList';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
@@ -38,6 +38,12 @@ const WatchPage = () => {
   const { data: tvShow, isLoading: tvLoading } = useTVShowDetails(
     mediaType === 'tv' ? tmdbId : 0
   );
+  
+  // Fetch real episode data from TMDB
+  const { data: seasonData, isLoading: seasonLoading } = useSeasonDetails(
+    mediaType === 'tv' ? tmdbId : 0,
+    selectedSeason
+  );
 
   const content = mediaType === 'movie' ? movie : tvShow;
   const isContentLoading = mediaType === 'movie' ? movieLoading : tvLoading;
@@ -52,8 +58,14 @@ const WatchPage = () => {
     : null;
   const seasons = mediaType === 'tv' && tvShow ? tvShow.number_of_seasons || 1 : 0;
 
-  // Generate episode list (assuming ~20 episodes per season as default)
-  const episodes = Array.from({ length: 20 }, (_, i) => ({
+  // Use real episode data from TMDB or fallback to placeholder
+  const episodes = seasonData?.episodes?.map(ep => ({
+    number: ep.episode_number,
+    name: ep.name,
+    overview: ep.overview,
+    stillPath: ep.still_path,
+    runtime: ep.runtime,
+  })) || Array.from({ length: 10 }, (_, i) => ({
     number: i + 1,
     name: `Episode ${i + 1}`,
   }));
@@ -220,7 +232,9 @@ const WatchPage = () => {
 
                 {/* Episode List */}
                 <div>
-                  <h2 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 sm:mb-3">Episodes</h2>
+                  <h2 className="text-xs sm:text-sm font-semibold text-muted-foreground mb-2 sm:mb-3">
+                    Episodes {seasonLoading && <span className="text-muted-foreground/60">(loading...)</span>}
+                  </h2>
                   <EpisodeList
                     episodes={episodes}
                     currentEpisode={selectedEpisode}
