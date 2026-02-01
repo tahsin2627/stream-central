@@ -84,6 +84,34 @@ export const usePopularTVShows = (page = 1) => {
   });
 };
 
+// Indian/Bollywood Movies
+export const useBollywoodMovies = (page = 1) => {
+  return useQuery({
+    queryKey: ['movies', 'bollywood', page],
+    queryFn: async () => {
+      const response = await tmdbApi.getBollywoodMovies(page);
+      if (!response.success) throw new Error(response.error);
+      return response.data as TMDBPaginatedResponse<TMDBMovie>;
+    },
+    staleTime: STALE_TIME_SHORT,
+    gcTime: GC_TIME,
+  });
+};
+
+// Korean Dramas
+export const useKoreanDramas = (page = 1) => {
+  return useQuery({
+    queryKey: ['tv', 'korean', page],
+    queryFn: async () => {
+      const response = await tmdbApi.getKoreanDramas(page);
+      if (!response.success) throw new Error(response.error);
+      return response.data as TMDBPaginatedResponse<TMDBTVShow>;
+    },
+    staleTime: STALE_TIME_SHORT,
+    gcTime: GC_TIME,
+  });
+};
+
 export const useTVShowDetails = (id: number) => {
   const queryClient = useQueryClient();
   

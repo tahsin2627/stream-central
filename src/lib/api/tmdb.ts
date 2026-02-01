@@ -130,6 +130,24 @@ export const tmdbApi = {
     });
   },
 
+  // Indian/Bollywood Movies (with_original_language=hi for Hindi)
+  getBollywoodMovies: (page = 1) => {
+    return tmdbRequest<TMDBPaginatedResponse<TMDBMovie>>('/discover/movie', { 
+      with_original_language: 'hi',
+      page,
+      sort_by: 'popularity.desc'
+    });
+  },
+
+  // Korean Dramas (with_original_language=ko)
+  getKoreanDramas: (page = 1) => {
+    return tmdbRequest<TMDBPaginatedResponse<TMDBTVShow>>('/discover/tv', { 
+      with_original_language: 'ko',
+      page,
+      sort_by: 'popularity.desc'
+    });
+  },
+
   // Search
   searchMulti: (query: string, page = 1) => {
     return tmdbRequest<TMDBPaginatedResponse<TMDBMovie | TMDBTVShow>>('/search/multi', { query, page });
