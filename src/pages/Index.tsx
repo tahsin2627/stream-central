@@ -1,13 +1,32 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Layout } from '@/components/layout/Layout';
+import { HeroSection } from '@/components/content/HeroSection';
+import { ContentCarousel } from '@/components/content/ContentCarousel';
+import {
+  getFeaturedContent,
+  getTrendingContent,
+  getClassicHorror,
+  getClassicComedy,
+  getSciFiFantasy,
+} from '@/data/mockContent';
 
 const Index = () => {
+  const featured = getFeaturedContent();
+  const trending = getTrendingContent();
+  const horror = getClassicHorror();
+  const comedy = getClassicComedy();
+  const scifi = getSciFiFantasy();
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
+    <Layout>
+      <HeroSection featured={featured} />
+      
+      <div className="relative -mt-32 z-10 pb-16">
+        <ContentCarousel title="Trending Now" items={trending} size="large" />
+        <ContentCarousel title="Classic Horror" items={horror} />
+        <ContentCarousel title="Comedy Classics" items={comedy} />
+        <ContentCarousel title="Sci-Fi & Fantasy" items={scifi} />
       </div>
-    </div>
+    </Layout>
   );
 };
 
