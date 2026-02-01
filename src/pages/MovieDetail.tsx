@@ -1,9 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Plus, Star, Clock, Calendar } from 'lucide-react';
+import { ArrowLeft, Play, Star, Clock, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { VideoPlayer } from '@/components/player/VideoPlayer';
+import { WatchlistButton } from '@/components/content/WatchlistButton';
 import { Button } from '@/components/ui/button';
 import { useMovieDetails } from '@/hooks/useTMDB';
 import { tmdbApi } from '@/lib/api/tmdb';
@@ -169,10 +170,15 @@ const MovieDetail = () => {
                   <Play className="h-5 w-5" fill="currentColor" />
                   Play
                 </Button>
-                <Button size="lg" variant="secondary" className="gap-2">
-                  <Plus className="h-5 w-5" />
-                  Add to List
-                </Button>
+                <WatchlistButton
+                  tmdbId={movie.id}
+                  mediaType="movie"
+                  title={movie.title}
+                  posterPath={movie.poster_path}
+                  voteAverage={movie.vote_average}
+                  releaseDate={movie.release_date}
+                  size="lg"
+                />
               </div>
             </motion.div>
           </div>

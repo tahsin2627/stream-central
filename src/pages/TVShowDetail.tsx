@@ -1,9 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Plus, Star, Calendar } from 'lucide-react';
+import { ArrowLeft, Play, Star, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { VideoPlayer } from '@/components/player/VideoPlayer';
+import { WatchlistButton } from '@/components/content/WatchlistButton';
 import { Button } from '@/components/ui/button';
 import { useTVShowDetails } from '@/hooks/useTMDB';
 import { tmdbApi } from '@/lib/api/tmdb';
@@ -201,10 +202,15 @@ const TVShowDetail = () => {
                   <Play className="h-5 w-5" fill="currentColor" />
                   Play S{selectedSeason} E{selectedEpisode}
                 </Button>
-                <Button size="lg" variant="secondary" className="gap-2">
-                  <Plus className="h-5 w-5" />
-                  Add to List
-                </Button>
+                <WatchlistButton
+                  tmdbId={show.id}
+                  mediaType="tv"
+                  title={show.name}
+                  posterPath={show.poster_path}
+                  voteAverage={show.vote_average}
+                  releaseDate={show.first_air_date}
+                  size="lg"
+                />
               </div>
             </motion.div>
           </div>
