@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import wellplayerLogo from '@/assets/wellplayer-logo.png';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -48,8 +49,9 @@ const Login = () => {
         className="w-full max-w-md"
       >
         {/* Logo */}
-        <Link to="/" className="block text-center mb-8">
-          <h1 className="text-3xl font-bold">StreamVault</h1>
+        <Link to="/" className="flex items-center justify-center gap-3 mb-8">
+          <img src={wellplayerLogo} alt="Wellplayer" className="h-12 w-12 rounded-xl" />
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">Wellplayer</h1>
         </Link>
 
         <div className="bg-card rounded-xl p-8 shadow-lg border border-border">
