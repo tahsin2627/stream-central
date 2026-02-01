@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Search, User, Menu, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Search, User, Menu, X, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/contexts/AuthContext';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -16,10 +23,10 @@ const navLinks = [
 
 export const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,6 +40,11 @@ export const Navbar = () => {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/');
+  };
 
   return (
     <header
@@ -68,47 +80,47 @@ export const Navbar = () => {
         {/* Right Section */}
         <div className="flex items-center gap-2">
           {/* Search */}
-          <AnimatePresence>
-            {isSearchOpen ? (
-              <motion.div
-                initial={{ width: 0, opacity: 0 }}
-                animate={{ width: 200, opacity: 1 }}
-                exit={{ width: 0, opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <Input
-                  type="text"
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-9 bg-secondary border-none"
-                  autoFocus
-                  onBlur={() => {
-                    if (!searchQuery) setIsSearchOpen(false);
-                  }}
-                />
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setIsSearchOpen(!isSearchOpen)}
+            onClick={() => navigate('/search')}
             className="text-muted-foreground hover:text-foreground"
           >
             <Search className="h-5 w-5" />
           </Button>
 
           {/* User Menu */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <User className="h-5 w-5" />
-          </Button>
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <User className="h-5 w-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <div className="px-2 py-1.5">
+                  <p className="text-sm font-medium truncate">{user.email}</p>
+                </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/my-list">My List</Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/login">Sign In</Link>
+            </Button>
+          )}
 
           {/* Mobile Menu Toggle */}
           <Button
@@ -146,6 +158,14 @@ export const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
+              {!user && (
+                <Link
+                  to="/login"
+                  className="py-2 px-4 rounded-lg text-sm font-medium text-primary hover:bg-secondary/50"
+                >
+                  Sign In
+                </Link>
+              )}
             </div>
           </motion.div>
         )}

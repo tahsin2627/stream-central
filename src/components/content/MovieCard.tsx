@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom';
-import { Play, Plus, Star } from 'lucide-react';
+import { Play, Star } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { tmdbApi, TMDBMovie, TMDBTVShow } from '@/lib/api/tmdb';
+import { WatchlistButton } from './WatchlistButton';
 import { cn } from '@/lib/utils';
 
 interface MovieCardProps {
@@ -54,13 +55,22 @@ export const MovieCard = ({ item, index = 0, size = 'default' }: MovieCardProps)
 
           {/* Overlay on hover */}
           <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
-            <div className="flex gap-2 mb-3">
-              <button className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors">
+            <div className="flex gap-2 mb-3" onClick={(e) => e.preventDefault()}>
+              <Link
+                to={`/${mediaType}/${item.id}`}
+                className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
                 <Play className="h-5 w-5 ml-0.5" fill="currentColor" />
-              </button>
-              <button className="flex items-center justify-center w-10 h-10 rounded-full bg-secondary/80 text-foreground hover:bg-secondary transition-colors">
-                <Plus className="h-5 w-5" />
-              </button>
+              </Link>
+              <WatchlistButton
+                tmdbId={item.id}
+                mediaType={mediaType}
+                title={title}
+                posterPath={item.poster_path}
+                voteAverage={item.vote_average}
+                releaseDate={releaseDate}
+                size="icon"
+              />
             </div>
 
             <div className="flex items-center gap-2 text-sm">
