@@ -146,14 +146,14 @@ export const ShareStoryDialog = ({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl bg-card border-border p-0 overflow-hidden">
-        <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="text-xl font-semibold">Create Shareable Story</DialogTitle>
+      <DialogContent className="max-w-4xl bg-card border-border p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="p-4 md:p-6 pb-0">
+          <DialogTitle className="text-lg md:text-xl font-semibold">Create Shareable Story</DialogTitle>
         </DialogHeader>
 
-        <div className="p-6 grid md:grid-cols-[360px_1fr] gap-6">
-          {/* Preview */}
-          <div className="flex justify-center">
+        <div className="p-4 md:p-6 flex flex-col md:grid md:grid-cols-[360px_1fr] gap-4 md:gap-6">
+          {/* Preview - Hidden on mobile, visible on desktop */}
+          <div className="hidden md:flex justify-center">
             <div className="transform scale-[0.85] origin-top">
               <ShareStoryCard
                 ref={cardRef}
@@ -169,37 +169,54 @@ export const ShareStoryDialog = ({
             </div>
           </div>
 
+          {/* Mobile Preview - Smaller */}
+          <div className="flex md:hidden justify-center">
+            <div className="transform scale-[0.5] origin-top -mb-40">
+              <ShareStoryCard
+                ref={cardRef}
+                title={title}
+                posterUrl={posterUrl}
+                backdropUrl={backdropUrl}
+                rating={rating}
+                year={year}
+                mediaType={mediaType}
+                opinion={opinion}
+                genres={genres}
+              />
+            </div>
+          </div>
+
           {/* Controls */}
-          <div className="flex flex-col justify-between">
-            <div className="space-y-4">
+          <div className="flex flex-col gap-4">
+            <div className="space-y-3">
               <div>
                 <label className="text-sm font-medium text-foreground mb-2 block">
                   Your Thoughts
                 </label>
                 <Textarea
-                  placeholder="Add your opinion about this movie or show..."
+                  placeholder="Add your opinion..."
                   value={opinion}
                   onChange={(e) => setOpinion(e.target.value)}
                   maxLength={150}
-                  className="resize-none h-32 bg-secondary border-border"
+                  className="resize-none h-20 md:h-32 bg-secondary border-border text-sm"
                 />
                 <p className="text-xs text-muted-foreground mt-1 text-right">
                   {opinion.length}/150
                 </p>
               </div>
 
-              <div className="p-4 rounded-lg bg-secondary/50 border border-border">
-                <h4 className="font-medium text-sm mb-2">📱 Share to</h4>
+              <div className="p-3 rounded-lg bg-secondary/50 border border-border hidden md:block">
+                <h4 className="font-medium text-sm mb-1">📱 Share to</h4>
                 <p className="text-xs text-muted-foreground">
                   Instagram Story, Facebook Story, WhatsApp Status, Twitter/X, or save for later!
                 </p>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col gap-3 mt-6">
+            {/* Action Buttons - Always visible */}
+            <div className="flex flex-col gap-2 md:gap-3">
               <Button
-                size="lg"
+                size="default"
                 onClick={handleNativeShare}
                 disabled={isGenerating}
                 className="gap-2 w-full"
@@ -208,17 +225,18 @@ export const ShareStoryDialog = ({
                   <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full"
+                    className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full"
                   />
                 ) : (
-                  <Share2 className="h-5 w-5" />
+                  <Share2 className="h-4 w-4" />
                 )}
                 Share Story
               </Button>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2 md:gap-3">
                 <Button
                   variant="secondary"
+                  size="default"
                   onClick={handleDownload}
                   disabled={isGenerating}
                   className="gap-2"
@@ -228,6 +246,7 @@ export const ShareStoryDialog = ({
                 </Button>
                 <Button
                   variant="secondary"
+                  size="default"
                   onClick={handleCopyToClipboard}
                   disabled={isGenerating}
                   className="gap-2"
