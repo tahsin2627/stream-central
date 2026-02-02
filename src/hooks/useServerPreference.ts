@@ -4,11 +4,22 @@ export interface VideoServer {
   id: string;
   name: string;
   flag: string;
-  category: 'primary' | 'dubbed' | 'backup';
+  category: 'primary' | 'dubbed' | 'backup' | 'custom';
   getUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => string;
+  customUrl?: string; // For custom user-added streams
 }
 
 export type LanguagePreference = 'default' | 'hindi' | 'bengali' | 'asian' | 'dubbed';
+
+// Create a custom "My Server" entry from a URL
+export const createCustomServer = (url: string, name: string = 'My Server'): VideoServer => ({
+  id: 'custom',
+  name,
+  flag: '⭐',
+  category: 'custom',
+  customUrl: url,
+  getUrl: () => url,
+});
 
 export interface ReportedServer {
   serverId: string;
