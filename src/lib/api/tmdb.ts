@@ -166,6 +166,15 @@ export const tmdbApi = {
     });
   },
 
+  // Bengali/Bangla Movies (with_original_language=bn for Bengali)
+  getBengaliMovies: (page = 1) => {
+    return tmdbRequest<TMDBPaginatedResponse<TMDBMovie>>('/discover/movie', { 
+      with_original_language: 'bn',
+      page,
+      sort_by: 'popularity.desc'
+    });
+  },
+
   // Search
   searchMulti: (query: string, page = 1) => {
     return tmdbRequest<TMDBPaginatedResponse<TMDBMovie | TMDBTVShow>>('/search/multi', { query, page });

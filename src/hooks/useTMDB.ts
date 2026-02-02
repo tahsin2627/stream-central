@@ -112,6 +112,20 @@ export const useKoreanDramas = (page = 1) => {
   });
 };
 
+// Bengali/Bangla Movies
+export const useBengaliMovies = (page = 1) => {
+  return useQuery({
+    queryKey: ['movies', 'bengali', page],
+    queryFn: async () => {
+      const response = await tmdbApi.getBengaliMovies(page);
+      if (!response.success) throw new Error(response.error);
+      return response.data as TMDBPaginatedResponse<TMDBMovie>;
+    },
+    staleTime: STALE_TIME_SHORT,
+    gcTime: GC_TIME,
+  });
+};
+
 export const useTVShowDetails = (id: number) => {
   const queryClient = useQueryClient();
   
