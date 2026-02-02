@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Star, Calendar, Clock, Server, ChevronDown, Check, Play, RotateCcw, RotateCw, AlertTriangle, Loader2, Flag, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Star, Calendar, Clock, Server, ChevronDown, Check, Play, RotateCcw, RotateCw, AlertTriangle, Loader2, Flag } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useMovieDetails, useTVShowDetails, useSeasonDetails } from '@/hooks/useTMDB';
-import { useServerPreference, getServersByCategory, getNextServer, getExternalServers, VideoServer } from '@/hooks/useServerPreference';
+import { useServerPreference, getServersByCategory, getNextServer, VideoServer } from '@/hooks/useServerPreference';
 import { EpisodeList } from '@/components/player/EpisodeList';
 import { ServerSettingsDialog } from '@/components/player/ServerSettingsDialog';
 import { useToast } from '@/hooks/use-toast';
@@ -141,19 +141,12 @@ const WatchPage = () => {
     });
   }, [selectedServer, tmdbId, mediaType, reportServer, toast]);
 
-  // Handle external server click
-  const handleExternalServer = useCallback((server: VideoServer) => {
-    const url = server.getUrl(tmdbId, mediaType as 'movie' | 'tv', selectedSeason, selectedEpisode, title);
-    window.open(url, '_blank', 'noopener,noreferrer');
-    toast({
-      title: "Opening external link",
-      description: `Searching on ${server.name}...`,
-      duration: 2000,
-    });
-  }, [tmdbId, mediaType, selectedSeason, selectedEpisode, title, toast]);
+  // Track if iframe has loaded
+  const iframeLoadedRef = useRef(false);
 
   // Start fallback timer when embed URL changes
   useEffect(() => {
+    iframeLoadedRef.current = false;
     setIsLoading(true);
     setIsFallbackTriggered(false);
     clearFallbackTimer();
@@ -161,19 +154,21 @@ const WatchPage = () => {
     // Start fallback timer if auto-fallback is enabled
     if (autoFallback) {
       fallbackTimerRef.current = setTimeout(() => {
-        if (isLoading) {
+        // Only trigger fallback if iframe hasn't loaded
+        if (!iframeLoadedRef.current) {
           handleAutoFallback();
         }
       }, FALLBACK_TIMEOUT_MS);
     }
 
+    // Set a max loading UI time of 2.5s
     const loadTimer = setTimeout(() => setIsLoading(false), 2500);
 
     return () => {
       clearTimeout(loadTimer);
       clearFallbackTimer();
     };
-  }, [embedUrl, autoFallback, clearFallbackTimer, handleAutoFallback, isLoading]);
+  }, [embedUrl, autoFallback, clearFallbackTimer, handleAutoFallback]);
 
   // Reset attempted servers when content changes
   useEffect(() => {
@@ -196,6 +191,7 @@ const WatchPage = () => {
   }, [selectedServer, setPreferredServer]);
 
   const handleIframeLoad = useCallback(() => {
+    iframeLoadedRef.current = true;
     setIsLoading(false);
     clearFallbackTimer();
   }, [clearFallbackTimer]);
@@ -223,7 +219,6 @@ const WatchPage = () => {
   const primaryServers = getServersByCategory('primary');
   const dubbedServers = getServersByCategory('dubbed');
   const backupServers = getServersByCategory('backup');
-  const externalServers = getExternalServers();
 
   if (isContentLoading) {
     return (
@@ -341,26 +336,6 @@ const WatchPage = () => {
                 );
               })}
 
-              {/* External servers */}
-              {externalServers.length > 0 && (
-                <>
-                  <DropdownMenuSeparator />
-                  <div className="px-2 py-1 text-[10px] sm:text-xs font-semibold text-cyan-500 uppercase">🔗 External Sites</div>
-                  {externalServers.map((server) => (
-                    <DropdownMenuItem
-                      key={server.id}
-                      onClick={() => handleExternalServer(server)}
-                      className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm text-cyan-600 dark:text-cyan-400"
-                    >
-                      <span className="flex items-center gap-2">
-                        <span>{server.flag}</span>
-                        <span>{server.name}</span>
-                      </span>
-                      <ExternalLink className="h-3 w-3 opacity-60" />
-                    </DropdownMenuItem>
-                  ))}
-                </>
-              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

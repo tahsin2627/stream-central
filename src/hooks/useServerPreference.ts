@@ -4,9 +4,8 @@ export interface VideoServer {
   id: string;
   name: string;
   flag: string;
-  category: 'primary' | 'dubbed' | 'backup' | 'external';
-  getUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number, title?: string) => string;
-  isExternal?: boolean; // Opens in new tab
+  category: 'primary' | 'dubbed' | 'backup';
+  getUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => string;
 }
 
 export type LanguagePreference = 'default' | 'hindi' | 'asian' | 'dubbed';
@@ -125,6 +124,30 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://vidsrc.xyz/embed/movie/${tmdbId}`;
     },
   },
+  {
+    id: '111movies',
+    name: 'Zee',
+    flag: '🇮🇳',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://111movies.com/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://111movies.com/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: '1movieshd',
+    name: 'Star',
+    flag: '🇮🇳',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://1movieshd.com/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://1movieshd.com/movie/${tmdbId}`;
+    },
+  },
   // Backup servers
   {
     id: '2embed',
@@ -198,32 +221,14 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://vidsrc.in/embed/${mediaType}/${tmdbId}`;
     },
   },
-  // External servers (open in new tab)
-  {
-    id: 'rtally',
-    name: 'Rtally',
-    flag: '🔗',
-    category: 'external',
-    isExternal: true,
-    getUrl: (tmdbId, mediaType, season, episode, title) => {
-      // Rtally uses slug-based URLs, so we search by title
-      const searchQuery = encodeURIComponent(title || '');
-      return `https://www.rtally.xyz/search?query=${searchQuery}`;
-    },
-  },
 ];
 
-// Get servers by category (excluding external by default)
+// Get servers by category
 export const getServersByCategory = (category: VideoServer['category']) => 
   VIDEO_SERVERS.filter(s => s.category === category);
 
-// Get all internal servers (for fallback)
-export const getInternalServers = () => 
-  VIDEO_SERVERS.filter(s => !s.isExternal);
-
-// Get external servers
-export const getExternalServers = () => 
-  VIDEO_SERVERS.filter(s => s.isExternal);
+// Get all servers (for fallback)
+export const getAllServers = () => VIDEO_SERVERS;
 
 // Get default server based on language preference
 export const getDefaultServerForLanguage = (lang: LanguagePreference): VideoServer => {
@@ -285,7 +290,7 @@ export const getNextServer = (
   tmdbId?: number,
   mediaType?: 'movie' | 'tv'
 ): VideoServer | null => {
-  const internalServers = getInternalServers();
+  const allServers = getAllServers();
   const reports = getReportedServers();
   
   // Create a score for each server (lower is better)
@@ -308,7 +313,7 @@ export const getNextServer = (
   };
   
   // Get available servers sorted by score
-  const availableServers = internalServers
+  const availableServers = allServers
     .filter(s => s.id !== currentServer.id && !attemptedServers.includes(s.id))
     .sort((a, b) => {
       // First prioritize same category
