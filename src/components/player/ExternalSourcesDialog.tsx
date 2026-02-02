@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Globe, Loader2, ExternalLink, Film, Languages, HardDrive, Sparkles, Database, Link2, Play, Monitor } from 'lucide-react';
+import { Globe, Loader2, ExternalLink, Film, Languages, HardDrive, Sparkles, Database, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,7 +13,6 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useScrapedSources, ScrapedResult } from '@/hooks/useScrapedSources';
-import { InAppBrowser } from './InAppBrowser';
 import { cn } from '@/lib/utils';
 
 interface ExternalSourcesDialogProps {
@@ -66,17 +65,15 @@ const getSourceIcon = (sourceName: string) => {
 
 const SourceCard = ({ 
   result, 
-  onOpenInApp,
-  onOpenExternal,
+  onOpen,
 }: { 
   result: ScrapedResult; 
-  onOpenInApp: () => void;
-  onOpenExternal: () => void;
+  onOpen: () => void;
 }) => {
   return (
     <div 
       className="w-full p-4 rounded-lg border border-border bg-card hover:bg-accent/30 transition-colors cursor-pointer group"
-      onClick={onOpenInApp}
+      onClick={onOpen}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
@@ -111,29 +108,15 @@ const SourceCard = ({
             )}
           </div>
         </div>
-        <div className="flex flex-col gap-1.5">
-          {/* Big Play Button */}
-          <Button 
-            size="default" 
-            variant="default"
-            onClick={(e) => { e.stopPropagation(); onOpenInApp(); }}
-            className="gap-2 bg-primary hover:bg-primary/90"
-            title="Play in WellPlayer browser"
-          >
-            <Play className="h-4 w-4" fill="currentColor" />
-            <span>Play</span>
-          </Button>
-          <Button 
-            size="sm" 
-            variant="ghost"
-            onClick={(e) => { e.stopPropagation(); onOpenExternal(); }}
-            className="gap-1.5 text-muted-foreground text-xs"
-            title="Open in new tab"
-          >
-            <ExternalLink className="h-3.5 w-3.5" />
-            <span>New Tab</span>
-          </Button>
-        </div>
+        <Button 
+          size="sm" 
+          variant="secondary"
+          onClick={(e) => { e.stopPropagation(); onOpen(); }}
+          className="gap-1.5 shrink-0"
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+          <span>Open</span>
+        </Button>
       </div>
     </div>
   );
@@ -148,8 +131,6 @@ export const ExternalSourcesDialog = ({
   episode,
 }: ExternalSourcesDialogProps) => {
   const [open, setOpen] = useState(false);
-  const [browserUrl, setBrowserUrl] = useState<string | null>(null);
-  const [browserTitle, setBrowserTitle] = useState('');
   const searchQuery = year ? `${title} ${year}` : title;
   
   const { data: sources, isLoading, error, refetch } = useScrapedSources(
@@ -164,150 +145,125 @@ export const ExternalSourcesDialog = ({
   const tmdbSources = sources?.filter(s => s.isTmdbSource) || [];
   const scrapedSources = sources?.filter(s => !s.isTmdbSource) || [];
 
-  const handleOpenInApp = (result: ScrapedResult) => {
-    setBrowserTitle(`${result.sourceName}: ${result.title}`);
-    setBrowserUrl(result.url);
-  };
-
-  const handleOpenExternal = (result: ScrapedResult) => {
+  const handleOpen = (result: ScrapedResult) => {
     window.open(result.url, '_blank', 'noopener,noreferrer');
   };
 
-  const handleCloseBrowser = () => {
-    setBrowserUrl(null);
-    setBrowserTitle('');
-  };
-
   return (
-    <>
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button
-            variant="secondary"
-            size="sm"
-            className="gap-2 bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30 hover:from-purple-500/30 hover:to-blue-500/30 text-white"
-          >
-            <Globe className="h-4 w-4" />
-            <span className="hidden sm:inline">Find Sources</span>
-            <Sparkles className="h-3 w-3 text-yellow-400" />
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-lg max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-primary" />
-              External Sources
-            </DialogTitle>
-            <DialogDescription className="flex items-center gap-2">
-              <Film className="h-4 w-4" />
-              <span className="truncate">{title}</span>
-              {year && <Badge variant="outline">{year}</Badge>}
-              {mediaType === 'tv' && season && episode && (
-                <Badge variant="outline">S{season} E{episode}</Badge>
-              )}
-            </DialogDescription>
-          </DialogHeader>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="secondary"
+          size="sm"
+          className="gap-2 bg-gradient-to-r from-purple-500/20 to-blue-500/20 border border-purple-500/30 hover:from-purple-500/30 hover:to-blue-500/30 text-white"
+        >
+          <Globe className="h-4 w-4" />
+          <span className="hidden sm:inline">Find Sources</span>
+          <Sparkles className="h-3 w-3 text-yellow-400" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-lg max-h-[80vh]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Globe className="h-5 w-5 text-primary" />
+            External Sources
+          </DialogTitle>
+          <DialogDescription className="flex items-center gap-2">
+            <Film className="h-4 w-4" />
+            <span className="truncate">{title}</span>
+            {year && <Badge variant="outline">{year}</Badge>}
+            {mediaType === 'tv' && season && episode && (
+              <Badge variant="outline">S{season} E{episode}</Badge>
+            )}
+          </DialogDescription>
+        </DialogHeader>
 
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <Loader2 className="h-8 w-8 animate-spin mb-3" />
-              <p className="text-sm">Searching external sources...</p>
-              <p className="text-xs mt-1">Checking TamilBlasters & TMDB sources</p>
-            </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <p className="text-sm text-destructive mb-3">Failed to search sources</p>
-              <Button variant="outline" size="sm" onClick={() => refetch()}>
-                Try Again
-              </Button>
-            </div>
-          ) : sources && sources.length > 0 ? (
-            <Tabs defaultValue={scrapedSources.length > 0 ? "scraped" : "tmdb"} className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="scraped" className="gap-2">
-                  <Link2 className="h-3.5 w-3.5" />
-                  Regional ({scrapedSources.length})
-                </TabsTrigger>
-                <TabsTrigger value="tmdb" className="gap-2">
-                  <Database className="h-3.5 w-3.5" />
-                  TMDB ({tmdbSources.length})
-                </TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="scraped">
-                <ScrollArea className="max-h-[40vh] pr-4">
-                  {scrapedSources.length > 0 ? (
-                    <div className="space-y-3 py-2">
-                      {scrapedSources.map((result, index) => (
-                        <SourceCard 
-                          key={`${result.source}-${index}`} 
-                          result={result}
-                          onOpenInApp={() => handleOpenInApp(result)}
-                          onOpenExternal={() => handleOpenExternal(result)}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-                      <Link2 className="h-10 w-10 mb-3 opacity-50" />
-                      <p className="text-sm">No regional sources found</p>
-                      <p className="text-xs mt-1">Check TMDB sources tab</p>
-                    </div>
-                  )}
-                </ScrollArea>
-              </TabsContent>
-              
-              <TabsContent value="tmdb">
-                <ScrollArea className="max-h-[40vh] pr-4">
-                  {tmdbSources.length > 0 ? (
-                    <div className="space-y-3 py-2">
-                      {tmdbSources.map((result, index) => (
-                        <SourceCard 
-                          key={`${result.source}-${index}`} 
-                          result={result} 
-                          onOpenInApp={() => handleOpenInApp(result)}
-                          onOpenExternal={() => handleOpenExternal(result)}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-                      <Database className="h-10 w-10 mb-3 opacity-50" />
-                      <p className="text-sm">No TMDB sources found</p>
-                      <p className="text-xs mt-1">Check regional sources tab</p>
-                    </div>
-                  )}
-                </ScrollArea>
-              </TabsContent>
-            </Tabs>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-              <Globe className="h-12 w-12 mb-3 opacity-50" />
-              <p className="text-sm">No external sources found</p>
-              <p className="text-xs mt-1">Try the built-in servers above</p>
-            </div>
-          )}
-
-          <div className="rounded-lg bg-primary/10 border border-primary/30 p-3 text-xs text-primary/90 mt-2">
-            <p className="font-medium mb-1 flex items-center gap-1">
-              <Monitor className="h-3.5 w-3.5" />
-              In-App Browser
-            </p>
-            <p className="text-primary/70">
-              Sources open in WellPlayer's built-in browser. If a site blocks embedding, 
-              it will automatically offer to open in a new tab.
-            </p>
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+            <Loader2 className="h-8 w-8 animate-spin mb-3" />
+            <p className="text-sm">Searching external sources...</p>
+            <p className="text-xs mt-1">Checking TamilBlasters & TMDB sources</p>
           </div>
-        </DialogContent>
-      </Dialog>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <p className="text-sm text-destructive mb-3">Failed to search sources</p>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Try Again
+            </Button>
+          </div>
+        ) : sources && sources.length > 0 ? (
+          <Tabs defaultValue={scrapedSources.length > 0 ? "scraped" : "tmdb"} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="scraped" className="gap-2">
+                <Link2 className="h-3.5 w-3.5" />
+                Regional ({scrapedSources.length})
+              </TabsTrigger>
+              <TabsTrigger value="tmdb" className="gap-2">
+                <Database className="h-3.5 w-3.5" />
+                TMDB ({tmdbSources.length})
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="scraped">
+              <ScrollArea className="max-h-[40vh] pr-4">
+                {scrapedSources.length > 0 ? (
+                  <div className="space-y-3 py-2">
+                    {scrapedSources.map((result, index) => (
+                      <SourceCard 
+                        key={`${result.source}-${index}`} 
+                        result={result}
+                        onOpen={() => handleOpen(result)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                    <Link2 className="h-10 w-10 mb-3 opacity-50" />
+                    <p className="text-sm">No regional sources found</p>
+                    <p className="text-xs mt-1">Check TMDB sources tab</p>
+                  </div>
+                )}
+              </ScrollArea>
+            </TabsContent>
+            
+            <TabsContent value="tmdb">
+              <ScrollArea className="max-h-[40vh] pr-4">
+                {tmdbSources.length > 0 ? (
+                  <div className="space-y-3 py-2">
+                    {tmdbSources.map((result, index) => (
+                      <SourceCard 
+                        key={`${result.source}-${index}`} 
+                        result={result} 
+                        onOpen={() => handleOpen(result)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                    <Database className="h-10 w-10 mb-3 opacity-50" />
+                    <p className="text-sm">No TMDB sources found</p>
+                    <p className="text-xs mt-1">Check regional sources tab</p>
+                  </div>
+                )}
+              </ScrollArea>
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+            <Globe className="h-12 w-12 mb-3 opacity-50" />
+            <p className="text-sm">No external sources found</p>
+            <p className="text-xs mt-1">Try the built-in servers above</p>
+          </div>
+        )}
 
-      {/* In-App Browser Modal */}
-      <InAppBrowser
-        url={browserUrl || ''}
-        title={browserTitle}
-        isOpen={!!browserUrl}
-        onClose={handleCloseBrowser}
-      />
-    </>
+        <div className="rounded-lg bg-muted/50 border border-border p-3 text-xs text-muted-foreground mt-2">
+          <p className="font-medium mb-1">💡 About External Sources</p>
+          <p>
+            Sources open in a new browser tab. TMDB sources use reliable ID-based lookups, 
+            while Regional sources are scraped and may vary in accuracy.
+          </p>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 };
