@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Star, Calendar, Clock, Server, ChevronDown, Check, Play, RotateCcw, RotateCw, AlertTriangle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Star, Calendar, Clock, Server, ChevronDown, Check, Play, RotateCcw, RotateCw, AlertTriangle, Loader2, Flag, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,6 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   Select,
@@ -19,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useMovieDetails, useTVShowDetails, useSeasonDetails } from '@/hooks/useTMDB';
-import { useServerPreference, getServersByCategory, getNextServer, VideoServer } from '@/hooks/useServerPreference';
+import { useServerPreference, getServersByCategory, getNextServer, getExternalServers, VideoServer } from '@/hooks/useServerPreference';
 import { EpisodeList } from '@/components/player/EpisodeList';
 import { ServerSettingsDialog } from '@/components/player/ServerSettingsDialog';
 import { useToast } from '@/hooks/use-toast';
@@ -45,17 +46,19 @@ const WatchPage = () => {
   const [attemptedServers, setAttemptedServers] = useState<string[]>([]);
   const [isFallbackTriggered, setIsFallbackTriggered] = useState(false);
 
+  const mediaType = type === 'tv' ? 'tv' : 'movie';
+  const tmdbId = Number(id);
+
   const { 
     preferredServer, 
     setPreferredServer, 
-    autoFallback, 
-    servers 
+    autoFallback,
+    reportServer,
+    isServerReported,
   } = useServerPreference();
 
   const [selectedServer, setSelectedServer] = useState<VideoServer>(preferredServer);
-
-  const mediaType = type === 'tv' ? 'tv' : 'movie';
-  const tmdbId = Number(id);
+  const isReported = isServerReported(selectedServer.id, tmdbId, mediaType as 'movie' | 'tv');
 
   const { data: movie, isLoading: movieLoading } = useMovieDetails(
     mediaType === 'movie' ? tmdbId : 0
@@ -107,7 +110,7 @@ const WatchPage = () => {
   const handleAutoFallback = useCallback(() => {
     if (!autoFallback) return;
 
-    const nextServer = getNextServer(selectedServer, attemptedServers);
+    const nextServer = getNextServer(selectedServer, attemptedServers, tmdbId, mediaType as 'movie' | 'tv');
     if (nextServer) {
       setIsFallbackTriggered(true);
       setAttemptedServers(prev => [...prev, selectedServer.id]);
@@ -121,12 +124,33 @@ const WatchPage = () => {
     } else {
       toast({
         title: "All servers tried",
-        description: "Content may not be available. Try again later.",
+        description: "Content may not be available. Try external servers or try again later.",
         variant: "destructive",
         duration: 5000,
       });
     }
-  }, [autoFallback, selectedServer, attemptedServers, toast]);
+  }, [autoFallback, selectedServer, attemptedServers, tmdbId, mediaType, toast]);
+
+  // Handle reporting a broken server
+  const handleReportServer = useCallback(() => {
+    reportServer(selectedServer.id, tmdbId, mediaType as 'movie' | 'tv');
+    toast({
+      title: "Server reported",
+      description: `${selectedServer.name} marked as broken for this content. It will be deprioritized.`,
+      duration: 3000,
+    });
+  }, [selectedServer, tmdbId, mediaType, reportServer, toast]);
+
+  // Handle external server click
+  const handleExternalServer = useCallback((server: VideoServer) => {
+    const url = server.getUrl(tmdbId, mediaType as 'movie' | 'tv', selectedSeason, selectedEpisode, title);
+    window.open(url, '_blank', 'noopener,noreferrer');
+    toast({
+      title: "Opening external link",
+      description: `Searching on ${server.name}...`,
+      duration: 2000,
+    });
+  }, [tmdbId, mediaType, selectedSeason, selectedEpisode, title, toast]);
 
   // Start fallback timer when embed URL changes
   useEffect(() => {
@@ -199,6 +223,7 @@ const WatchPage = () => {
   const primaryServers = getServersByCategory('primary');
   const dubbedServers = getServersByCategory('dubbed');
   const backupServers = getServersByCategory('backup');
+  const externalServers = getExternalServers();
 
   if (isContentLoading) {
     return (
@@ -223,6 +248,18 @@ const WatchPage = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Report Button */}
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={handleReportServer}
+            disabled={isReported}
+            className={`h-8 w-8 sm:h-9 sm:w-9 ${isReported ? 'text-destructive' : 'text-muted-foreground hover:text-destructive'}`}
+            title={isReported ? 'Server already reported' : 'Report broken server'}
+          >
+            <Flag className={`h-4 w-4 ${isReported ? 'fill-current' : ''}`} />
+          </Button>
+
           {/* Settings Dialog */}
           <ServerSettingsDialog />
 
@@ -232,64 +269,98 @@ const WatchPage = () => {
               <Button variant="secondary" size="sm" className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3">
                 <Server className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="text-xs sm:text-sm">{selectedServer.flag} {selectedServer.name}</span>
-                {autoFallback && <span className="text-[10px] bg-amber-500/20 text-amber-500 px-1 rounded hidden sm:inline">AUTO</span>}
+                {isReported && <span className="text-[10px] bg-destructive/20 text-destructive px-1 rounded">⚠️</span>}
+                {autoFallback && !isReported && <span className="text-[10px] bg-amber-500/20 text-amber-500 px-1 rounded hidden sm:inline">AUTO</span>}
                 <ChevronDown className="h-3 w-3 opacity-60" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52 bg-popover max-h-80 overflow-y-auto">
+            <DropdownMenuContent align="end" className="w-56 bg-popover max-h-80 overflow-y-auto">
               {/* Primary servers */}
               <div className="px-2 py-1 text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase">Primary</div>
-              {primaryServers.map((server) => (
-                <DropdownMenuItem
-                  key={server.id}
-                  onClick={() => handleServerChange(server)}
-                  className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm"
-                >
-                  <span className="flex items-center gap-2">
-                    <span>{server.flag}</span>
-                    <span>{server.name}</span>
-                  </span>
-                  {selectedServer.id === server.id && (
-                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                  )}
-                </DropdownMenuItem>
-              ))}
+              {primaryServers.map((server) => {
+                const serverReported = isServerReported(server.id, tmdbId, mediaType as 'movie' | 'tv');
+                return (
+                  <DropdownMenuItem
+                    key={server.id}
+                    onClick={() => handleServerChange(server)}
+                    className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span>{server.flag}</span>
+                      <span className={serverReported ? 'line-through opacity-50' : ''}>{server.name}</span>
+                      {serverReported && <span className="text-[10px] text-destructive">⚠️</span>}
+                    </span>
+                    {selectedServer.id === server.id && (
+                      <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                    )}
+                  </DropdownMenuItem>
+                );
+              })}
               
               {/* Dubbed / Multi-language servers */}
               <div className="px-2 py-1 mt-1 text-[10px] sm:text-xs font-semibold text-amber-500 uppercase border-t border-border/50">🔊 Dubbed / Regional</div>
-              {dubbedServers.map((server) => (
-                <DropdownMenuItem
-                  key={server.id}
-                  onClick={() => handleServerChange(server)}
-                  className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm"
-                >
-                  <span className="flex items-center gap-2">
-                    <span>{server.flag}</span>
-                    <span>{server.name}</span>
-                  </span>
-                  {selectedServer.id === server.id && (
-                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                  )}
-                </DropdownMenuItem>
-              ))}
+              {dubbedServers.map((server) => {
+                const serverReported = isServerReported(server.id, tmdbId, mediaType as 'movie' | 'tv');
+                return (
+                  <DropdownMenuItem
+                    key={server.id}
+                    onClick={() => handleServerChange(server)}
+                    className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span>{server.flag}</span>
+                      <span className={serverReported ? 'line-through opacity-50' : ''}>{server.name}</span>
+                      {serverReported && <span className="text-[10px] text-destructive">⚠️</span>}
+                    </span>
+                    {selectedServer.id === server.id && (
+                      <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                    )}
+                  </DropdownMenuItem>
+                );
+              })}
               
               {/* Backup servers */}
               <div className="px-2 py-1 mt-1 text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase border-t border-border/50">Backup</div>
-              {backupServers.map((server) => (
-                <DropdownMenuItem
-                  key={server.id}
-                  onClick={() => handleServerChange(server)}
-                  className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm"
-                >
-                  <span className="flex items-center gap-2">
-                    <span>{server.flag}</span>
-                    <span>{server.name}</span>
-                  </span>
-                  {selectedServer.id === server.id && (
-                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                  )}
-                </DropdownMenuItem>
-              ))}
+              {backupServers.map((server) => {
+                const serverReported = isServerReported(server.id, tmdbId, mediaType as 'movie' | 'tv');
+                return (
+                  <DropdownMenuItem
+                    key={server.id}
+                    onClick={() => handleServerChange(server)}
+                    className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span>{server.flag}</span>
+                      <span className={serverReported ? 'line-through opacity-50' : ''}>{server.name}</span>
+                      {serverReported && <span className="text-[10px] text-destructive">⚠️</span>}
+                    </span>
+                    {selectedServer.id === server.id && (
+                      <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                    )}
+                  </DropdownMenuItem>
+                );
+              })}
+
+              {/* External servers */}
+              {externalServers.length > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <div className="px-2 py-1 text-[10px] sm:text-xs font-semibold text-cyan-500 uppercase">🔗 External Sites</div>
+                  {externalServers.map((server) => (
+                    <DropdownMenuItem
+                      key={server.id}
+                      onClick={() => handleExternalServer(server)}
+                      className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm text-cyan-600 dark:text-cyan-400"
+                    >
+                      <span className="flex items-center gap-2">
+                        <span>{server.flag}</span>
+                        <span>{server.name}</span>
+                      </span>
+                      <ExternalLink className="h-3 w-3 opacity-60" />
+                    </DropdownMenuItem>
+                  ))}
+                </>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
