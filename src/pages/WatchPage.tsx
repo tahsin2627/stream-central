@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useMovieDetails, useTVShowDetails, useSeasonDetails } from '@/hooks/useTMDB';
-import { useServerPreference, getServersByCategory, getNextServer, VideoServer, getDefaultServerForLanguage } from '@/hooks/useServerPreference';
+import { useServerPreference, getServersByCategory, getNextServer, VideoServer } from '@/hooks/useServerPreference';
 import { EpisodeList } from '@/components/player/EpisodeList';
 import { ServerSettingsDialog } from '@/components/player/ServerSettingsDialog';
 import { ExternalSourcesDialog } from '@/components/player/ExternalSourcesDialog';
@@ -44,7 +44,7 @@ const WatchPage = () => {
   const [selectedSeason, setSelectedSeason] = useState(initialSeason);
   const [selectedEpisode, setSelectedEpisode] = useState(initialEpisode);
   const [isLoading, setIsLoading] = useState(true);
-  const [showControls, setShowControls] = useState(false);
+  const [showControls, setShowControls] = useState(true);
   const [attemptedServers, setAttemptedServers] = useState<string[]>([]);
   const [isFallbackTriggered, setIsFallbackTriggered] = useState(false);
   // External embed feature removed - most providers block iframe embedding
@@ -64,13 +64,12 @@ const WatchPage = () => {
   const [selectedServer, setSelectedServer] = useState<VideoServer>(preferredServer);
   const isReported = isServerReported(selectedServer.id, tmdbId, mediaType as 'movie' | 'tv');
 
-  // Sync selected server when language preference changes
+  // Sync selected server when language preference OR preferredServer changes
   useEffect(() => {
-    const serverForLanguage = getDefaultServerForLanguage(languagePreference);
-    if (serverForLanguage.id !== selectedServer.id) {
-      setSelectedServer(serverForLanguage);
+    if (preferredServer.id !== selectedServer.id) {
+      setSelectedServer(preferredServer);
     }
-  }, [languagePreference]);
+  }, [preferredServer]);
 
   const { data: movie, isLoading: movieLoading } = useMovieDetails(
     mediaType === 'movie' ? tmdbId : 0
@@ -224,10 +223,7 @@ const WatchPage = () => {
   };
 
   const toggleControls = () => {
-    setShowControls(!showControls);
-    if (!showControls) {
-      setTimeout(() => setShowControls(false), 3000);
-    }
+    setShowControls(prev => !prev);
   };
 
   const primaryServers = getServersByCategory('primary');
@@ -430,9 +426,9 @@ const WatchPage = () => {
               onLoad={handleIframeLoad}
             />
 
-            {/* Playback Overlay Controls */}
+            {/* Playback Overlay Controls - Always visible when not loading */}
             <PlaybackOverlay
-              isVisible={showControls && !isLoading}
+              isVisible={!isLoading}
               onToggle={toggleControls}
             />
           </div>
