@@ -20,6 +20,7 @@ import {
 } from '@/hooks/useServerPreference';
 import { useCustomStreams } from '@/hooks/useCustomStreams';
 import { AddCustomStreamDialog } from './AddCustomStreamDialog';
+import { ExternalSourcesDialog } from './ExternalSourcesDialog';
 
 interface VideoPlayerProps {
   tmdbId: number;
@@ -27,11 +28,12 @@ interface VideoPlayerProps {
   season?: number;
   episode?: number;
   title?: string;
+  year?: string;
 }
 
 const FALLBACK_TIMEOUT = 10000; // 10 seconds
 
-export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: VideoPlayerProps) => {
+export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title, year }: VideoPlayerProps) => {
   const { 
     preferredServer, 
     setPreferredServer, 
@@ -276,6 +278,13 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* External Sources Button - Always visible */}
+        <ExternalSourcesDialog
+          title={title || 'Unknown'}
+          mediaType={mediaType}
+          year={year}
+        />
 
         {/* Add Custom Stream Button - Only for admin */}
         {isAdmin && (
