@@ -95,10 +95,19 @@ const WatchPage = () => {
 
   // Sync selected server when language preference OR preferredServer changes
   useEffect(() => {
-    if (preferredServer.id !== selectedServer.id && selectedServer.id !== 'my-server') {
-      setSelectedServer(preferredServer);
+    // Always sync to preferredServer when it changes (except if using custom "my-server")
+    if (selectedServer.id !== 'my-server') {
+      if (preferredServer.id !== selectedServer.id) {
+        console.log('Language/server preference changed, syncing to:', preferredServer.name);
+        setSelectedServer(preferredServer);
+        toast({
+          title: "Server switched",
+          description: `Now using ${preferredServer.flag} ${preferredServer.name}`,
+          duration: 2000,
+        });
+      }
     }
-  }, [preferredServer]);
+  }, [preferredServer.id]);
 
   const { data: movie, isLoading: movieLoading } = useMovieDetails(
     mediaType === 'movie' ? tmdbId : 0
