@@ -20,10 +20,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useMovieDetails, useTVShowDetails, useSeasonDetails } from '@/hooks/useTMDB';
-import { useServerPreference, getServersByCategory, getNextServer, VideoServer } from '@/hooks/useServerPreference';
+import { useServerPreference, getServersByCategory, getNextServer, VideoServer, getDefaultServerForLanguage } from '@/hooks/useServerPreference';
 import { EpisodeList } from '@/components/player/EpisodeList';
 import { ServerSettingsDialog } from '@/components/player/ServerSettingsDialog';
 import { ExternalSourcesDialog } from '@/components/player/ExternalSourcesDialog';
+import { PlaybackOverlay } from '@/components/player/PlaybackOverlay';
 import { useToast } from '@/hooks/use-toast';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
 
@@ -57,10 +58,19 @@ const WatchPage = () => {
     autoFallback,
     reportServer,
     isServerReported,
+    languagePreference,
   } = useServerPreference();
 
   const [selectedServer, setSelectedServer] = useState<VideoServer>(preferredServer);
   const isReported = isServerReported(selectedServer.id, tmdbId, mediaType as 'movie' | 'tv');
+
+  // Sync selected server when language preference changes
+  useEffect(() => {
+    const serverForLanguage = getDefaultServerForLanguage(languagePreference);
+    if (serverForLanguage.id !== selectedServer.id) {
+      setSelectedServer(serverForLanguage);
+    }
+  }, [languagePreference]);
 
   const { data: movie, isLoading: movieLoading } = useMovieDetails(
     mediaType === 'movie' ? tmdbId : 0
@@ -360,7 +370,7 @@ const WatchPage = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Video Player Area */}
-        <div className="flex-shrink-0 w-full lg:flex-1 bg-black relative">
+        <div className="flex-shrink-0 w-full lg:flex-1 bg-black relative player-container">
           <div className="relative w-full aspect-video lg:h-full" onClick={toggleControls}>
             {/* Loading Overlay */}
             <AnimatePresence>
@@ -420,52 +430,11 @@ const WatchPage = () => {
               onLoad={handleIframeLoad}
             />
 
-            {/* Overlay Controls */}
-            <AnimatePresence>
-              {showControls && !isLoading && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
-                >
-                  <div className="flex items-center gap-4 sm:gap-6 pointer-events-auto">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-10 w-10 sm:h-14 sm:w-14 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 text-white hover:bg-black/70"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <RotateCcw className="h-4 w-4 sm:h-5 sm:w-5" />
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-14 w-14 sm:h-18 sm:w-18 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <Play className="h-6 w-6 sm:h-7 sm:w-7 ml-0.5" fill="currentColor" />
-                    </Button>
-
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-10 w-10 sm:h-14 sm:w-14 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 text-white hover:bg-black/70"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <RotateCw className="h-4 w-4 sm:h-5 sm:w-5" />
-                    </Button>
-                  </div>
-
-                  <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none">
-                    <p className="text-white/60 text-[10px] sm:text-xs">
-                      Use player's built-in controls for playback
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Playback Overlay Controls */}
+            <PlaybackOverlay
+              isVisible={showControls && !isLoading}
+              onToggle={toggleControls}
+            />
           </div>
         </div>
 

@@ -55,49 +55,14 @@ const EXTERNAL_TMDB_SOURCES = [
   },
 ];
 
-// Regional/Download sites for scraping (returns links to watch pages)
+// TamilBlasters only - focused regional source
 const REGIONAL_SITES = [
   {
     domain: '1tamilblasters',
     name: 'TamilBlasters',
-    searchDomains: ['1tamilblasters.auction', '1tamilblasters.business'],
-    languages: ['Tamil', 'Telugu', 'Malayalam', 'Hindi'],
+    searchDomains: ['1tamilblasters.auction'],
+    languages: ['Tamil', 'Telugu', 'Malayalam', 'Hindi', 'Bengali'],
     type: 'streaming',
-  },
-  {
-    domain: 'skymovieshd',
-    name: 'SkyMoviesHD',
-    searchDomains: ['skymovieshd.mba', 'skymovieshd.skin'],
-    languages: ['Hindi', 'Bengali', 'Dual Audio'],
-    type: 'download',
-  },
-  {
-    domain: 'fzmovies',
-    name: 'FZMovies',
-    searchDomains: ['fzmovies.net'],
-    languages: ['English', 'Hindi'],
-    type: 'download',
-  },
-  {
-    domain: 'hdhub4u',
-    name: 'HDHub4U',
-    searchDomains: ['hdhub4u'],
-    languages: ['Hindi', 'Dual Audio'],
-    type: 'download',
-  },
-  {
-    domain: 'bolly4u',
-    name: 'Bolly4U',
-    searchDomains: ['bolly4u'],
-    languages: ['Hindi', 'Bollywood'],
-    type: 'download',
-  },
-  {
-    domain: 'movieswood',
-    name: 'MoviesWood',
-    searchDomains: ['movieswood'],
-    languages: ['Telugu', 'Tamil', 'Hindi'],
-    type: 'download',
   },
 ];
 
