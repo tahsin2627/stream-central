@@ -560,7 +560,6 @@ const WatchPage = () => {
           <PlayerControlBar
             mediaType={mediaType as 'movie' | 'tv'}
             currentServer={`${selectedServer.flag} ${selectedServer.name}`}
-            embedUrl={embedUrl}
             onRefresh={() => {
               // Force re-render of iframe
               const currentUrl = embedUrl;
