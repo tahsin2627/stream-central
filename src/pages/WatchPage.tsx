@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Star, Calendar, Clock, Server, ChevronDown, Check, Play, Pause, RotateCcw, RotateCw } from 'lucide-react';
+import { ArrowLeft, Star, Calendar, Clock, Server, ChevronDown, Check, Play, RotateCcw, RotateCw, AlertTriangle, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,168 +19,40 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useMovieDetails, useTVShowDetails, useSeasonDetails } from '@/hooks/useTMDB';
-import { tmdbApi } from '@/lib/api/tmdb';
+import { useServerPreference, getServersByCategory, getNextServer, VideoServer } from '@/hooks/useServerPreference';
 import { EpisodeList } from '@/components/player/EpisodeList';
+import { ServerSettingsDialog } from '@/components/player/ServerSettingsDialog';
+import { useToast } from '@/hooks/use-toast';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
 
-interface VideoServer {
-  id: string;
-  name: string;
-  flag: string;
-  getUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => string;
-}
-
-const VIDEO_SERVERS: VideoServer[] = [
-  // Primary servers
-  {
-    id: 'autoembed',
-    name: 'Crown',
-    flag: '🇺🇸',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      let url = `https://player.autoembed.cc/embed/${mediaType}/${tmdbId}`;
-      if (mediaType === 'tv' && season && episode) url += `/${season}/${episode}`;
-      return url;
-    },
-  },
-  {
-    id: 'vidsrc',
-    name: 'Viet',
-    flag: '🇻🇳',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://vidsrc.cc/v2/embed/${mediaType}/${tmdbId}`;
-    },
-  },
-  {
-    id: 'vidsrcpro',
-    name: 'Wink',
-    flag: '🇺🇸',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.pro/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://vidsrc.pro/embed/${mediaType}/${tmdbId}`;
-    },
-  },
-  // Dubbed / Multi-language servers
-  {
-    id: 'moviesapi',
-    name: 'Hindi',
-    flag: '🇮🇳',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://moviesapi.club/tv/${tmdbId}-${season}-${episode}`;
-      }
-      return `https://moviesapi.club/movie/${tmdbId}`;
-    },
-  },
-  {
-    id: 'embedsu',
-    name: 'Desi',
-    flag: '🇮🇳',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://embed.su/embed/movie/${tmdbId}`;
-    },
-  },
-  {
-    id: 'vidsrcicu',
-    name: 'Dub',
-    flag: '🌏',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.icu/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://vidsrc.icu/embed/${mediaType}/${tmdbId}`;
-    },
-  },
-  {
-    id: 'nontongo',
-    name: 'Asia',
-    flag: '🇯🇵',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://www.nontongo.win/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://www.nontongo.win/embed/movie/${tmdbId}`;
-    },
-  },
-  // Backup servers
-  {
-    id: '2embed',
-    name: 'Orion',
-    flag: '🇦🇺',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`;
-      }
-      return `https://www.2embed.cc/embed/${tmdbId}`;
-    },
-  },
-  {
-    id: 'multiembed',
-    name: 'Cine',
-    flag: '🇺🇸',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`;
-      }
-      return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`;
-    },
-  },
-  {
-    id: 'smashystream',
-    name: 'Nexon',
-    flag: '🇺🇸',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://player.smashy.stream/tv/${tmdbId}?s=${season}&e=${episode}`;
-      }
-      return `https://player.smashy.stream/movie/${tmdbId}`;
-    },
-  },
-  {
-    id: 'vidlink',
-    name: 'Nova',
-    flag: '🌐',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://vidlink.pro/movie/${tmdbId}`;
-    },
-  },
-  {
-    id: 'superembed',
-    name: 'Super',
-    flag: '⚡',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`;
-      }
-      return `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1`;
-    },
-  },
-];
+const FALLBACK_TIMEOUT_MS = 10000; // 10 seconds
 
 const WatchPage = () => {
   const { type, id } = useParams<{ type: 'movie' | 'tv'; id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const fallbackTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const { toast } = useToast();
 
   const initialSeason = Number(searchParams.get('s')) || 1;
   const initialEpisode = Number(searchParams.get('e')) || 1;
 
   const [selectedSeason, setSelectedSeason] = useState(initialSeason);
   const [selectedEpisode, setSelectedEpisode] = useState(initialEpisode);
-  const [selectedServer, setSelectedServer] = useState<VideoServer>(VIDEO_SERVERS[0]);
   const [isLoading, setIsLoading] = useState(true);
   const [showControls, setShowControls] = useState(false);
+  const [attemptedServers, setAttemptedServers] = useState<string[]>([]);
+  const [isFallbackTriggered, setIsFallbackTriggered] = useState(false);
+
+  const { 
+    preferredServer, 
+    setPreferredServer, 
+    autoFallback, 
+    servers 
+  } = useServerPreference();
+
+  const [selectedServer, setSelectedServer] = useState<VideoServer>(preferredServer);
 
   const mediaType = type === 'tv' ? 'tv' : 'movie';
   const tmdbId = Number(id);
@@ -192,7 +64,6 @@ const WatchPage = () => {
     mediaType === 'tv' ? tmdbId : 0
   );
   
-  // Fetch real episode data from TMDB
   const { data: seasonData, isLoading: seasonLoading } = useSeasonDetails(
     mediaType === 'tv' ? tmdbId : 0,
     selectedSeason
@@ -211,7 +82,6 @@ const WatchPage = () => {
     : null;
   const seasons = mediaType === 'tv' && tvShow ? tvShow.number_of_seasons || 1 : 0;
 
-  // Use real episode data from TMDB or fallback to placeholder
   const episodes = seasonData?.episodes?.map(ep => ({
     number: ep.episode_number,
     name: ep.name,
@@ -225,11 +95,66 @@ const WatchPage = () => {
 
   const embedUrl = selectedServer.getUrl(tmdbId, mediaType, selectedSeason, selectedEpisode);
 
+  // Clear fallback timer
+  const clearFallbackTimer = useCallback(() => {
+    if (fallbackTimerRef.current) {
+      clearTimeout(fallbackTimerRef.current);
+      fallbackTimerRef.current = null;
+    }
+  }, []);
+
+  // Handle auto-fallback to next server
+  const handleAutoFallback = useCallback(() => {
+    if (!autoFallback) return;
+
+    const nextServer = getNextServer(selectedServer, attemptedServers);
+    if (nextServer) {
+      setIsFallbackTriggered(true);
+      setAttemptedServers(prev => [...prev, selectedServer.id]);
+      setSelectedServer(nextServer);
+      
+      toast({
+        title: "Switching server...",
+        description: `Trying ${nextServer.flag} ${nextServer.name}`,
+        duration: 3000,
+      });
+    } else {
+      toast({
+        title: "All servers tried",
+        description: "Content may not be available. Try again later.",
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  }, [autoFallback, selectedServer, attemptedServers, toast]);
+
+  // Start fallback timer when embed URL changes
   useEffect(() => {
     setIsLoading(true);
-    const timer = setTimeout(() => setIsLoading(false), 2000);
-    return () => clearTimeout(timer);
-  }, [embedUrl]);
+    setIsFallbackTriggered(false);
+    clearFallbackTimer();
+
+    // Start fallback timer if auto-fallback is enabled
+    if (autoFallback) {
+      fallbackTimerRef.current = setTimeout(() => {
+        if (isLoading) {
+          handleAutoFallback();
+        }
+      }, FALLBACK_TIMEOUT_MS);
+    }
+
+    const loadTimer = setTimeout(() => setIsLoading(false), 2500);
+
+    return () => {
+      clearTimeout(loadTimer);
+      clearFallbackTimer();
+    };
+  }, [embedUrl, autoFallback, clearFallbackTimer, handleAutoFallback, isLoading]);
+
+  // Reset attempted servers when content changes
+  useEffect(() => {
+    setAttemptedServers([]);
+  }, [tmdbId, selectedSeason, selectedEpisode]);
 
   useEffect(() => {
     if (mediaType === 'tv') {
@@ -237,11 +162,19 @@ const WatchPage = () => {
     }
   }, [selectedSeason, selectedEpisode, mediaType, setSearchParams]);
 
-  const handleServerChange = (server: VideoServer) => {
+  const handleServerChange = useCallback((server: VideoServer) => {
     if (server.id !== selectedServer.id) {
       setSelectedServer(server);
+      setPreferredServer(server); // Remember preference
+      setAttemptedServers([]); // Reset attempts when manually changing
+      setIsFallbackTriggered(false);
     }
-  };
+  }, [selectedServer, setPreferredServer]);
+
+  const handleIframeLoad = useCallback(() => {
+    setIsLoading(false);
+    clearFallbackTimer();
+  }, [clearFallbackTimer]);
 
   const handleEpisodeSelect = (episode: number) => {
     setSelectedEpisode(episode);
@@ -256,14 +189,16 @@ const WatchPage = () => {
     navigate(-1);
   };
 
-  // Toggle controls visibility
   const toggleControls = () => {
     setShowControls(!showControls);
     if (!showControls) {
-      // Auto-hide after 3 seconds
       setTimeout(() => setShowControls(false), 3000);
     }
   };
+
+  const primaryServers = getServersByCategory('primary');
+  const dubbedServers = getServersByCategory('dubbed');
+  const backupServers = getServersByCategory('backup');
 
   if (isContentLoading) {
     return (
@@ -287,71 +222,77 @@ const WatchPage = () => {
           </div>
         </div>
 
-        {/* Server Selector */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="secondary" size="sm" className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3">
-              <Server className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="text-xs sm:text-sm">{selectedServer.flag} {selectedServer.name}</span>
-              <ChevronDown className="h-3 w-3 opacity-60" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52 bg-popover max-h-80 overflow-y-auto">
-            {/* Primary servers */}
-            <div className="px-2 py-1 text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase">Primary</div>
-            {VIDEO_SERVERS.slice(0, 3).map((server) => (
-              <DropdownMenuItem
-                key={server.id}
-                onClick={() => handleServerChange(server)}
-                className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm"
-              >
-                <span className="flex items-center gap-2">
-                  <span>{server.flag}</span>
-                  <span>{server.name}</span>
-                </span>
-                {selectedServer.id === server.id && (
-                  <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                )}
-              </DropdownMenuItem>
-            ))}
-            
-            {/* Dubbed / Multi-language servers */}
-            <div className="px-2 py-1 mt-1 text-[10px] sm:text-xs font-semibold text-amber-500 uppercase border-t border-border/50">🔊 Dubbed / Regional</div>
-            {VIDEO_SERVERS.slice(3, 8).map((server) => (
-              <DropdownMenuItem
-                key={server.id}
-                onClick={() => handleServerChange(server)}
-                className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm"
-              >
-                <span className="flex items-center gap-2">
-                  <span>{server.flag}</span>
-                  <span>{server.name}</span>
-                </span>
-                {selectedServer.id === server.id && (
-                  <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                )}
-              </DropdownMenuItem>
-            ))}
-            
-            {/* Backup servers */}
-            <div className="px-2 py-1 mt-1 text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase border-t border-border/50">Backup</div>
-            {VIDEO_SERVERS.slice(8).map((server) => (
-              <DropdownMenuItem
-                key={server.id}
-                onClick={() => handleServerChange(server)}
-                className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm"
-              >
-                <span className="flex items-center gap-2">
-                  <span>{server.flag}</span>
-                  <span>{server.name}</span>
-                </span>
-                {selectedServer.id === server.id && (
-                  <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
-                )}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-2">
+          {/* Settings Dialog */}
+          <ServerSettingsDialog />
+
+          {/* Server Selector */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="secondary" size="sm" className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3">
+                <Server className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">{selectedServer.flag} {selectedServer.name}</span>
+                {autoFallback && <span className="text-[10px] bg-amber-500/20 text-amber-500 px-1 rounded hidden sm:inline">AUTO</span>}
+                <ChevronDown className="h-3 w-3 opacity-60" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52 bg-popover max-h-80 overflow-y-auto">
+              {/* Primary servers */}
+              <div className="px-2 py-1 text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase">Primary</div>
+              {primaryServers.map((server) => (
+                <DropdownMenuItem
+                  key={server.id}
+                  onClick={() => handleServerChange(server)}
+                  className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm"
+                >
+                  <span className="flex items-center gap-2">
+                    <span>{server.flag}</span>
+                    <span>{server.name}</span>
+                  </span>
+                  {selectedServer.id === server.id && (
+                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                  )}
+                </DropdownMenuItem>
+              ))}
+              
+              {/* Dubbed / Multi-language servers */}
+              <div className="px-2 py-1 mt-1 text-[10px] sm:text-xs font-semibold text-amber-500 uppercase border-t border-border/50">🔊 Dubbed / Regional</div>
+              {dubbedServers.map((server) => (
+                <DropdownMenuItem
+                  key={server.id}
+                  onClick={() => handleServerChange(server)}
+                  className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm"
+                >
+                  <span className="flex items-center gap-2">
+                    <span>{server.flag}</span>
+                    <span>{server.name}</span>
+                  </span>
+                  {selectedServer.id === server.id && (
+                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                  )}
+                </DropdownMenuItem>
+              ))}
+              
+              {/* Backup servers */}
+              <div className="px-2 py-1 mt-1 text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase border-t border-border/50">Backup</div>
+              {backupServers.map((server) => (
+                <DropdownMenuItem
+                  key={server.id}
+                  onClick={() => handleServerChange(server)}
+                  className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm"
+                >
+                  <span className="flex items-center gap-2">
+                    <span>{server.flag}</span>
+                    <span>{server.name}</span>
+                  </span>
+                  {selectedServer.id === server.id && (
+                    <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </header>
 
       {/* Main Content */}
@@ -374,9 +315,32 @@ const WatchPage = () => {
                     animate={{ scale: [1, 1.05, 1] }}
                     transition={{ duration: 2, repeat: Infinity }}
                   />
-                  <p className="text-white/60 text-xs sm:text-sm">
+                  <p className="text-white/60 text-xs sm:text-sm mb-2">
                     Loading {mediaType === 'tv' ? `S${selectedSeason} E${selectedEpisode}` : 'movie'}...
                   </p>
+                  
+                  {/* Server info */}
+                  <div className="flex items-center gap-2 text-white/40 text-xs">
+                    <span>{selectedServer.flag} {selectedServer.name}</span>
+                    {autoFallback && (
+                      <span className="flex items-center gap-1 text-amber-500/60">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Auto-switching in 10s
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Fallback notice */}
+                  {isFallbackTriggered && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-3 flex items-center gap-2 text-amber-500 text-xs"
+                    >
+                      <AlertTriangle className="h-3 w-3" />
+                      Previous server timed out
+                    </motion.div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -391,9 +355,10 @@ const WatchPage = () => {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               referrerPolicy="origin"
               title="Video Player"
+              onLoad={handleIframeLoad}
             />
 
-            {/* Overlay Controls - for skipping ads */}
+            {/* Overlay Controls */}
             <AnimatePresence>
               {showControls && !isLoading && (
                 <motion.div
@@ -403,45 +368,34 @@ const WatchPage = () => {
                   className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
                 >
                   <div className="flex items-center gap-4 sm:gap-6 pointer-events-auto">
-                    {/* Rewind 10s */}
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-10 w-10 sm:h-14 sm:w-14 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 text-white hover:bg-black/70"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Note: Can't control iframe, but UI is there for when player supports postMessage
-                      }}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <RotateCcw className="h-4 w-4 sm:h-5 sm:w-5" />
                     </Button>
 
-                    {/* Play/Pause */}
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-14 w-14 sm:h-18 sm:w-18 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white hover:bg-white/30"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <Play className="h-6 w-6 sm:h-7 sm:w-7 ml-0.5" fill="currentColor" />
                     </Button>
 
-                    {/* Forward 10s */}
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-10 w-10 sm:h-14 sm:w-14 rounded-full bg-black/50 backdrop-blur-sm border border-white/20 text-white hover:bg-black/70"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                      }}
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <RotateCw className="h-4 w-4 sm:h-5 sm:w-5" />
                     </Button>
                   </div>
 
-                  {/* Tip text */}
                   <div className="absolute bottom-4 left-0 right-0 text-center pointer-events-none">
                     <p className="text-white/60 text-[10px] sm:text-xs">
                       Use player's built-in controls for playback
