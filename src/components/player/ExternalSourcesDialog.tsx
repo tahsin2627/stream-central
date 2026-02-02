@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Globe, Loader2, ExternalLink, Film, Languages, HardDrive, Sparkles, Database, Link2 } from 'lucide-react';
+import { Globe, Loader2, ExternalLink, Film, Languages, HardDrive, Sparkles, Database, Link2, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -22,6 +22,7 @@ interface ExternalSourcesDialogProps {
   tmdbId?: number;
   season?: number;
   episode?: number;
+  onPlayInApp?: (embedUrl: string, sourceName: string) => void;
 }
 
 const QualityBadge = ({ quality }: { quality: string }) => {
@@ -66,14 +67,17 @@ const getSourceIcon = (sourceName: string) => {
 const SourceCard = ({ 
   result, 
   onOpen,
+  onPlayInApp,
+  canPlayInApp,
 }: { 
   result: ScrapedResult; 
   onOpen: () => void;
+  onPlayInApp?: () => void;
+  canPlayInApp: boolean;
 }) => {
   return (
     <div 
-      className="w-full p-4 rounded-lg border border-border bg-card hover:bg-accent/30 transition-colors cursor-pointer group"
-      onClick={onOpen}
+      className="w-full p-4 rounded-lg border border-border bg-card hover:bg-accent/30 transition-colors group"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
@@ -92,7 +96,7 @@ const SourceCard = ({
           <p className="text-sm text-foreground truncate mb-2">
             {result.title}
           </p>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 mb-3">
             {result.quality && <QualityBadge quality={result.quality} />}
             {result.language && (
               <Badge variant="outline" className="text-xs flex items-center gap-1">
@@ -107,6 +111,29 @@ const SourceCard = ({
               </Badge>
             )}
           </div>
+          
+          {/* Action buttons */}
+          <div className="flex items-center gap-2">
+            {canPlayInApp && onPlayInApp && (
+              <Button 
+                size="sm" 
+                onClick={onPlayInApp}
+                className="h-7 px-3 gap-1.5 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
+              >
+                <Play className="h-3 w-3" />
+                Play in WellPlayer
+              </Button>
+            )}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onOpen}
+              className="h-7 px-3 gap-1.5"
+            >
+              <ExternalLink className="h-3 w-3" />
+              Open in Tab
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -120,6 +147,7 @@ export const ExternalSourcesDialog = ({
   tmdbId,
   season,
   episode,
+  onPlayInApp,
 }: ExternalSourcesDialogProps) => {
   const [open, setOpen] = useState(false);
   const searchQuery = year ? `${title} ${year}` : title;
@@ -138,6 +166,19 @@ export const ExternalSourcesDialog = ({
 
   const handleOpen = (result: ScrapedResult) => {
     window.open(result.url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handlePlayInApp = (result: ScrapedResult) => {
+    if (onPlayInApp) {
+      onPlayInApp(result.url, result.sourceName);
+      setOpen(false); // Close dialog after selecting
+    }
+  };
+
+  // Sources that can be embedded in-app (TMDB-based sources with embed URLs)
+  const canEmbedSource = (result: ScrapedResult) => {
+    // Allow embedding for TMDB sources that use embed URLs
+    return result.isTmdbSource && !!onPlayInApp;
   };
 
   return (
@@ -204,6 +245,8 @@ export const ExternalSourcesDialog = ({
                         key={`${result.source}-${index}`} 
                         result={result} 
                         onOpen={() => handleOpen(result)}
+                        onPlayInApp={() => handlePlayInApp(result)}
+                        canPlayInApp={canEmbedSource(result)}
                       />
                     ))}
                   </div>
@@ -226,6 +269,8 @@ export const ExternalSourcesDialog = ({
                         key={`${result.source}-${index}`} 
                         result={result}
                         onOpen={() => handleOpen(result)}
+                        onPlayInApp={undefined}
+                        canPlayInApp={false}
                       />
                     ))}
                   </div>

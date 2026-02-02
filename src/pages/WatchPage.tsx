@@ -485,6 +485,15 @@ const WatchPage = () => {
             tmdbId={tmdbId}
             season={mediaType === 'tv' ? selectedSeason : undefined}
             episode={mediaType === 'tv' ? selectedEpisode : undefined}
+            onPlayInApp={(embedUrl, sourceName) => {
+              setAiEmbedUrl(embedUrl);
+              setUseNativePlayer(false);
+              setIsLoading(true);
+              toast({
+                title: "Playing in WellPlayer",
+                description: `Now using ${sourceName}`,
+              });
+            }}
           />
 
           {/* Language Selector - Prominent in header */}
