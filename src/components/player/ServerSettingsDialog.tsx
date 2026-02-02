@@ -12,9 +12,10 @@ import {
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { useServerPreference, LanguagePreference, getServerReportCount } from '@/hooks/useServerPreference';
+import { useServerPreference, LanguagePreference, getServerReportCount, getDefaultServerForLanguage } from '@/hooks/useServerPreference';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { toast } from 'sonner';
 
 const LANGUAGE_OPTIONS: { value: LanguagePreference; label: string; description: string; icon: string }[] = [
   { value: 'default', label: 'Default', description: 'English / Original audio', icon: '🌐' },
@@ -76,7 +77,14 @@ export const ServerSettingsDialog = () => {
               </Label>
               <RadioGroup
                 value={languagePreference}
-                onValueChange={(value) => setLanguagePreference(value as LanguagePreference)}
+                onValueChange={(value) => {
+                  const lang = value as LanguagePreference;
+                  setLanguagePreference(lang);
+                  const newServer = getDefaultServerForLanguage(lang);
+                  toast.success(`Language set to ${LANGUAGE_OPTIONS.find(o => o.value === lang)?.label}`, {
+                    description: `Server switched to ${newServer.flag} ${newServer.name}`,
+                  });
+                }}
                 className="grid grid-cols-2 gap-2"
               >
                 {LANGUAGE_OPTIONS.map((option) => (
