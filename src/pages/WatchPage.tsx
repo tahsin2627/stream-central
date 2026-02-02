@@ -23,6 +23,7 @@ import { useMovieDetails, useTVShowDetails, useSeasonDetails } from '@/hooks/use
 import { useServerPreference, getServersByCategory, getNextServer, VideoServer } from '@/hooks/useServerPreference';
 import { EpisodeList } from '@/components/player/EpisodeList';
 import { ServerSettingsDialog } from '@/components/player/ServerSettingsDialog';
+import { ExternalSourcesDialog } from '@/components/player/ExternalSourcesDialog';
 import { useToast } from '@/hooks/use-toast';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
 
@@ -254,6 +255,13 @@ const WatchPage = () => {
           >
             <Flag className={`h-4 w-4 ${isReported ? 'fill-current' : ''}`} />
           </Button>
+
+          {/* External Sources Button */}
+          <ExternalSourcesDialog
+            title={title || 'Unknown'}
+            mediaType={mediaType as 'movie' | 'tv'}
+            year={String(releaseYear)}
+          />
 
           {/* Settings Dialog */}
           <ServerSettingsDialog />
