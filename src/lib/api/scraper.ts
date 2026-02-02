@@ -5,11 +5,11 @@ export interface ScrapedResult {
   sourceName: string;
   title: string;
   url: string;
-  embedUrl?: string;
   quality?: string;
   size?: string;
   language?: string;
-  isEmbeddable: boolean;
+  opensInNewTab: boolean;
+  isTmdbSource: boolean; // True if uses TMDB ID (reliable), false if scraped
 }
 
 export interface ScrapeResponse {

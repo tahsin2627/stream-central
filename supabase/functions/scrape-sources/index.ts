@@ -3,36 +3,55 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-// Embeddable streaming sources that work with TMDB IDs or can be scraped
-const EMBED_SOURCES = [
+// External streaming sites with TMDB ID support - these open in new tab (blocked iframe embedding)
+const EXTERNAL_TMDB_SOURCES = [
   {
     id: 'autoembed-v2',
     name: 'AutoEmbed V2',
-    baseUrl: 'https://watch-v2.autoembed.cc',
     getMovieUrl: (tmdbId: number) => `https://watch-v2.autoembed.cc/movie/${tmdbId}`,
     getTvUrl: (tmdbId: number, season: number, episode: number) => `https://watch-v2.autoembed.cc/tv/${tmdbId}/${season}/${episode}`,
-    embedPattern: /embed|player/i,
+    quality: 'HD',
+    language: 'Multi',
   },
   {
     id: 'vidsrc-nl',
     name: 'VidSrc NL',
-    baseUrl: 'https://vidsrc.nl',
     getMovieUrl: (tmdbId: number) => `https://vidsrc.nl/embed/movie/${tmdbId}`,
     getTvUrl: (tmdbId: number, season: number, episode: number) => `https://vidsrc.nl/embed/tv/${tmdbId}/${season}/${episode}`,
+    quality: 'HD',
+    language: 'Multi',
   },
   {
     id: 'embedsu',
     name: 'Embed.su',
-    baseUrl: 'https://embed.su',
     getMovieUrl: (tmdbId: number) => `https://embed.su/embed/movie/${tmdbId}`,
     getTvUrl: (tmdbId: number, season: number, episode: number) => `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`,
+    quality: 'HD',
+    language: 'Multi',
   },
   {
     id: 'vidsrc-cc',
     name: 'VidSrc CC',
-    baseUrl: 'https://vidsrc.cc',
     getMovieUrl: (tmdbId: number) => `https://vidsrc.cc/v3/embed/movie/${tmdbId}`,
     getTvUrl: (tmdbId: number, season: number, episode: number) => `https://vidsrc.cc/v3/embed/tv/${tmdbId}/${season}/${episode}`,
+    quality: 'HD',
+    language: 'Multi',
+  },
+  {
+    id: '2embed',
+    name: '2Embed',
+    getMovieUrl: (tmdbId: number) => `https://www.2embed.cc/embed/${tmdbId}`,
+    getTvUrl: (tmdbId: number, season: number, episode: number) => `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`,
+    quality: 'HD',
+    language: 'Multi',
+  },
+  {
+    id: 'superembed',
+    name: 'SuperEmbed',
+    getMovieUrl: (tmdbId: number) => `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`,
+    getTvUrl: (tmdbId: number, season: number, episode: number) => `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`,
+    quality: 'HD',
+    language: 'Multi',
   },
 ];
 
@@ -51,11 +70,12 @@ interface ScrapedResult {
   sourceName: string;
   title: string;
   url: string;
-  embedUrl?: string; // Direct embeddable URL if available
   quality?: string;
   size?: string;
   language?: string;
-  isEmbeddable: boolean;
+  // All sources open in new tab - iframe embedding is blocked by most providers
+  opensInNewTab: boolean;
+  isTmdbSource: boolean; // True if uses TMDB ID (reliable), false if scraped (may not match)
 }
 
 Deno.serve(async (req) => {
@@ -86,10 +106,10 @@ Deno.serve(async (req) => {
 
     const results: ScrapedResult[] = [];
 
-    // 1. First, add known embed sources that work with TMDB IDs
+    // 1. Add known TMDB-based sources (open in new tab - iframe embedding blocked by providers)
     if (tmdbId) {
-      for (const source of EMBED_SOURCES) {
-        const embedUrl = mediaType === 'tv' && season && episode
+      for (const source of EXTERNAL_TMDB_SOURCES) {
+        const sourceUrl = mediaType === 'tv' && season && episode
           ? source.getTvUrl(tmdbId, season, episode)
           : source.getMovieUrl(tmdbId);
 
@@ -97,11 +117,11 @@ Deno.serve(async (req) => {
           source: source.id,
           sourceName: source.name,
           title: query,
-          url: embedUrl,
-          embedUrl: embedUrl,
-          quality: 'Auto',
-          language: 'Multi',
-          isEmbeddable: true,
+          url: sourceUrl,
+          quality: source.quality,
+          language: source.language,
+          opensInNewTab: true,
+          isTmdbSource: true,
         });
       }
     }
@@ -198,7 +218,8 @@ Deno.serve(async (req) => {
             quality,
             size,
             language,
-            isEmbeddable: false, // These are download/external links
+            opensInNewTab: true,
+            isTmdbSource: false, // Scraped results may not match exactly
           });
         }
       }
@@ -207,7 +228,7 @@ Deno.serve(async (req) => {
       // Continue with embed sources even if search fails
     }
 
-    console.log(`Found ${results.length} results (${results.filter(r => r.isEmbeddable).length} embeddable)`);
+    console.log(`Found ${results.length} results (${results.filter(r => r.isTmdbSource).length} TMDB-based)`);
 
     return new Response(
       JSON.stringify({ 
