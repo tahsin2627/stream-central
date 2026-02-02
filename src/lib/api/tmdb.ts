@@ -175,6 +175,15 @@ export const tmdbApi = {
     });
   },
 
+  // Bengali/Bangla TV Shows
+  getBengaliTVShows: (page = 1) => {
+    return tmdbRequest<TMDBPaginatedResponse<TMDBTVShow>>('/discover/tv', { 
+      with_original_language: 'bn',
+      page,
+      sort_by: 'popularity.desc'
+    });
+  },
+
   // Search
   searchMulti: (query: string, page = 1) => {
     return tmdbRequest<TMDBPaginatedResponse<TMDBMovie | TMDBTVShow>>('/search/multi', { query, page });
