@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Star, Calendar, Clock, Server, ChevronDown, Check, Play, RotateCcw, RotateCw, AlertTriangle, Loader2, Flag } from 'lucide-react';
+import { ArrowLeft, Star, Calendar, Clock, Server, ChevronDown, Check, Play, RotateCcw, RotateCw, AlertTriangle, Loader2, Flag, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -28,10 +28,12 @@ import { LoadingOverlay } from '@/components/player/LoadingOverlay';
 import { LanguageSelector } from '@/components/player/LanguageSelector';
 import { PlayerControlBar } from '@/components/player/PlayerControlBar';
 import { VideoOverlay } from '@/components/player/VideoOverlay';
+import { NativePlayer } from '@/components/player/NativePlayer';
 import { useToast } from '@/hooks/use-toast';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
 import { AddCustomStreamDialog } from '@/components/player/AddCustomStreamDialog';
 import { useCustomStreams } from '@/hooks/useCustomStreams';
+import { useStreamExtraction, StreamSource } from '@/hooks/useStreamExtraction';
 
 const FALLBACK_TIMEOUT_MS = 10000; // 10 seconds
 
@@ -51,7 +53,11 @@ const WatchPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [attemptedServers, setAttemptedServers] = useState<string[]>([]);
   const [isFallbackTriggered, setIsFallbackTriggered] = useState(false);
-  // External embed feature removed - most providers block iframe embedding
+  const [useNativePlayer, setUseNativePlayer] = useState(false);
+  const [nativeSources, setNativeSources] = useState<StreamSource[]>([]);
+  
+  // Stream extraction hook
+  const { extractStreams, isExtracting, sources: extractedSources } = useStreamExtraction();
 
   const mediaType = type === 'tv' ? 'tv' : 'movie';
   const tmdbId = Number(id);
@@ -295,12 +301,60 @@ const WatchPage = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Native Player Toggle Button */}
+          <Button
+            variant={useNativePlayer ? "default" : "ghost"}
+            size="sm"
+            onClick={async () => {
+              if (!useNativePlayer) {
+                // Extract streams and switch to native player
+                toast({
+                  title: "Extracting stream...",
+                  description: "Finding direct video source",
+                });
+                const result = await extractStreams({
+                  tmdbId,
+                  mediaType: mediaType as 'movie' | 'tv',
+                  season: mediaType === 'tv' ? selectedSeason : undefined,
+                  episode: mediaType === 'tv' ? selectedEpisode : undefined,
+                });
+                if (result.success && result.sources && result.sources.length > 0) {
+                  setNativeSources(result.sources);
+                  setUseNativePlayer(true);
+                  toast({
+                    title: "Native player ready!",
+                    description: `Found ${result.sources.length} stream(s) from ${result.provider}`,
+                  });
+                } else {
+                  toast({
+                    title: "No streams found",
+                    description: result.error || "This content requires iframe playback",
+                    variant: "destructive",
+                  });
+                }
+              } else {
+                setUseNativePlayer(false);
+                setNativeSources([]);
+              }
+            }}
+            disabled={isExtracting}
+            className={`h-8 sm:h-9 px-2 sm:px-3 gap-1.5 ${useNativePlayer ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'}`}
+            title={useNativePlayer ? 'Using native player (no ads!)' : 'Try native player'}
+          >
+            {isExtracting ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Zap className="h-3.5 w-3.5" />
+            )}
+            <span className="text-xs hidden sm:inline">{useNativePlayer ? 'Native' : 'Try Native'}</span>
+          </Button>
+
           {/* Report Button */}
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={handleReportServer}
-            disabled={isReported}
+            disabled={isReported || useNativePlayer}
             className={`h-8 w-8 sm:h-9 sm:w-9 ${isReported ? 'text-destructive' : 'text-muted-foreground hover:text-destructive'}`}
             title={isReported ? 'Server already reported' : 'Report broken server'}
           >
@@ -442,42 +496,62 @@ const WatchPage = () => {
         {/* Video Player Area */}
         <div className="flex-shrink-0 w-full lg:flex-1 bg-black relative flex flex-col player-container">
           <div className="relative w-full aspect-video lg:flex-1">
-            {/* Loading Overlay */}
-            <AnimatePresence>
-              {isLoading && (
-                <LoadingOverlay
-                  mediaType={mediaType as 'movie' | 'tv'}
-                  season={selectedSeason}
-                  episode={selectedEpisode}
-                  serverName={selectedServer.name}
-                  serverFlag={selectedServer.flag}
-                  autoFallback={autoFallback}
-                  isFallbackTriggered={isFallbackTriggered}
-                  title={title}
+            {/* Native Player Mode */}
+            {useNativePlayer && nativeSources.length > 0 ? (
+              <NativePlayer
+                sources={nativeSources}
+                title={title}
+                poster={content?.backdrop_path ? `https://image.tmdb.org/t/p/w1280${content.backdrop_path}` : undefined}
+                onError={() => {
+                  toast({
+                    title: "Playback failed",
+                    description: "Switching back to iframe mode",
+                    variant: "destructive",
+                  });
+                  setUseNativePlayer(false);
+                  setNativeSources([]);
+                }}
+              />
+            ) : (
+              <>
+                {/* Loading Overlay */}
+                <AnimatePresence>
+                  {isLoading && !useNativePlayer && (
+                    <LoadingOverlay
+                      mediaType={mediaType as 'movie' | 'tv'}
+                      season={selectedSeason}
+                      episode={selectedEpisode}
+                      serverName={selectedServer.name}
+                      serverFlag={selectedServer.flag}
+                      autoFallback={autoFallback}
+                      isFallbackTriggered={isFallbackTriggered}
+                      title={title}
+                    />
+                  )}
+                </AnimatePresence>
+
+                {/* Video Iframe */}
+                <iframe
+                  ref={iframeRef}
+                  key={embedUrl}
+                  src={embedUrl}
+                  className="absolute inset-0 w-full h-full"
+                  allowFullScreen
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  referrerPolicy="origin"
+                  title="Video Player"
+                  onLoad={handleIframeLoad}
+                  onError={() => {
+                    // Auto-fallback on error
+                    handleAutoFallback();
+                  }}
                 />
-              )}
-            </AnimatePresence>
 
-            {/* Video Iframe */}
-            <iframe
-              ref={iframeRef}
-              key={embedUrl}
-              src={embedUrl}
-              className="absolute inset-0 w-full h-full"
-              allowFullScreen
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="origin"
-              title="Video Player"
-              onLoad={handleIframeLoad}
-              onError={() => {
-                // Auto-fallback on error
-                handleAutoFallback();
-              }}
-            />
-
-            {/* Video Controls Overlay - Tap to show/hide */}
-            {!isLoading && (
-              <VideoOverlay showInitially={false} />
+                {/* Video Controls Overlay - Tap to show/hide */}
+                {!isLoading && (
+                  <VideoOverlay showInitially={false} />
+                )}
+              </>
             )}
           </div>
 
