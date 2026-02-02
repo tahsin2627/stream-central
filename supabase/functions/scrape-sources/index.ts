@@ -55,14 +55,50 @@ const EXTERNAL_TMDB_SOURCES = [
   },
 ];
 
-// Download sites for scraping (returns links, not embeds)
-const DOWNLOAD_SITES = [
-  'fzmovies.net',
-  'hdhub4u',
-  '123moviesfree',
-  'hdstream4u',
-  'gomovies',
-  'fmovies',
+// Regional/Download sites for scraping (returns links to watch pages)
+const REGIONAL_SITES = [
+  {
+    domain: '1tamilblasters',
+    name: 'TamilBlasters',
+    searchDomains: ['1tamilblasters.auction', '1tamilblasters.business'],
+    languages: ['Tamil', 'Telugu', 'Malayalam', 'Hindi'],
+    type: 'streaming',
+  },
+  {
+    domain: 'skymovieshd',
+    name: 'SkyMoviesHD',
+    searchDomains: ['skymovieshd.mba', 'skymovieshd.skin'],
+    languages: ['Hindi', 'Bengali', 'Dual Audio'],
+    type: 'download',
+  },
+  {
+    domain: 'fzmovies',
+    name: 'FZMovies',
+    searchDomains: ['fzmovies.net'],
+    languages: ['English', 'Hindi'],
+    type: 'download',
+  },
+  {
+    domain: 'hdhub4u',
+    name: 'HDHub4U',
+    searchDomains: ['hdhub4u'],
+    languages: ['Hindi', 'Dual Audio'],
+    type: 'download',
+  },
+  {
+    domain: 'bolly4u',
+    name: 'Bolly4U',
+    searchDomains: ['bolly4u'],
+    languages: ['Hindi', 'Bollywood'],
+    type: 'download',
+  },
+  {
+    domain: 'movieswood',
+    name: 'MoviesWood',
+    searchDomains: ['movieswood'],
+    languages: ['Telugu', 'Tamil', 'Hindi'],
+    type: 'download',
+  },
 ];
 
 interface ScrapedResult {
@@ -126,9 +162,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 2. Search for additional sources using Firecrawl
-    const siteQueries = DOWNLOAD_SITES.map(site => `site:${site}`).join(' OR ');
-    const searchQuery = `${query} ${mediaType === 'tv' ? 'series' : 'movie'} (${siteQueries}) download stream`;
+    // 2. Search for additional sources using Firecrawl on regional sites
+    const siteQueries = REGIONAL_SITES.flatMap(s => s.searchDomains).map(domain => `site:${domain}`).join(' OR ');
+    const searchQuery = `${query} ${mediaType === 'tv' ? 'series' : 'movie'} (${siteQueries})`;
     
     try {
       const response = await fetch('https://api.firecrawl.dev/v1/search', {
@@ -139,7 +175,7 @@ Deno.serve(async (req) => {
         },
         body: JSON.stringify({
           query: searchQuery,
-          limit: 10,
+          limit: 15,
           scrapeOptions: {
             formats: ['markdown', 'links'],
           },
@@ -154,54 +190,46 @@ Deno.serve(async (req) => {
           
           // Skip irrelevant URLs
           if (!url || url.includes('youtube.com') || url.includes('imdb.com') || 
-              url.includes('bilibili.com') || url.includes('wikipedia.org')) {
+              url.includes('bilibili.com') || url.includes('wikipedia.org') ||
+              url.includes('facebook.com') || url.includes('twitter.com')) {
             continue;
           }
 
-          // Try to determine source name from URL
-          let sourceName = 'External';
-          let sourceId = 'external';
-          
-          if (url.includes('fzmovies')) {
-            sourceName = 'FZMovies';
-            sourceId = 'fzmovies';
-          } else if (url.includes('hdhub4u')) {
-            sourceName = 'HDHub4U';
-            sourceId = 'hdhub4u';
-          } else if (url.includes('123movie')) {
-            sourceName = '123Movies';
-            sourceId = '123movies';
-          } else if (url.includes('hdstream4u')) {
-            sourceName = 'HDStream4U';
-            sourceId = 'hdstream4u';
-          } else if (url.includes('gomovies')) {
-            sourceName = 'GoMovies';
-            sourceId = 'gomovies';
-          } else if (url.includes('fmovies')) {
-            sourceName = 'FMovies';
-            sourceId = 'fmovies';
+          // Find matching regional site
+          let matchedSite: typeof REGIONAL_SITES[0] | undefined;
+          for (const site of REGIONAL_SITES) {
+            if (site.searchDomains.some(domain => url.includes(domain)) || url.includes(site.domain)) {
+              matchedSite = site;
+              break;
+            }
           }
 
-          // Only add if it's from a known streaming/download site
-          if (sourceId === 'external') continue;
+          // Only add if it's from a known site
+          if (!matchedSite) continue;
 
           // Extract quality hints from title/content
           const content = (item.markdown || item.title || '').toLowerCase();
-          let quality = 'Unknown';
+          let quality = 'HD';
           if (content.includes('1080p') || content.includes('1080')) quality = '1080p';
           else if (content.includes('720p') || content.includes('720')) quality = '720p';
           else if (content.includes('480p') || content.includes('480')) quality = '480p';
           else if (content.includes('4k') || content.includes('2160')) quality = '4K';
-          else if (content.includes('cam') || content.includes('hdcam')) quality = 'CAM';
+          else if (content.includes('cam') || content.includes('hdcam') || content.includes('predvd')) quality = 'CAM';
+          else if (content.includes('bluray') || content.includes('blu-ray')) quality = 'BluRay';
+          else if (content.includes('webrip') || content.includes('web-rip')) quality = 'WEB';
+          else if (content.includes('hdrip') || content.includes('hd rip')) quality = 'HDRip';
 
           // Extract language hints
-          let language = 'English';
-          if (content.includes('hindi')) language = 'Hindi';
+          let language = matchedSite.languages[0] || 'Multi';
+          if (content.includes('hindi') || content.includes('hin')) language = 'Hindi';
           else if (content.includes('bengali') || content.includes('bangla')) language = 'Bengali';
-          else if (content.includes('tamil')) language = 'Tamil';
-          else if (content.includes('telugu')) language = 'Telugu';
-          else if (content.includes('korean')) language = 'Korean';
-          else if (content.includes('dual audio')) language = 'Dual Audio';
+          else if (content.includes('tamil') || content.includes('tam')) language = 'Tamil';
+          else if (content.includes('telugu') || content.includes('tel')) language = 'Telugu';
+          else if (content.includes('malayalam') || content.includes('mal')) language = 'Malayalam';
+          else if (content.includes('kannada') || content.includes('kan')) language = 'Kannada';
+          else if (content.includes('korean') || content.includes('kor')) language = 'Korean';
+          else if (content.includes('dual audio') || content.includes('dual-audio')) language = 'Dual Audio';
+          else if (content.includes('multi') || content.includes('[tam + tel')) language = 'Multi';
 
           // Extract size if mentioned
           let size: string | undefined;
@@ -211,14 +239,14 @@ Deno.serve(async (req) => {
           }
 
           results.push({
-            source: sourceId,
-            sourceName,
+            source: matchedSite.domain,
+            sourceName: matchedSite.name,
             title: item.title || query,
             url,
             quality,
             size,
             language,
-            opensInNewTab: true,
+            opensInNewTab: true, // Will use in-app browser which can fallback to new tab
             isTmdbSource: false, // Scraped results may not match exactly
           });
         }
