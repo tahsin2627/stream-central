@@ -31,6 +31,7 @@ interface VideoServer {
 }
 
 const VIDEO_SERVERS: VideoServer[] = [
+  // Primary servers
   {
     id: 'autoembed',
     name: 'Crown',
@@ -63,6 +64,52 @@ const VIDEO_SERVERS: VideoServer[] = [
       return `https://vidsrc.pro/embed/${mediaType}/${tmdbId}`;
     },
   },
+  // Dubbed / Multi-language servers
+  {
+    id: 'moviesapi',
+    name: 'Hindi',
+    flag: '🇮🇳',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://moviesapi.club/tv/${tmdbId}-${season}-${episode}`;
+      }
+      return `https://moviesapi.club/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'embedsu',
+    name: 'Desi',
+    flag: '🇮🇳',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://embed.su/embed/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'vidsrcicu',
+    name: 'Dub',
+    flag: '🌏',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.icu/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidsrc.icu/embed/${mediaType}/${tmdbId}`;
+    },
+  },
+  {
+    id: 'nontongo',
+    name: 'Asia',
+    flag: '🇯🇵',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://www.nontongo.win/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://www.nontongo.win/embed/movie/${tmdbId}`;
+    },
+  },
+  // Backup servers
   {
     id: '2embed',
     name: 'Orion',
@@ -86,17 +133,6 @@ const VIDEO_SERVERS: VideoServer[] = [
     },
   },
   {
-    id: 'embedsu',
-    name: 'Beta',
-    flag: '🇮🇳',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://embed.su/embed/movie/${tmdbId}`;
-    },
-  },
-  {
     id: 'smashystream',
     name: 'Nexon',
     flag: '🇺🇸',
@@ -108,14 +144,25 @@ const VIDEO_SERVERS: VideoServer[] = [
     },
   },
   {
-    id: 'moviesapi',
-    name: 'Hindi',
-    flag: '🇮🇳',
+    id: 'vidlink',
+    name: 'Nova',
+    flag: '🌐',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://moviesapi.club/tv/${tmdbId}-${season}-${episode}`;
+        return `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://moviesapi.club/movie/${tmdbId}`;
+      return `https://vidlink.pro/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'superembed',
+    name: 'Super',
+    flag: '⚡',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`;
+      }
+      return `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1`;
     },
   },
 ];
@@ -249,8 +296,46 @@ const WatchPage = () => {
               <ChevronDown className="h-3 w-3 opacity-60" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44 bg-popover">
-            {VIDEO_SERVERS.map((server) => (
+          <DropdownMenuContent align="end" className="w-52 bg-popover max-h-80 overflow-y-auto">
+            {/* Primary servers */}
+            <div className="px-2 py-1 text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase">Primary</div>
+            {VIDEO_SERVERS.slice(0, 3).map((server) => (
+              <DropdownMenuItem
+                key={server.id}
+                onClick={() => handleServerChange(server)}
+                className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm"
+              >
+                <span className="flex items-center gap-2">
+                  <span>{server.flag}</span>
+                  <span>{server.name}</span>
+                </span>
+                {selectedServer.id === server.id && (
+                  <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                )}
+              </DropdownMenuItem>
+            ))}
+            
+            {/* Dubbed / Multi-language servers */}
+            <div className="px-2 py-1 mt-1 text-[10px] sm:text-xs font-semibold text-amber-500 uppercase border-t border-border/50">🔊 Dubbed / Regional</div>
+            {VIDEO_SERVERS.slice(3, 8).map((server) => (
+              <DropdownMenuItem
+                key={server.id}
+                onClick={() => handleServerChange(server)}
+                className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm"
+              >
+                <span className="flex items-center gap-2">
+                  <span>{server.flag}</span>
+                  <span>{server.name}</span>
+                </span>
+                {selectedServer.id === server.id && (
+                  <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                )}
+              </DropdownMenuItem>
+            ))}
+            
+            {/* Backup servers */}
+            <div className="px-2 py-1 mt-1 text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase border-t border-border/50">Backup</div>
+            {VIDEO_SERVERS.slice(8).map((server) => (
               <DropdownMenuItem
                 key={server.id}
                 onClick={() => handleServerChange(server)}
