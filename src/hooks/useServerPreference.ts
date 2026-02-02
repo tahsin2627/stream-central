@@ -392,18 +392,21 @@ export const getNextServer = (
 
 export const useServerPreference = () => {
   const [preferredServer, setPreferredServerState] = useState<VideoServer>(() => {
-    if (typeof window === 'undefined') return VIDEO_SERVERS[0];
+    if (typeof window === 'undefined') return getDefaultServerForLanguage('hindi');
     const saved = localStorage.getItem(STORAGE_KEYS.SERVER);
     if (saved) {
       const found = VIDEO_SERVERS.find(s => s.id === saved);
       if (found) return found;
     }
-    return VIDEO_SERVERS[0];
+    // Default to Hindi server for prioritizing dubbed content globally
+    const savedLang = localStorage.getItem(STORAGE_KEYS.LANGUAGE) as LanguagePreference;
+    return getDefaultServerForLanguage(savedLang || 'hindi');
   });
 
   const [languagePreference, setLanguagePreferenceState] = useState<LanguagePreference>(() => {
-    if (typeof window === 'undefined') return 'default';
-    return (localStorage.getItem(STORAGE_KEYS.LANGUAGE) as LanguagePreference) || 'default';
+    if (typeof window === 'undefined') return 'hindi';
+    // Default to Hindi for prioritizing dubbed content globally
+    return (localStorage.getItem(STORAGE_KEYS.LANGUAGE) as LanguagePreference) || 'hindi';
   });
 
   const [autoFallback, setAutoFallbackState] = useState<boolean>(() => {

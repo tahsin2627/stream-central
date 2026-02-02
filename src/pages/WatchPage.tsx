@@ -25,6 +25,8 @@ import { EpisodeList } from '@/components/player/EpisodeList';
 import { ServerSettingsDialog } from '@/components/player/ServerSettingsDialog';
 import { ExternalSourcesDialog } from '@/components/player/ExternalSourcesDialog';
 import { PlaybackOverlay } from '@/components/player/PlaybackOverlay';
+import { LoadingOverlay } from '@/components/player/LoadingOverlay';
+import { LanguageSelector } from '@/components/player/LanguageSelector';
 import { useToast } from '@/hooks/use-toast';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
 import { AddCustomStreamDialog } from '@/components/player/AddCustomStreamDialog';
@@ -327,6 +329,9 @@ const WatchPage = () => {
             episode={mediaType === 'tv' ? selectedEpisode : undefined}
           />
 
+          {/* Language Selector - Prominent in header */}
+          <LanguageSelector compact />
+
           {/* Settings Dialog */}
           <ServerSettingsDialog />
 
@@ -443,45 +448,16 @@ const WatchPage = () => {
             {/* Loading Overlay */}
             <AnimatePresence>
               {isLoading && (
-                <motion.div
-                  initial={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black"
-                >
-                  <motion.img
-                    src={wellplayerLogo}
-                    alt="Loading"
-                    className="h-12 w-12 sm:h-16 sm:w-16 rounded-xl mb-3 sm:mb-4"
-                    animate={{ scale: [1, 1.05, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                  <p className="text-white/60 text-xs sm:text-sm mb-2">
-                    Loading {mediaType === 'tv' ? `S${selectedSeason} E${selectedEpisode}` : 'movie'}...
-                  </p>
-                  
-                  {/* Server info */}
-                  <div className="flex items-center gap-2 text-white/40 text-xs">
-                    <span>{selectedServer.flag} {selectedServer.name}</span>
-                    {autoFallback && (
-                      <span className="flex items-center gap-1 text-amber-500/60">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        Auto-switching in 10s
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Fallback notice */}
-                  {isFallbackTriggered && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="mt-3 flex items-center gap-2 text-amber-500 text-xs"
-                    >
-                      <AlertTriangle className="h-3 w-3" />
-                      Previous server timed out
-                    </motion.div>
-                  )}
-                </motion.div>
+                <LoadingOverlay
+                  mediaType={mediaType as 'movie' | 'tv'}
+                  season={selectedSeason}
+                  episode={selectedEpisode}
+                  serverName={selectedServer.name}
+                  serverFlag={selectedServer.flag}
+                  autoFallback={autoFallback}
+                  isFallbackTriggered={isFallbackTriggered}
+                  title={title}
+                />
               )}
             </AnimatePresence>
 
