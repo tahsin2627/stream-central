@@ -537,8 +537,9 @@ const WatchPage = () => {
                   src={embedUrl}
                   className="absolute inset-0 w-full h-full"
                   allowFullScreen
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="origin"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation"
                   title="Video Player"
                   onLoad={handleIframeLoad}
                   onError={() => {
@@ -559,6 +560,7 @@ const WatchPage = () => {
           <PlayerControlBar
             mediaType={mediaType as 'movie' | 'tv'}
             currentServer={`${selectedServer.flag} ${selectedServer.name}`}
+            embedUrl={embedUrl}
             onRefresh={() => {
               // Force re-render of iframe
               const currentUrl = embedUrl;
