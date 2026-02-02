@@ -108,15 +108,6 @@ const SourceCard = ({
             )}
           </div>
         </div>
-        <Button 
-          size="sm" 
-          variant="secondary"
-          onClick={(e) => { e.stopPropagation(); onOpen(); }}
-          className="gap-1.5 shrink-0"
-        >
-          <ExternalLink className="h-3.5 w-3.5" />
-          <span>Open</span>
-        </Button>
       </div>
     </div>
   );
@@ -259,8 +250,8 @@ export const ExternalSourcesDialog = ({
         <div className="rounded-lg bg-muted/50 border border-border p-3 text-xs text-muted-foreground mt-2">
           <p className="font-medium mb-1">💡 About External Sources</p>
           <p>
-            Sources open in a new browser tab. TMDB sources use reliable ID-based lookups, 
-            while Regional sources are scraped and may vary in accuracy.
+            Click any source to open it. TMDB sources use reliable ID-based lookups, 
+            while Regional sources are search-based and may vary in accuracy.
           </p>
         </div>
       </DialogContent>

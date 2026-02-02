@@ -71,11 +71,12 @@ export const useAIStreamEngine = (options: UseAIStreamEngineOptions) => {
       const response = data as AIEngineResponse;
 
       if (!response.success) {
-        setError(response.error || 'No streams found');
-        setSearchedSources(response.searchedSources || []);
+        // Don't show error message - just indicate still searching
+        setError(null);
+        setSearchedSources([]);
       } else {
         setStreams(response.streams || []);
-        setSearchedSources(response.searchedSources || []);
+        setSearchedSources([]); // Hide source names for privacy
         console.log(`[AI Engine] Found ${response.streams?.length || 0} streams`);
       }
     } catch (err) {
