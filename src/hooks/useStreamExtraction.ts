@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 export interface StreamSource {
   url: string;
   quality: string;
-  type: 'hls' | 'mp4' | 'dash';
+  type: 'hls' | 'mp4' | 'dash' | 'embed';
 }
 
 interface ExtractionResult {
