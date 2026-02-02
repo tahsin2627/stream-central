@@ -17,9 +17,10 @@ export interface AIStream {
   streamUrl: string;
   proxiedUrl: string; // CORS-bypassed URL
   quality: string;
-  type: 'hls' | 'mp4' | 'dash';
+  type: 'hls' | 'mp4' | 'dash' | 'embed';
   confidence: number;
   requiresProxy?: boolean;
+  embedUrl?: string;
 }
 
 interface AIEngineResponse {
@@ -86,14 +87,15 @@ export const useAIStreamEngine = (options: UseAIStreamEngineOptions) => {
         setError(null);
         setSearchedSources([]);
       } else {
-        // Add proxied URLs to all streams
+        // Add proxied URLs to non-embed streams
         const streamsWithProxy = (response.streams || []).map((stream: any) => ({
           ...stream,
-          proxiedUrl: getProxiedUrl(stream.streamUrl),
+          // Only proxy HLS/MP4 streams, not embeds
+          proxiedUrl: stream.type !== 'embed' ? getProxiedUrl(stream.streamUrl) : stream.streamUrl,
         }));
         setStreams(streamsWithProxy);
-        setSearchedSources([]); // Hide source names for privacy
-        console.log(`[AI Engine] Found ${streamsWithProxy.length} streams`);
+        setSearchedSources([]);
+        console.log(`[AI Engine] Found ${streamsWithProxy.length} streams/embeds`);
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'AI engine failed';

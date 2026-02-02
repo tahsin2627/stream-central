@@ -55,6 +55,7 @@ const WatchPage = () => {
   const [isFallbackTriggered, setIsFallbackTriggered] = useState(false);
   const [useNativePlayer, setUseNativePlayer] = useState(false);
   const [nativeSources, setNativeSources] = useState<StreamSource[]>([]);
+  const [aiEmbedUrl, setAiEmbedUrl] = useState<string | null>(null);
   
   // Stream extraction hook
   const { extractStreams, isExtracting, sources: extractedSources } = useStreamExtraction();
@@ -173,9 +174,9 @@ const WatchPage = () => {
     name: `Episode ${i + 1}`,
   }));
 
-  // Embed URL from selected server
-  const embedUrl = selectedServer.getUrl(tmdbId, mediaType, selectedSeason, selectedEpisode);
-  const currentSourceName = `${selectedServer.flag} ${selectedServer.name}`;
+  // Embed URL - use AI-found embed if available, otherwise use selected server
+  const embedUrl = aiEmbedUrl || selectedServer.getUrl(tmdbId, mediaType, selectedSeason, selectedEpisode);
+  const currentSourceName = aiEmbedUrl ? '🧠 AI Engine' : `${selectedServer.flag} ${selectedServer.name}`;
 
   // Clear fallback timer
   const clearFallbackTimer = useCallback(() => {
@@ -264,6 +265,7 @@ const WatchPage = () => {
   const handleServerChange = useCallback((server: VideoServer) => {
     if (server.id !== selectedServer.id) {
       setSelectedServer(server);
+      setAiEmbedUrl(null); // Clear AI embed when manually changing server
       if (server.id !== 'my-server') {
         setPreferredServer(server); // Remember preference (not for custom server)
       }
@@ -375,21 +377,32 @@ const WatchPage = () => {
             size="sm"
             onClick={async () => {
               if (aiEngine.streams.length > 0) {
-                // Play best AI stream in native player using proxied URL
                 const bestStream = aiEngine.getBestStream();
                 if (bestStream) {
-                  // Use proxied URL to bypass CORS
-                  const streamUrl = bestStream.proxiedUrl || bestStream.streamUrl;
-                  setNativeSources([{
-                    url: streamUrl,
-                    quality: bestStream.quality,
-                    type: bestStream.type,
-                  }]);
-                  setUseNativePlayer(true);
-                  toast({
-                    title: "🧠 AI Engine Active",
-                    description: `Playing ${bestStream.quality} stream`,
-                  });
+                  // For embed types, use the embed URL in iframe
+                  if (bestStream.type === 'embed' && bestStream.embedUrl) {
+                    setAiEmbedUrl(bestStream.embedUrl);
+                    setUseNativePlayer(false);
+                    setIsLoading(true);
+                    toast({
+                      title: "🧠 AI Engine Active",
+                      description: "Switching to AI-found source",
+                    });
+                  } else {
+                    // Play HLS/MP4 in native player using proxied URL
+                    setAiEmbedUrl(null);
+                    const streamUrl = bestStream.proxiedUrl || bestStream.streamUrl;
+                    setNativeSources([{
+                      url: streamUrl,
+                      quality: bestStream.quality,
+                      type: bestStream.type as 'hls' | 'mp4' | 'dash',
+                    }]);
+                    setUseNativePlayer(true);
+                    toast({
+                      title: "🧠 AI Engine Active",
+                      description: `Playing ${bestStream.quality} stream`,
+                    });
+                  }
                 }
               } else if (!aiEngine.isSearching) {
                 // Manually trigger search

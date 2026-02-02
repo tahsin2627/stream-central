@@ -30,7 +30,7 @@ import wellplayerLogo from '@/assets/wellplayer-logo.png';
 interface StreamSource {
   url: string;
   quality: string;
-  type: 'hls' | 'mp4' | 'dash';
+  type: 'hls' | 'mp4' | 'dash' | 'embed';
 }
 
 interface NativePlayerProps {
