@@ -84,7 +84,7 @@ export const usePopularTVShows = (page = 1) => {
   });
 };
 
-// Indian/Bollywood Movies
+// Indian/Bollywood Movies - Latest first
 export const useBollywoodMovies = (page = 1) => {
   return useQuery({
     queryKey: ['movies', 'bollywood', page],
@@ -98,7 +98,49 @@ export const useBollywoodMovies = (page = 1) => {
   });
 };
 
-// Korean Dramas
+// Tamil Movies - Latest first
+export const useTamilMovies = (page = 1) => {
+  return useQuery({
+    queryKey: ['movies', 'tamil', page],
+    queryFn: async () => {
+      const response = await tmdbApi.getTamilMovies(page);
+      if (!response.success) throw new Error(response.error);
+      return response.data as TMDBPaginatedResponse<TMDBMovie>;
+    },
+    staleTime: STALE_TIME_SHORT,
+    gcTime: GC_TIME,
+  });
+};
+
+// Telugu Movies - Latest first
+export const useTeluguMovies = (page = 1) => {
+  return useQuery({
+    queryKey: ['movies', 'telugu', page],
+    queryFn: async () => {
+      const response = await tmdbApi.getTeluguMovies(page);
+      if (!response.success) throw new Error(response.error);
+      return response.data as TMDBPaginatedResponse<TMDBMovie>;
+    },
+    staleTime: STALE_TIME_SHORT,
+    gcTime: GC_TIME,
+  });
+};
+
+// Hollywood Movies - Latest first
+export const useHollywoodMovies = (page = 1) => {
+  return useQuery({
+    queryKey: ['movies', 'hollywood', page],
+    queryFn: async () => {
+      const response = await tmdbApi.getHollywoodMovies(page);
+      if (!response.success) throw new Error(response.error);
+      return response.data as TMDBPaginatedResponse<TMDBMovie>;
+    },
+    staleTime: STALE_TIME_SHORT,
+    gcTime: GC_TIME,
+  });
+};
+
+// Korean Dramas - Latest first
 export const useKoreanDramas = (page = 1) => {
   return useQuery({
     queryKey: ['tv', 'korean', page],
@@ -112,7 +154,7 @@ export const useKoreanDramas = (page = 1) => {
   });
 };
 
-// Bengali/Bangla Movies
+// Bengali/Bangla Movies - Latest first
 export const useBengaliMovies = (page = 1) => {
   return useQuery({
     queryKey: ['movies', 'bengali', page],
@@ -126,12 +168,40 @@ export const useBengaliMovies = (page = 1) => {
   });
 };
 
-// Bengali/Bangla TV Shows
+// Bengali/Bangla TV Shows - Latest first
 export const useBengaliTVShows = (page = 1) => {
   return useQuery({
     queryKey: ['tv', 'bengali', page],
     queryFn: async () => {
       const response = await tmdbApi.getBengaliTVShows(page);
+      if (!response.success) throw new Error(response.error);
+      return response.data as TMDBPaginatedResponse<TMDBTVShow>;
+    },
+    staleTime: STALE_TIME_SHORT,
+    gcTime: GC_TIME,
+  });
+};
+
+// Latest Movies - All languages
+export const useLatestMovies = (page = 1) => {
+  return useQuery({
+    queryKey: ['movies', 'latest', page],
+    queryFn: async () => {
+      const response = await tmdbApi.getLatestMovies(page);
+      if (!response.success) throw new Error(response.error);
+      return response.data as TMDBPaginatedResponse<TMDBMovie>;
+    },
+    staleTime: STALE_TIME_SHORT,
+    gcTime: GC_TIME,
+  });
+};
+
+// Latest TV Shows - All languages
+export const useLatestTVShows = (page = 1) => {
+  return useQuery({
+    queryKey: ['tv', 'latest', page],
+    queryFn: async () => {
+      const response = await tmdbApi.getLatestTVShows(page);
       if (!response.success) throw new Error(response.error);
       return response.data as TMDBPaginatedResponse<TMDBTVShow>;
     },
