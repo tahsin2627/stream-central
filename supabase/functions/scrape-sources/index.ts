@@ -5,6 +5,15 @@ const corsHeaders = {
 
 // External streaming sites with TMDB ID support - these open in new tab (blocked iframe embedding)
 const EXTERNAL_TMDB_SOURCES = [
+  // TOP PRIORITY - Cineby (Best regional content, uses TMDB IDs)
+  {
+    id: 'cineby',
+    name: '🎬 Cineby',
+    getMovieUrl: (tmdbId: number) => `https://www.cineby.gd/movie/${tmdbId}?play=true`,
+    getTvUrl: (tmdbId: number, season: number, episode: number) => `https://www.cineby.gd/tv/${tmdbId}/${season}/${episode}?play=true`,
+    quality: 'HD',
+    language: 'Hindi/Multi',
+  },
   {
     id: 'autoembed-v2',
     name: 'AutoEmbed V2',
@@ -55,7 +64,7 @@ const EXTERNAL_TMDB_SOURCES = [
   },
 ];
 
-// TamilBlasters only - focused regional source
+// Regional sites for scraping - including MovieLinkBD
 const REGIONAL_SITES = [
   {
     domain: '1tamilblasters',
@@ -63,6 +72,13 @@ const REGIONAL_SITES = [
     searchDomains: ['1tamilblasters.auction'],
     languages: ['Tamil', 'Telugu', 'Malayalam', 'Hindi', 'Bengali'],
     type: 'streaming',
+  },
+  {
+    domain: 'movielinkbd',
+    name: '🇧🇩 MovieLinkBD',
+    searchDomains: ['movielinkbd.li', 'mlink99d.movielinkbd.li'],
+    languages: ['Bengali', 'Hindi', 'Hindi Dubbed', 'Dual Audio', 'English'],
+    type: 'download',
   },
 ];
 

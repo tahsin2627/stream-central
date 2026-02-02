@@ -38,20 +38,7 @@ const STORAGE_KEYS = {
 const REPORT_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export const VIDEO_SERVERS: VideoServer[] = [
-  // CINEBY - TOP PRIORITY (Best for Hindi/Regional content, uses TMDB IDs)
-  {
-    id: 'cineby',
-    name: 'Cineby',
-    flag: '🎬',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://www.cineby.gd/tv/${tmdbId}/${season}/${episode}?play=true`;
-      }
-      return `https://www.cineby.gd/movie/${tmdbId}?play=true`;
-    },
-  },
-  // HINDI DUBBED - HIGH PRIORITY (for India/Bangladesh audience)
+  // HINDI DUBBED - TOP PRIORITY (for India/Bangladesh audience)
   {
     id: 'moviesapi',
     name: 'Hindi',
@@ -306,14 +293,14 @@ export const getAllServers = () => VIDEO_SERVERS;
 export const getDefaultServerForLanguage = (lang: LanguagePreference): VideoServer => {
   switch (lang) {
     case 'hindi':
-      return VIDEO_SERVERS.find(s => s.id === 'cineby') || VIDEO_SERVERS[0];
+      return VIDEO_SERVERS.find(s => s.id === 'moviesapi') || VIDEO_SERVERS[0];
     case 'bengali':
-      // Bengali content works best with Cineby or South Asian servers
-      return VIDEO_SERVERS.find(s => s.id === 'cineby') || VIDEO_SERVERS[0];
+      // Bengali content works best with South Asian servers
+      return VIDEO_SERVERS.find(s => s.id === 'nontongo') || VIDEO_SERVERS[0];
     case 'asian':
       return VIDEO_SERVERS.find(s => s.id === 'nontongo') || VIDEO_SERVERS[0];
     case 'dubbed':
-      return VIDEO_SERVERS.find(s => s.id === 'cineby') || VIDEO_SERVERS[0];
+      return VIDEO_SERVERS.find(s => s.id === 'vidsrcicu') || VIDEO_SERVERS[0];
     default:
       return VIDEO_SERVERS[0];
   }
