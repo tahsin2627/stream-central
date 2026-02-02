@@ -63,6 +63,30 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://vidsrc.pro/embed/${mediaType}/${tmdbId}`;
     },
   },
+  {
+    id: 'vidsrcto',
+    name: 'Apex',
+    flag: '🔥',
+    category: 'primary',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.to/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidsrc.to/embed/${mediaType}/${tmdbId}`;
+    },
+  },
+  {
+    id: 'superembedstream',
+    name: 'Blaze',
+    flag: '🔶',
+    category: 'primary',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://www.superembed.stream/embed/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://www.superembed.stream/embed/${tmdbId}`;
+    },
+  },
   // Dubbed / Multi-language servers
   {
     id: 'moviesapi',
@@ -125,27 +149,39 @@ export const VIDEO_SERVERS: VideoServer[] = [
     },
   },
   {
-    id: '111movies',
-    name: 'Zee',
+    id: 'vidsrcme',
+    name: 'Regal',
     flag: '🇮🇳',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://111movies.com/tv/${tmdbId}/${season}/${episode}`;
+        return `https://vidsrc.me/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`;
       }
-      return `https://111movies.com/movie/${tmdbId}`;
+      return `https://vidsrc.me/embed/${mediaType}?tmdb=${tmdbId}`;
     },
   },
   {
-    id: '1movieshd',
-    name: 'Star',
+    id: 'autoco',
+    name: 'Prime',
     flag: '🇮🇳',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://1movieshd.com/tv/${tmdbId}/${season}/${episode}`;
+        return `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}`;
       }
-      return `https://1movieshd.com/movie/${tmdbId}`;
+      return `https://autoembed.co/movie/tmdb/${tmdbId}`;
+    },
+  },
+  {
+    id: 'vidsrcwin',
+    name: 'Max',
+    flag: '🇮🇳',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.win/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidsrc.win/embed/${mediaType}/${tmdbId}`;
     },
   },
   // Backup servers
@@ -219,6 +255,18 @@ export const VIDEO_SERVERS: VideoServer[] = [
         return `https://vidsrc.in/embed/tv/${tmdbId}/${season}/${episode}`;
       }
       return `https://vidsrc.in/embed/${mediaType}/${tmdbId}`;
+    },
+  },
+  {
+    id: '2embedorg',
+    name: 'Echo',
+    flag: '🔷',
+    category: 'backup',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://2embed.org/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://2embed.org/embed/${mediaType}/${tmdbId}`;
     },
   },
 ];
