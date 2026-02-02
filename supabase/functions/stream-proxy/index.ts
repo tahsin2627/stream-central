@@ -14,6 +14,7 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
     const streamUrl = url.searchParams.get('url');
+    const referer = url.searchParams.get('referer');
     
     if (!streamUrl) {
       return new Response(
@@ -24,14 +25,28 @@ Deno.serve(async (req) => {
 
     console.log(`Proxying stream: ${streamUrl.substring(0, 100)}...`);
 
-    // Forward the request to the actual stream URL
+    const streamOrigin = new URL(streamUrl).origin;
+    
+    // Build headers - try multiple referer strategies
     const headers: HeadersInit = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
       'Accept': '*/*',
       'Accept-Language': 'en-US,en;q=0.9',
-      'Referer': new URL(streamUrl).origin + '/',
-      'Origin': new URL(streamUrl).origin,
+      'Accept-Encoding': 'identity', // Don't compress for streaming
+      'Connection': 'keep-alive',
+      'Sec-Fetch-Dest': 'empty',
+      'Sec-Fetch-Mode': 'cors',
+      'Sec-Fetch-Site': 'cross-site',
     };
+
+    // Use custom referer if provided, otherwise use stream origin
+    if (referer) {
+      headers['Referer'] = referer;
+      headers['Origin'] = new URL(referer).origin;
+    } else {
+      headers['Referer'] = streamOrigin + '/';
+      headers['Origin'] = streamOrigin;
+    }
 
     // Forward range header for seeking support
     const rangeHeader = req.headers.get('Range');
@@ -39,15 +54,35 @@ Deno.serve(async (req) => {
       headers['Range'] = rangeHeader;
     }
 
-    const response = await fetch(streamUrl, {
-      method: 'GET',
-      headers,
-    });
+    // First attempt with standard headers
+    let response = await fetch(streamUrl, { method: 'GET', headers });
+
+    // If 401/403, retry without Origin/Referer (some CDNs block cross-origin)
+    if (response.status === 401 || response.status === 403) {
+      console.log('Auth failed, retrying without referrer...');
+      const minimalHeaders: HeadersInit = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': '*/*',
+      };
+      if (rangeHeader) {
+        minimalHeaders['Range'] = rangeHeader;
+      }
+      response = await fetch(streamUrl, { method: 'GET', headers: minimalHeaders });
+    }
+
+    // If still failing, try with no headers at all
+    if (response.status === 401 || response.status === 403) {
+      console.log('Retry failed, trying bare request...');
+      response = await fetch(streamUrl);
+    }
 
     if (!response.ok && response.status !== 206) {
       console.error(`Stream fetch failed: ${response.status}`);
       return new Response(
-        JSON.stringify({ error: `Stream unavailable: ${response.status}` }),
+        JSON.stringify({ 
+          error: `Stream unavailable: ${response.status}`,
+          hint: response.status === 401 ? 'Stream requires authentication' : 'Stream not accessible'
+        }),
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -61,7 +96,7 @@ Deno.serve(async (req) => {
     const responseHeaders: Record<string, string> = {
       ...corsHeaders,
       'Content-Type': contentType,
-      'Cache-Control': 'public, max-age=3600',
+      'Cache-Control': 'public, max-age=300',
     };
 
     if (contentLength) {

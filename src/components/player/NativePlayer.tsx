@@ -109,9 +109,19 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
         });
 
         hls.on(Hls.Events.ERROR, (event, data) => {
+          console.error('HLS error:', data.type, data.details, data.fatal);
           if (data.fatal) {
             console.error('HLS fatal error:', data);
-            setError('Failed to load video stream');
+            // More specific error messages
+            let errorMsg = 'Failed to load video stream';
+            if (data.response?.code === 401 || data.response?.code === 403) {
+              errorMsg = 'Stream requires authentication - trying another source...';
+            } else if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+              errorMsg = 'Network error - stream may be unavailable';
+            } else if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+              errorMsg = 'Media error - format not supported';
+            }
+            setError(errorMsg);
             setIsLoading(false);
             onError?.();
           }
