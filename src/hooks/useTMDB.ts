@@ -126,6 +126,20 @@ export const useBengaliMovies = (page = 1) => {
   });
 };
 
+// Bengali/Bangla TV Shows
+export const useBengaliTVShows = (page = 1) => {
+  return useQuery({
+    queryKey: ['tv', 'bengali', page],
+    queryFn: async () => {
+      const response = await tmdbApi.getBengaliTVShows(page);
+      if (!response.success) throw new Error(response.error);
+      return response.data as TMDBPaginatedResponse<TMDBTVShow>;
+    },
+    staleTime: STALE_TIME_SHORT,
+    gcTime: GC_TIME,
+  });
+};
+
 export const useTVShowDetails = (id: number) => {
   const queryClient = useQueryClient();
   
