@@ -1,14 +1,25 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, AlertCircle, RefreshCw, Film, Tv, Server, ChevronDown, Check } from 'lucide-react';
+import { Loader2, AlertCircle, RefreshCw, Film, Tv, Server, ChevronDown, Check, AlertTriangle, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
+import { 
+  VideoServer, 
+  VIDEO_SERVERS, 
+  useServerPreference, 
+  getNextServer,
+  createCustomServer,
+} from '@/hooks/useServerPreference';
+import { useCustomStreams } from '@/hooks/useCustomStreams';
+import { AddCustomStreamDialog } from './AddCustomStreamDialog';
 
 interface VideoPlayerProps {
   tmdbId: number;
@@ -18,89 +29,51 @@ interface VideoPlayerProps {
   title?: string;
 }
 
-interface VideoServer {
-  id: string;
-  name: string;
-  flag: string;
-  getUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => string;
-}
-
-const VIDEO_SERVERS: VideoServer[] = [
-  {
-    id: 'autoembed',
-    name: 'Autoembed',
-    flag: '🇺🇸',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      let url = `https://player.autoembed.cc/embed/${mediaType}/${tmdbId}`;
-      if (mediaType === 'tv' && season && episode) url += `/${season}/${episode}`;
-      return url;
-    },
-  },
-  {
-    id: 'vidsrc',
-    name: 'VidSrc',
-    flag: '🇬🇧',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://vidsrc.cc/v2/embed/${mediaType}/${tmdbId}`;
-    },
-  },
-  {
-    id: 'vidsrcpro',
-    name: 'VidSrc Pro',
-    flag: '🇬🇧',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.pro/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://vidsrc.pro/embed/${mediaType}/${tmdbId}`;
-    },
-  },
-  {
-    id: '2embed',
-    name: '2Embed',
-    flag: '🇦🇺',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`;
-      }
-      return `https://www.2embed.cc/embed/${tmdbId}`;
-    },
-  },
-  {
-    id: 'multiembed',
-    name: 'MultiEmbed',
-    flag: '🇺🇸',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`;
-      }
-      return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`;
-    },
-  },
-  {
-    id: 'embedsu',
-    name: 'EmbedSu',
-    flag: '🇮🇳',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://embed.su/embed/movie/${tmdbId}`;
-    },
-  },
-];
+const FALLBACK_TIMEOUT = 10000; // 10 seconds
 
 export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: VideoPlayerProps) => {
+  const { 
+    preferredServer, 
+    setPreferredServer, 
+    autoFallback, 
+    reportServer,
+  } = useServerPreference();
+  
+  const { getCustomStream, hasCustomStream } = useCustomStreams();
+  
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [showOverlay, setShowOverlay] = useState(true);
-  const [selectedServer, setSelectedServer] = useState<VideoServer>(VIDEO_SERVERS[0]);
+  const [selectedServer, setSelectedServer] = useState<VideoServer>(() => {
+    // Check for custom stream first
+    const customStream = getCustomStream(tmdbId, mediaType, season, episode);
+    if (customStream) {
+      return createCustomServer(customStream.stream_url, customStream.stream_name);
+    }
+    return preferredServer;
+  });
+  const [attemptedServers, setAttemptedServers] = useState<string[]>([]);
+  const [fallbackAttempts, setFallbackAttempts] = useState(0);
+
+  // Get custom stream for this content
+  const customStream = getCustomStream(tmdbId, mediaType, season, episode);
+  const hasCustom = hasCustomStream(tmdbId, mediaType, season, episode);
 
   // Build the embed URL using the selected server
-  const embedUrl = selectedServer.getUrl(tmdbId, mediaType, season, episode);
+  const embedUrl = selectedServer.customUrl || selectedServer.getUrl(tmdbId, mediaType, season, episode);
+
+  // Reset when content changes
+  useEffect(() => {
+    const custom = getCustomStream(tmdbId, mediaType, season, episode);
+    if (custom) {
+      setSelectedServer(createCustomServer(custom.stream_url, custom.stream_name));
+    } else {
+      setSelectedServer(preferredServer);
+    }
+    setAttemptedServers([]);
+    setFallbackAttempts(0);
+    setHasError(false);
+  }, [tmdbId, mediaType, season, episode]);
 
   useEffect(() => {
     // Reset loading state when server changes
@@ -115,6 +88,24 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
 
     return () => clearTimeout(timer);
   }, [embedUrl]);
+
+  // Auto-fallback logic
+  useEffect(() => {
+    if (!autoFallback || hasError || !isLoading || selectedServer.category === 'custom') return;
+
+    const fallbackTimer = setTimeout(() => {
+      if (isLoading && fallbackAttempts < 3) {
+        const nextServer = getNextServer(selectedServer, attemptedServers, tmdbId, mediaType);
+        if (nextServer) {
+          setAttemptedServers(prev => [...prev, selectedServer.id]);
+          setSelectedServer(nextServer);
+          setFallbackAttempts(prev => prev + 1);
+        }
+      }
+    }, FALLBACK_TIMEOUT);
+
+    return () => clearTimeout(fallbackTimer);
+  }, [isLoading, autoFallback, selectedServer, attemptedServers, fallbackAttempts, tmdbId, mediaType, hasError]);
 
   const handleRetry = () => {
     setHasError(false);
@@ -135,8 +126,33 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
   const handleServerChange = (server: VideoServer) => {
     if (server.id !== selectedServer.id) {
       setSelectedServer(server);
+      setPreferredServer(server);
+      setAttemptedServers([]);
+      setFallbackAttempts(0);
     }
   };
+
+  const handleReportServer = () => {
+    if (selectedServer.category !== 'custom') {
+      reportServer(selectedServer.id, tmdbId, mediaType);
+    }
+    // Auto-switch to next server after reporting
+    const nextServer = getNextServer(selectedServer, [selectedServer.id], tmdbId, mediaType);
+    if (nextServer) {
+      handleServerChange(nextServer);
+    }
+  };
+
+  const handleUseCustomStream = () => {
+    if (customStream) {
+      setSelectedServer(createCustomServer(customStream.stream_url, customStream.stream_name));
+    }
+  };
+
+  // Group servers by category
+  const primaryServers = VIDEO_SERVERS.filter(s => s.category === 'primary');
+  const dubbedServers = VIDEO_SERVERS.filter(s => s.category === 'dubbed');
+  const backupServers = VIDEO_SERVERS.filter(s => s.category === 'backup');
 
   return (
     <div className="relative w-full h-full bg-black overflow-hidden">
@@ -157,13 +173,17 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
       />
 
       {/* Server Selector - Always visible */}
-      <div className="absolute top-4 left-4 z-30">
+      <div className="absolute top-4 left-4 z-30 flex gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="secondary"
               size="sm"
-              className="gap-2 bg-black/60 backdrop-blur-sm border border-white/10 hover:bg-black/80 text-white"
+              className={`gap-2 backdrop-blur-sm border hover:bg-black/80 text-white ${
+                selectedServer.category === 'custom' 
+                  ? 'bg-primary/30 border-primary/50' 
+                  : 'bg-black/60 border-white/10'
+              }`}
             >
               <Server className="h-4 w-4" />
               <span className="hidden sm:inline">{selectedServer.flag} {selectedServer.name}</span>
@@ -173,9 +193,33 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
           </DropdownMenuTrigger>
           <DropdownMenuContent 
             align="start" 
-            className="w-48 bg-black/95 backdrop-blur-md border-white/10"
+            className="w-56 max-h-80 overflow-y-auto bg-black/95 backdrop-blur-md border-white/10"
           >
-            {VIDEO_SERVERS.map((server) => (
+            {/* Custom Stream Option */}
+            {hasCustom && (
+              <>
+                <DropdownMenuLabel className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Database className="h-3 w-3" /> My Streams
+                </DropdownMenuLabel>
+                <DropdownMenuItem
+                  onClick={handleUseCustomStream}
+                  className="flex items-center justify-between gap-2 text-white hover:bg-white/10 cursor-pointer"
+                >
+                  <span className="flex items-center gap-2">
+                    <span>⭐</span>
+                    <span>{customStream?.stream_name || 'My Server'}</span>
+                  </span>
+                  {selectedServer.category === 'custom' && (
+                    <Check className="h-4 w-4 text-primary" />
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-white/10" />
+              </>
+            )}
+
+            {/* Primary Servers */}
+            <DropdownMenuLabel className="text-xs text-muted-foreground">Primary</DropdownMenuLabel>
+            {primaryServers.map((server) => (
               <DropdownMenuItem
                 key={server.id}
                 onClick={() => handleServerChange(server)}
@@ -185,13 +229,62 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
                   <span>{server.flag}</span>
                   <span>{server.name}</span>
                 </span>
-                {selectedServer.id === server.id && (
+                {selectedServer.id === server.id && selectedServer.category !== 'custom' && (
+                  <Check className="h-4 w-4 text-primary" />
+                )}
+              </DropdownMenuItem>
+            ))}
+
+            <DropdownMenuSeparator className="bg-white/10" />
+            
+            {/* Dubbed/Regional Servers */}
+            <DropdownMenuLabel className="text-xs text-muted-foreground">Regional / Dubbed</DropdownMenuLabel>
+            {dubbedServers.map((server) => (
+              <DropdownMenuItem
+                key={server.id}
+                onClick={() => handleServerChange(server)}
+                className="flex items-center justify-between gap-2 text-white hover:bg-white/10 cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <span>{server.flag}</span>
+                  <span>{server.name}</span>
+                </span>
+                {selectedServer.id === server.id && selectedServer.category !== 'custom' && (
+                  <Check className="h-4 w-4 text-primary" />
+                )}
+              </DropdownMenuItem>
+            ))}
+
+            <DropdownMenuSeparator className="bg-white/10" />
+            
+            {/* Backup Servers */}
+            <DropdownMenuLabel className="text-xs text-muted-foreground">Backup</DropdownMenuLabel>
+            {backupServers.map((server) => (
+              <DropdownMenuItem
+                key={server.id}
+                onClick={() => handleServerChange(server)}
+                className="flex items-center justify-between gap-2 text-white hover:bg-white/10 cursor-pointer"
+              >
+                <span className="flex items-center gap-2">
+                  <span>{server.flag}</span>
+                  <span>{server.name}</span>
+                </span>
+                {selectedServer.id === server.id && selectedServer.category !== 'custom' && (
                   <Check className="h-4 w-4 text-primary" />
                 )}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Add Custom Stream Button */}
+        <AddCustomStreamDialog
+          tmdbId={tmdbId}
+          mediaType={mediaType}
+          season={season}
+          episode={episode}
+          title={title}
+        />
       </div>
 
       {/* Loading/Branding Overlay */}
@@ -243,18 +336,36 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
               )}
 
               {/* Server Info */}
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
-                <Server className="h-3 w-3 text-white/60" />
-                <span className="text-white/60 text-xs">
+              <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full border ${
+                selectedServer.category === 'custom' 
+                  ? 'bg-primary/10 border-primary/30' 
+                  : 'bg-white/5 border-white/10'
+              }`}>
+                {selectedServer.category === 'custom' ? (
+                  <Database className="h-3 w-3 text-primary" />
+                ) : (
+                  <Server className="h-3 w-3 text-white/60" />
+                )}
+                <span className={`text-xs ${selectedServer.category === 'custom' ? 'text-primary' : 'text-white/60'}`}>
                   {selectedServer.flag} {selectedServer.name}
                 </span>
               </div>
+
+              {/* Fallback indicator */}
+              {fallbackAttempts > 0 && (
+                <p className="text-amber-400/80 text-xs flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  Auto-switched servers ({fallbackAttempts}x)
+                </p>
+              )}
 
               {/* Loading Spinner */}
               {isLoading && !hasError && (
                 <div className="flex items-center gap-3 text-white/70">
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  <span className="text-sm">Finding best source...</span>
+                  <span className="text-sm">
+                    {selectedServer.category === 'custom' ? 'Loading your stream...' : 'Finding best source...'}
+                  </span>
                 </div>
               )}
 
@@ -269,7 +380,7 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
                     <AlertCircle className="h-5 w-5" />
                     <span className="text-sm">Failed to load video</span>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap justify-center">
                     <Button
                       variant="secondary"
                       size="sm"
@@ -279,6 +390,17 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
                       <RefreshCw className="h-4 w-4" />
                       Retry
                     </Button>
+                    {selectedServer.category !== 'custom' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleReportServer}
+                        className="gap-2"
+                      >
+                        <AlertTriangle className="h-4 w-4" />
+                        Report & Switch
+                      </Button>
+                    )}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm" className="gap-2">
@@ -286,7 +408,7 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
                           Try Another Server
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent className="bg-black/95 backdrop-blur-md border-white/10">
+                      <DropdownMenuContent className="bg-black/95 backdrop-blur-md border-white/10 max-h-60 overflow-y-auto">
                         {VIDEO_SERVERS.filter(s => s.id !== selectedServer.id).map((server) => (
                           <DropdownMenuItem
                             key={server.id}

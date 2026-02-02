@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      custom_streams: {
+        Row: {
+          created_at: string
+          episode: number | null
+          id: string
+          media_type: string
+          season: number | null
+          stream_name: string | null
+          stream_url: string
+          tmdb_id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          episode?: number | null
+          id?: string
+          media_type: string
+          season?: number | null
+          stream_name?: string | null
+          stream_url: string
+          tmdb_id: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          episode?: number | null
+          id?: string
+          media_type?: string
+          season?: number | null
+          stream_name?: string | null
+          stream_url?: string
+          tmdb_id?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
