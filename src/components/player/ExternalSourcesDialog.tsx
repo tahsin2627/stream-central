@@ -183,39 +183,17 @@ export const ExternalSourcesDialog = ({
             </Button>
           </div>
         ) : sources && sources.length > 0 ? (
-          <Tabs defaultValue={scrapedSources.length > 0 ? "scraped" : "tmdb"} className="w-full">
+          <Tabs defaultValue="tmdb" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="scraped" className="gap-2">
-                <Link2 className="h-3.5 w-3.5" />
-                Regional ({scrapedSources.length})
-              </TabsTrigger>
               <TabsTrigger value="tmdb" className="gap-2">
                 <Database className="h-3.5 w-3.5" />
                 TMDB ({tmdbSources.length})
               </TabsTrigger>
+              <TabsTrigger value="scraped" className="gap-2">
+                <Link2 className="h-3.5 w-3.5" />
+                Regional ({scrapedSources.length})
+              </TabsTrigger>
             </TabsList>
-            
-            <TabsContent value="scraped">
-              <ScrollArea className="max-h-[40vh] pr-4">
-                {scrapedSources.length > 0 ? (
-                  <div className="space-y-3 py-2">
-                    {scrapedSources.map((result, index) => (
-                      <SourceCard 
-                        key={`${result.source}-${index}`} 
-                        result={result}
-                        onOpen={() => handleOpen(result)}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-                    <Link2 className="h-10 w-10 mb-3 opacity-50" />
-                    <p className="text-sm">No regional sources found</p>
-                    <p className="text-xs mt-1">Check TMDB sources tab</p>
-                  </div>
-                )}
-              </ScrollArea>
-            </TabsContent>
             
             <TabsContent value="tmdb">
               <ScrollArea className="max-h-[40vh] pr-4">
@@ -234,6 +212,28 @@ export const ExternalSourcesDialog = ({
                     <Database className="h-10 w-10 mb-3 opacity-50" />
                     <p className="text-sm">No TMDB sources found</p>
                     <p className="text-xs mt-1">Check regional sources tab</p>
+                  </div>
+                )}
+              </ScrollArea>
+            </TabsContent>
+
+            <TabsContent value="scraped">
+              <ScrollArea className="max-h-[40vh] pr-4">
+                {scrapedSources.length > 0 ? (
+                  <div className="space-y-3 py-2">
+                    {scrapedSources.map((result, index) => (
+                      <SourceCard 
+                        key={`${result.source}-${index}`} 
+                        result={result}
+                        onOpen={() => handleOpen(result)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                    <Link2 className="h-10 w-10 mb-3 opacity-50" />
+                    <p className="text-sm">No regional sources found</p>
+                    <p className="text-xs mt-1">Check TMDB sources tab</p>
                   </div>
                 )}
               </ScrollArea>
