@@ -148,39 +148,98 @@ export const tmdbApi = {
     });
   },
 
-  // Indian/Bollywood Movies (with_original_language=hi for Hindi)
+  // Indian/Bollywood Movies (with_original_language=hi for Hindi) - sorted by newest
   getBollywoodMovies: (page = 1) => {
     return tmdbRequest<TMDBPaginatedResponse<TMDBMovie>>('/discover/movie', { 
       with_original_language: 'hi',
       page,
-      sort_by: 'popularity.desc'
+      sort_by: 'primary_release_date.desc',
+      'primary_release_date.lte': new Date().toISOString().split('T')[0], // Only released content
+      'vote_count.gte': 10, // Must have some votes to filter out obscure content
     });
   },
 
-  // Korean Dramas (with_original_language=ko)
+  // South Indian - Tamil Movies (sorted by newest)
+  getTamilMovies: (page = 1) => {
+    return tmdbRequest<TMDBPaginatedResponse<TMDBMovie>>('/discover/movie', { 
+      with_original_language: 'ta',
+      page,
+      sort_by: 'primary_release_date.desc',
+      'primary_release_date.lte': new Date().toISOString().split('T')[0],
+      'vote_count.gte': 5,
+    });
+  },
+
+  // South Indian - Telugu Movies (sorted by newest)
+  getTeluguMovies: (page = 1) => {
+    return tmdbRequest<TMDBPaginatedResponse<TMDBMovie>>('/discover/movie', { 
+      with_original_language: 'te',
+      page,
+      sort_by: 'primary_release_date.desc',
+      'primary_release_date.lte': new Date().toISOString().split('T')[0],
+      'vote_count.gte': 5,
+    });
+  },
+
+  // Hollywood - Latest English Movies (sorted by newest)
+  getHollywoodMovies: (page = 1) => {
+    return tmdbRequest<TMDBPaginatedResponse<TMDBMovie>>('/discover/movie', { 
+      with_original_language: 'en',
+      page,
+      sort_by: 'primary_release_date.desc',
+      'primary_release_date.lte': new Date().toISOString().split('T')[0],
+      'vote_count.gte': 50, // Higher threshold for English content
+    });
+  },
+
+  // Korean Dramas (with_original_language=ko) - sorted by newest
   getKoreanDramas: (page = 1) => {
     return tmdbRequest<TMDBPaginatedResponse<TMDBTVShow>>('/discover/tv', { 
       with_original_language: 'ko',
       page,
-      sort_by: 'popularity.desc'
+      sort_by: 'first_air_date.desc',
+      'first_air_date.lte': new Date().toISOString().split('T')[0],
+      'vote_count.gte': 5,
     });
   },
 
-  // Bengali/Bangla Movies (with_original_language=bn for Bengali)
+  // Bengali/Bangla Movies (with_original_language=bn for Bengali) - sorted by newest
   getBengaliMovies: (page = 1) => {
     return tmdbRequest<TMDBPaginatedResponse<TMDBMovie>>('/discover/movie', { 
       with_original_language: 'bn',
       page,
-      sort_by: 'popularity.desc'
+      sort_by: 'primary_release_date.desc',
+      'primary_release_date.lte': new Date().toISOString().split('T')[0],
     });
   },
 
-  // Bengali/Bangla TV Shows
+  // Bengali/Bangla TV Shows - sorted by newest
   getBengaliTVShows: (page = 1) => {
     return tmdbRequest<TMDBPaginatedResponse<TMDBTVShow>>('/discover/tv', { 
       with_original_language: 'bn',
       page,
-      sort_by: 'popularity.desc'
+      sort_by: 'first_air_date.desc',
+      'first_air_date.lte': new Date().toISOString().split('T')[0],
+    });
+  },
+
+  // Latest Movies - All languages, most recent releases
+  getLatestMovies: (page = 1) => {
+    return tmdbRequest<TMDBPaginatedResponse<TMDBMovie>>('/discover/movie', { 
+      page,
+      sort_by: 'primary_release_date.desc',
+      'primary_release_date.lte': new Date().toISOString().split('T')[0],
+      'vote_count.gte': 20,
+    });
+  },
+
+  // Latest TV Shows - All languages, most recent
+  getLatestTVShows: (page = 1) => {
+    return tmdbRequest<TMDBPaginatedResponse<TMDBTVShow>>('/discover/tv', { 
+      page,
+      sort_by: 'first_air_date.desc',
+      'first_air_date.lte': new Date().toISOString().split('T')[0],
+      'vote_count.gte': 10,
     });
   },
 
