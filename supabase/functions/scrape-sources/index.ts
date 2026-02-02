@@ -3,64 +3,110 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
-// External streaming sites with TMDB ID support - these open in new tab (blocked iframe embedding)
+// External streaming sites with TMDB ID support
 const EXTERNAL_TMDB_SOURCES = [
-  // TOP PRIORITY - Cineby (Best regional content, uses TMDB IDs)
+  // TOP PRIORITY - Cineby (Best regional content, uses TMDB IDs) - NO EMBED, opens in new tab only
   {
     id: 'cineby',
     name: '🎬 Cineby',
     getMovieUrl: (tmdbId: number) => `https://www.cineby.gd/movie/${tmdbId}?play=true`,
     getTvUrl: (tmdbId: number, season: number, episode: number) => `https://www.cineby.gd/tv/${tmdbId}/${season}/${episode}?play=true`,
+    // No embed URL - Cineby blocks iframe embedding
+    getEmbedUrl: null,
     quality: 'HD',
     language: 'Hindi/Multi',
+    canEmbed: false,
   },
   {
     id: 'autoembed-v2',
     name: 'AutoEmbed V2',
     getMovieUrl: (tmdbId: number) => `https://watch-v2.autoembed.cc/movie/${tmdbId}`,
     getTvUrl: (tmdbId: number, season: number, episode: number) => `https://watch-v2.autoembed.cc/tv/${tmdbId}/${season}/${episode}`,
+    // Has embeddable player URL
+    getEmbedUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://player.autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://player.autoembed.cc/embed/movie/${tmdbId}`;
+    },
     quality: 'HD',
     language: 'Multi',
+    canEmbed: true,
   },
   {
     id: 'vidsrc-nl',
     name: 'VidSrc NL',
     getMovieUrl: (tmdbId: number) => `https://vidsrc.nl/embed/movie/${tmdbId}`,
     getTvUrl: (tmdbId: number, season: number, episode: number) => `https://vidsrc.nl/embed/tv/${tmdbId}/${season}/${episode}`,
+    getEmbedUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.nl/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidsrc.nl/embed/movie/${tmdbId}`;
+    },
     quality: 'HD',
     language: 'Multi',
+    canEmbed: true,
   },
   {
     id: 'embedsu',
     name: 'Embed.su',
     getMovieUrl: (tmdbId: number) => `https://embed.su/embed/movie/${tmdbId}`,
     getTvUrl: (tmdbId: number, season: number, episode: number) => `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`,
+    getEmbedUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://embed.su/embed/movie/${tmdbId}`;
+    },
     quality: 'HD',
     language: 'Multi',
+    canEmbed: true,
   },
   {
     id: 'vidsrc-cc',
     name: 'VidSrc CC',
     getMovieUrl: (tmdbId: number) => `https://vidsrc.cc/v3/embed/movie/${tmdbId}`,
     getTvUrl: (tmdbId: number, season: number, episode: number) => `https://vidsrc.cc/v3/embed/tv/${tmdbId}/${season}/${episode}`,
+    getEmbedUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.cc/v3/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidsrc.cc/v3/embed/movie/${tmdbId}`;
+    },
     quality: 'HD',
     language: 'Multi',
+    canEmbed: true,
   },
   {
     id: '2embed',
     name: '2Embed',
     getMovieUrl: (tmdbId: number) => `https://www.2embed.cc/embed/${tmdbId}`,
     getTvUrl: (tmdbId: number, season: number, episode: number) => `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`,
+    getEmbedUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`;
+      }
+      return `https://www.2embed.cc/embed/${tmdbId}`;
+    },
     quality: 'HD',
     language: 'Multi',
+    canEmbed: true,
   },
   {
     id: 'superembed',
     name: 'SuperEmbed',
     getMovieUrl: (tmdbId: number) => `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`,
     getTvUrl: (tmdbId: number, season: number, episode: number) => `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`,
+    getEmbedUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`;
+      }
+      return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`;
+    },
     quality: 'HD',
     language: 'Multi',
+    canEmbed: true,
   },
 ];
 
@@ -87,12 +133,14 @@ interface ScrapedResult {
   sourceName: string;
   title: string;
   url: string;
+  embedUrl?: string; // Embed URL for in-app playback (if supported)
   quality?: string;
   size?: string;
   language?: string;
   // All sources open in new tab - iframe embedding is blocked by most providers
   opensInNewTab: boolean;
   isTmdbSource: boolean; // True if uses TMDB ID (reliable), false if scraped (may not match)
+  canEmbed: boolean; // True if can be embedded in iframe
 }
 
 Deno.serve(async (req) => {
@@ -130,15 +178,22 @@ Deno.serve(async (req) => {
           ? source.getTvUrl(tmdbId, season, episode)
           : source.getMovieUrl(tmdbId);
 
+        // Generate embed URL if available
+        const embedUrl = source.getEmbedUrl && source.canEmbed
+          ? source.getEmbedUrl(tmdbId, mediaType as 'movie' | 'tv', season, episode)
+          : undefined;
+
         results.push({
           source: source.id,
           sourceName: source.name,
           title: query,
           url: sourceUrl,
+          embedUrl,
           quality: source.quality,
           language: source.language,
           opensInNewTab: true,
           isTmdbSource: true,
+          canEmbed: source.canEmbed,
         });
       }
     }
@@ -224,11 +279,13 @@ Deno.serve(async (req) => {
             sourceName: matchedSite.name,
             title: item.title || query,
             url,
+            embedUrl: undefined,
             quality,
             size,
             language,
             opensInNewTab: true, // Will use in-app browser which can fallback to new tab
             isTmdbSource: false, // Scraped results may not match exactly
+            canEmbed: false, // Regional scraped sources cannot be embedded
           });
         }
       }

@@ -169,16 +169,15 @@ export const ExternalSourcesDialog = ({
   };
 
   const handlePlayInApp = (result: ScrapedResult) => {
-    if (onPlayInApp) {
-      onPlayInApp(result.url, result.sourceName);
+    if (onPlayInApp && result.canEmbed && result.embedUrl) {
+      onPlayInApp(result.embedUrl, result.sourceName);
       setOpen(false); // Close dialog after selecting
     }
   };
 
-  // Sources that can be embedded in-app (TMDB-based sources with embed URLs)
+  // Sources that can be embedded in-app
   const canEmbedSource = (result: ScrapedResult) => {
-    // Allow embedding for TMDB sources that use embed URLs
-    return result.isTmdbSource && !!onPlayInApp;
+    return result.canEmbed && !!result.embedUrl && !!onPlayInApp;
   };
 
   return (

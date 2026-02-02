@@ -5,11 +5,13 @@ export interface ScrapedResult {
   sourceName: string;
   title: string;
   url: string;
+  embedUrl?: string; // Embed URL for in-app playback (if supported)
   quality?: string;
   size?: string;
   language?: string;
   opensInNewTab: boolean;
   isTmdbSource: boolean; // True if uses TMDB ID (reliable), false if scraped
+  canEmbed: boolean; // True if can be embedded in iframe
 }
 
 export interface ScrapeResponse {
