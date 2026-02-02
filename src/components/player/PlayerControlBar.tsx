@@ -1,5 +1,5 @@
 import { useCallback, useState, useEffect } from 'react';
-import { Maximize, Minimize, SkipBack, SkipForward, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Maximize, Minimize, RefreshCw, ChevronLeft, ChevronRight, Shuffle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -7,9 +7,11 @@ interface PlayerControlBarProps {
   onPrevEpisode?: () => void;
   onNextEpisode?: () => void;
   onRefresh: () => void;
+  onSwitchServer?: () => void;
   hasPrev?: boolean;
   hasNext?: boolean;
   mediaType: 'movie' | 'tv';
+  currentServer?: string;
   className?: string;
 }
 
@@ -17,9 +19,11 @@ export const PlayerControlBar = ({
   onPrevEpisode,
   onNextEpisode,
   onRefresh,
+  onSwitchServer,
   hasPrev = false,
   hasNext = false,
   mediaType,
+  currentServer,
   className,
 }: PlayerControlBarProps) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -46,12 +50,12 @@ export const PlayerControlBar = ({
 
   return (
     <div className={cn(
-      "flex items-center justify-between px-3 py-2 bg-secondary/80 backdrop-blur-sm border-t border-border/50",
+      "flex items-center justify-between px-2 sm:px-3 py-2 bg-secondary/80 backdrop-blur-sm border-t border-border/50",
       className
     )}>
-      {/* Left: Episode navigation (for TV shows) */}
+      {/* Left: Episode navigation OR Switch server (for movies) */}
       <div className="flex items-center gap-1">
-        {mediaType === 'tv' && (
+        {mediaType === 'tv' ? (
           <>
             <Button
               variant="ghost"
@@ -74,11 +78,24 @@ export const PlayerControlBar = ({
               <ChevronRight className="h-4 w-4" />
             </Button>
           </>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onSwitchServer}
+            className="h-8 gap-1.5 text-xs"
+          >
+            <Shuffle className="h-4 w-4" />
+            <span className="hidden sm:inline">Try Another Server</span>
+          </Button>
         )}
       </div>
 
-      {/* Center: Refresh */}
+      {/* Center: Current server info + Refresh */}
       <div className="flex items-center gap-2">
+        {currentServer && (
+          <span className="text-xs text-muted-foreground hidden sm:inline">{currentServer}</span>
+        )}
         <Button
           variant="ghost"
           size="sm"
@@ -86,7 +103,7 @@ export const PlayerControlBar = ({
           className="h-8 gap-1.5 text-xs"
         >
           <RefreshCw className="h-4 w-4" />
-          <span className="hidden sm:inline">Reload Player</span>
+          <span className="hidden sm:inline">Reload</span>
         </Button>
       </div>
 
