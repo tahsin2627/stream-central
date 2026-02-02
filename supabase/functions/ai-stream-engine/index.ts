@@ -21,8 +21,20 @@ interface AIEngineResponse {
 
 // Embed providers that work reliably with TMDB IDs
 const EMBED_PROVIDERS = {
+  // TOP PRIORITY - Cineby (Best for Hindi/Regional content)
+  cineby: {
+    name: 'Cineby',
+    priority: 1,
+    getEmbed: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://www.cineby.gd/tv/${tmdbId}/${season}/${episode}?play=true`;
+      }
+      return `https://www.cineby.gd/movie/${tmdbId}?play=true`;
+    },
+  },
   vidsrc: {
     name: 'VidSrc',
+    priority: 2,
     getEmbed: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
       if (mediaType === 'tv' && season && episode) {
         return `https://vidsrc.xyz/embed/tv/${tmdbId}/${season}/${episode}`;
@@ -32,6 +44,7 @@ const EMBED_PROVIDERS = {
   },
   vidsrcPro: {
     name: 'VidSrc Pro',
+    priority: 3,
     getEmbed: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
       if (mediaType === 'tv' && season && episode) {
         return `https://vidsrc.pro/embed/tv/${tmdbId}/${season}/${episode}`;
@@ -41,6 +54,7 @@ const EMBED_PROVIDERS = {
   },
   superEmbed: {
     name: 'SuperEmbed',
+    priority: 4,
     getEmbed: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
       if (mediaType === 'tv' && season && episode) {
         return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`;
@@ -50,6 +64,7 @@ const EMBED_PROVIDERS = {
   },
   embedSu: {
     name: 'EmbedSu',
+    priority: 5,
     getEmbed: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
       if (mediaType === 'tv' && season && episode) {
         return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
@@ -59,6 +74,7 @@ const EMBED_PROVIDERS = {
   },
   autoembed: {
     name: 'AutoEmbed',
+    priority: 6,
     getEmbed: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
       if (mediaType === 'tv' && season && episode) {
         return `https://player.autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}`;
