@@ -27,6 +27,8 @@ import { ExternalSourcesDialog } from '@/components/player/ExternalSourcesDialog
 import { PlaybackOverlay } from '@/components/player/PlaybackOverlay';
 import { useToast } from '@/hooks/use-toast';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
+import { AddCustomStreamDialog } from '@/components/player/AddCustomStreamDialog';
+import { useCustomStreams } from '@/hooks/useCustomStreams';
 
 const FALLBACK_TIMEOUT_MS = 10000; // 10 seconds
 
@@ -61,12 +63,39 @@ const WatchPage = () => {
     languagePreference,
   } = useServerPreference();
 
+  // Custom streams integration
+  const { getCustomStream, customStreams } = useCustomStreams();
+  const customStream = getCustomStream(tmdbId, mediaType as 'movie' | 'tv', 
+    mediaType === 'tv' ? selectedSeason : undefined, 
+    mediaType === 'tv' ? selectedEpisode : undefined
+  );
+
+  // Create a "My Server" option if custom stream exists
+  const myServerOption: VideoServer | null = customStream ? {
+    id: 'my-server',
+    name: customStream.stream_name || 'My Server',
+    flag: '⭐',
+    category: 'primary',
+    getUrl: () => customStream.stream_url,
+  } : null;
+
   const [selectedServer, setSelectedServer] = useState<VideoServer>(preferredServer);
   const isReported = isServerReported(selectedServer.id, tmdbId, mediaType as 'movie' | 'tv');
 
+  // Auto-select My Server if available and not already selected
+  useEffect(() => {
+    if (myServerOption && selectedServer.id !== 'my-server') {
+      // Only auto-switch if user hasn't manually selected a different server
+      const hasManualSelection = localStorage.getItem('wellplayer_manual_server_selection');
+      if (!hasManualSelection) {
+        setSelectedServer(myServerOption);
+      }
+    }
+  }, [customStream?.id]);
+
   // Sync selected server when language preference OR preferredServer changes
   useEffect(() => {
-    if (preferredServer.id !== selectedServer.id) {
+    if (preferredServer.id !== selectedServer.id && selectedServer.id !== 'my-server') {
       setSelectedServer(preferredServer);
     }
   }, [preferredServer]);
@@ -183,9 +212,10 @@ const WatchPage = () => {
     };
   }, [embedUrl, autoFallback, clearFallbackTimer, handleAutoFallback]);
 
-  // Reset attempted servers when content changes
+  // Reset attempted servers and manual selection when content changes
   useEffect(() => {
     setAttemptedServers([]);
+    localStorage.removeItem('wellplayer_manual_server_selection');
   }, [tmdbId, selectedSeason, selectedEpisode]);
 
   useEffect(() => {
@@ -197,9 +227,13 @@ const WatchPage = () => {
   const handleServerChange = useCallback((server: VideoServer) => {
     if (server.id !== selectedServer.id) {
       setSelectedServer(server);
-      setPreferredServer(server); // Remember preference
+      if (server.id !== 'my-server') {
+        setPreferredServer(server); // Remember preference (not for custom server)
+      }
       setAttemptedServers([]); // Reset attempts when manually changing
       setIsFallbackTriggered(false);
+      // Mark that user has made a manual selection
+      localStorage.setItem('wellplayer_manual_server_selection', 'true');
     }
   }, [selectedServer, setPreferredServer]);
 
@@ -265,6 +299,15 @@ const WatchPage = () => {
             <Flag className={`h-4 w-4 ${isReported ? 'fill-current' : ''}`} />
           </Button>
 
+          {/* Add Custom Stream Button */}
+          <AddCustomStreamDialog
+            tmdbId={tmdbId}
+            mediaType={mediaType as 'movie' | 'tv'}
+            season={mediaType === 'tv' ? selectedSeason : undefined}
+            episode={mediaType === 'tv' ? selectedEpisode : undefined}
+            title={title}
+          />
+
           {/* External Sources Button */}
           <ExternalSourcesDialog
             title={title || 'Unknown'}
@@ -292,6 +335,26 @@ const WatchPage = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-popover max-h-80 overflow-y-auto">
+              {/* My Server - Custom Stream (if available) */}
+              {myServerOption && (
+                <>
+                  <div className="px-2 py-1 text-[10px] sm:text-xs font-semibold text-primary uppercase">⭐ My Server</div>
+                  <DropdownMenuItem
+                    onClick={() => handleServerChange(myServerOption)}
+                    className="flex items-center justify-between gap-2 cursor-pointer text-xs sm:text-sm bg-primary/10"
+                  >
+                    <span className="flex items-center gap-2">
+                      <span>⭐</span>
+                      <span className="font-medium">{customStream?.stream_name || 'My Server'}</span>
+                    </span>
+                    {selectedServer.id === 'my-server' && (
+                      <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
+
               {/* Primary servers */}
               <div className="px-2 py-1 text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase">Primary</div>
               {primaryServers.map((server) => {
