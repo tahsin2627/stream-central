@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Star, Calendar, Clock, Server, ChevronDown, Check, Play, RotateCcw, RotateCw, AlertTriangle, Loader2, Flag, Zap } from 'lucide-react';
+import { ArrowLeft, Star, Calendar, Clock, Server, ChevronDown, Check, Play, RotateCcw, RotateCw, AlertTriangle, Loader2, Flag, Zap, Sparkles, Brain } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -34,7 +34,7 @@ import wellplayerLogo from '@/assets/wellplayer-logo.png';
 import { AddCustomStreamDialog } from '@/components/player/AddCustomStreamDialog';
 import { useCustomStreams } from '@/hooks/useCustomStreams';
 import { useStreamExtraction, StreamSource } from '@/hooks/useStreamExtraction';
-
+import { useAIStreamEngine, AIStream } from '@/hooks/useAIStreamEngine';
 const FALLBACK_TIMEOUT_MS = 10000; // 10 seconds
 
 const WatchPage = () => {
@@ -61,6 +61,26 @@ const WatchPage = () => {
 
   const mediaType = type === 'tv' ? 'tv' : 'movie';
   const tmdbId = Number(id);
+
+  // Get title for AI engine (needs to be declared before using in hook)
+  const { data: movieData } = useMovieDetails(type === 'movie' ? Number(id) : 0);
+  const { data: tvData } = useTVShowDetails(type === 'tv' ? Number(id) : 0);
+  const contentTitle = type === 'movie' ? movieData?.title : tvData?.name;
+  const contentYear = type === 'movie' 
+    ? movieData?.release_date?.split('-')[0] 
+    : tvData?.first_air_date?.split('-')[0];
+
+  // AI Stream Engine - auto-searches Cineby & MovieLinkBD
+  const aiEngine = useAIStreamEngine({
+    title: contentTitle || '',
+    year: contentYear,
+    tmdbId,
+    mediaType: mediaType as 'movie' | 'tv',
+    season: type === 'tv' ? selectedSeason : undefined,
+    episode: type === 'tv' ? selectedEpisode : undefined,
+    enabled: !!contentTitle && tmdbId > 0,
+    autoSearch: true,
+  });
 
   const { 
     preferredServer, 
@@ -349,7 +369,80 @@ const WatchPage = () => {
             <span className="text-xs hidden sm:inline">{useNativePlayer ? 'Native' : 'Try Native'}</span>
           </Button>
 
-          {/* Report Button */}
+          {/* AI Engine Button - Auto-fetches from Cineby & MovieLinkBD */}
+          <Button
+            variant={aiEngine.streams.length > 0 ? "default" : "ghost"}
+            size="sm"
+            onClick={async () => {
+              if (aiEngine.streams.length > 0) {
+                // Play best AI stream in native player
+                const bestStream = aiEngine.getBestStream();
+                if (bestStream) {
+                  setNativeSources([{
+                    url: bestStream.streamUrl,
+                    quality: bestStream.quality,
+                    type: bestStream.type,
+                  }]);
+                  setUseNativePlayer(true);
+                  toast({
+                    title: "🧠 AI Engine Active",
+                    description: `Playing from ${bestStream.sourceName}`,
+                  });
+                }
+              } else if (!aiEngine.isSearching) {
+                // Manually trigger search
+                toast({
+                  title: "🧠 AI Engine",
+                  description: "Searching Cineby & MovieLinkBD...",
+                });
+                await aiEngine.searchStreams();
+                if (aiEngine.streams.length > 0) {
+                  toast({
+                    title: "Streams found!",
+                    description: `Found ${aiEngine.streams.length} stream(s)`,
+                  });
+                } else {
+                  toast({
+                    title: "No streams",
+                    description: aiEngine.error || "Try other sources",
+                    variant: "destructive",
+                  });
+                }
+              }
+            }}
+            disabled={aiEngine.isSearching}
+            className={`h-8 sm:h-9 px-2 sm:px-3 gap-1.5 ${
+              aiEngine.streams.length > 0 
+                ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600' 
+                : aiEngine.isSearching 
+                  ? 'text-purple-400' 
+                  : 'text-muted-foreground'
+            }`}
+            title={
+              aiEngine.streams.length > 0 
+                ? `${aiEngine.streams.length} streams found from AI engine` 
+                : aiEngine.isSearching 
+                  ? 'Searching...' 
+                  : 'AI-powered stream finder'
+            }
+          >
+            {aiEngine.isSearching ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Brain className="h-3.5 w-3.5" />
+            )}
+            <span className="text-xs hidden sm:inline">
+              {aiEngine.streams.length > 0 
+                ? `AI (${aiEngine.streams.length})` 
+                : aiEngine.isSearching 
+                  ? 'Finding...' 
+                  : 'AI Engine'}
+            </span>
+            {aiEngine.streams.length > 0 && (
+              <Sparkles className="h-3 w-3 text-yellow-300" />
+            )}
+          </Button>
+
           <Button 
             variant="ghost" 
             size="icon" 
