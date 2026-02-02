@@ -39,7 +39,7 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
     reportServer,
   } = useServerPreference();
   
-  const { getCustomStream, hasCustomStream } = useCustomStreams();
+  const { getCustomStream, hasCustomStream, isAdmin } = useCustomStreams();
   
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -277,14 +277,16 @@ export const VideoPlayer = ({ tmdbId, mediaType, season, episode, title }: Video
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Add Custom Stream Button */}
-        <AddCustomStreamDialog
-          tmdbId={tmdbId}
-          mediaType={mediaType}
-          season={season}
-          episode={episode}
-          title={title}
-        />
+        {/* Add Custom Stream Button - Only for admin */}
+        {isAdmin && (
+          <AddCustomStreamDialog
+            tmdbId={tmdbId}
+            mediaType={mediaType}
+            season={season}
+            episode={episode}
+            title={title}
+          />
+        )}
       </div>
 
       {/* Loading/Branding Overlay */}

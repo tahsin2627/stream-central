@@ -29,22 +29,18 @@ export const useCustomStreams = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch all custom streams for the user
+  // Fetch ALL custom streams (publicly accessible)
   const { data: customStreams = [], isLoading } = useQuery({
-    queryKey: ['custom-streams', user?.id],
+    queryKey: ['custom-streams'],
     queryFn: async () => {
-      if (!user) return [];
-      
       const { data, error } = await supabase
         .from('custom_streams')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data as CustomStream[];
     },
-    enabled: !!user,
   });
 
   // Get custom stream for specific content
@@ -135,5 +131,6 @@ export const useCustomStreams = () => {
     deleteStream: deleteStreamMutation.mutate,
     isAdding: addStreamMutation.isPending,
     isDeleting: deleteStreamMutation.isPending,
+    isAdmin: !!user, // Only logged-in users can manage streams
   };
 };

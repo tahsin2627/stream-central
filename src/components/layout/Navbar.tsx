@@ -118,11 +118,7 @@ export const Navbar = () => {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          ) : (
-            <Button variant="ghost" size="sm" asChild>
-              <Link to="/login">Sign In</Link>
-            </Button>
-          )}
+          ) : null}
 
           {/* Mobile Menu Toggle */}
           <Button
@@ -160,14 +156,6 @@ export const Navbar = () => {
                   {link.label}
                 </Link>
               ))}
-              {!user && (
-                <Link
-                  to="/login"
-                  className="py-2 px-4 rounded-lg text-sm font-medium text-primary hover:bg-secondary/50"
-                >
-                  Sign In
-                </Link>
-              )}
             </div>
           </motion.div>
         )}
