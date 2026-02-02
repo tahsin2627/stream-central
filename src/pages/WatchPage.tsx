@@ -388,7 +388,7 @@ const WatchPage = () => {
                   setUseNativePlayer(true);
                   toast({
                     title: "🧠 AI Engine Active",
-                    description: "Playing stream via proxy",
+                    description: `Playing ${bestStream.quality} stream`,
                   });
                 }
               } else if (!aiEngine.isSearching) {
