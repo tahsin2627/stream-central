@@ -468,13 +468,17 @@ const WatchPage = () => {
               referrerPolicy="origin"
               title="Video Player"
               onLoad={handleIframeLoad}
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-pointer-lock"
+              onError={() => {
+                // Auto-fallback on error
+                handleAutoFallback();
+              }}
             />
           </div>
 
           {/* Persistent Control Bar - Below video */}
           <PlayerControlBar
             mediaType={mediaType as 'movie' | 'tv'}
+            currentServer={`${selectedServer.flag} ${selectedServer.name}`}
             onRefresh={() => {
               // Force re-render of iframe
               const currentUrl = embedUrl;
@@ -487,6 +491,10 @@ const WatchPage = () => {
                 }, 100);
               }
               setIsLoading(true);
+            }}
+            onSwitchServer={() => {
+              // Switch to next available server
+              handleAutoFallback();
             }}
             onPrevEpisode={() => {
               if (selectedEpisode > 1) {
