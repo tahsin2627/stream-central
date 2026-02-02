@@ -1,10 +1,21 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+// Get the proxy URL for streams that need CORS bypass
+const getProxiedUrl = (streamUrl: string): string => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  if (!supabaseUrl) return streamUrl;
+  
+  // Encode the stream URL and proxy through our edge function
+  const encodedUrl = encodeURIComponent(streamUrl);
+  return `${supabaseUrl}/functions/v1/stream-proxy?url=${encodedUrl}`;
+};
+
 export interface AIStream {
   source: string;
   sourceName: string;
   streamUrl: string;
+  proxiedUrl: string; // CORS-bypassed URL
   quality: string;
   type: 'hls' | 'mp4' | 'dash';
   confidence: number;
@@ -75,9 +86,14 @@ export const useAIStreamEngine = (options: UseAIStreamEngineOptions) => {
         setError(null);
         setSearchedSources([]);
       } else {
-        setStreams(response.streams || []);
+        // Add proxied URLs to all streams
+        const streamsWithProxy = (response.streams || []).map((stream: any) => ({
+          ...stream,
+          proxiedUrl: getProxiedUrl(stream.streamUrl),
+        }));
+        setStreams(streamsWithProxy);
         setSearchedSources([]); // Hide source names for privacy
-        console.log(`[AI Engine] Found ${response.streams?.length || 0} streams`);
+        console.log(`[AI Engine] Found ${streamsWithProxy.length} streams`);
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'AI engine failed';
