@@ -24,9 +24,9 @@ import { useServerPreference, getServersByCategory, getNextServer, VideoServer }
 import { EpisodeList } from '@/components/player/EpisodeList';
 import { ServerSettingsDialog } from '@/components/player/ServerSettingsDialog';
 import { ExternalSourcesDialog } from '@/components/player/ExternalSourcesDialog';
-import { PlaybackOverlay } from '@/components/player/PlaybackOverlay';
 import { LoadingOverlay } from '@/components/player/LoadingOverlay';
 import { LanguageSelector } from '@/components/player/LanguageSelector';
+import { PlayerControlBar } from '@/components/player/PlayerControlBar';
 import { useToast } from '@/hooks/use-toast';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
 import { AddCustomStreamDialog } from '@/components/player/AddCustomStreamDialog';
@@ -48,7 +48,6 @@ const WatchPage = () => {
   const [selectedSeason, setSelectedSeason] = useState(initialSeason);
   const [selectedEpisode, setSelectedEpisode] = useState(initialEpisode);
   const [isLoading, setIsLoading] = useState(true);
-  const [showControls, setShowControls] = useState(true);
   const [attemptedServers, setAttemptedServers] = useState<string[]>([]);
   const [isFallbackTriggered, setIsFallbackTriggered] = useState(false);
   // External embed feature removed - most providers block iframe embedding
@@ -267,9 +266,6 @@ const WatchPage = () => {
     navigate(-1);
   };
 
-  const toggleControls = () => {
-    setShowControls(prev => !prev);
-  };
 
   const primaryServers = getServersByCategory('primary');
   const dubbedServers = getServersByCategory('dubbed');
@@ -443,8 +439,8 @@ const WatchPage = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Video Player Area */}
-        <div className="flex-shrink-0 w-full lg:flex-1 bg-black relative player-container">
-          <div className="relative w-full aspect-video lg:h-full" onClick={toggleControls}>
+        <div className="flex-shrink-0 w-full lg:flex-1 bg-black relative flex flex-col player-container">
+          <div className="relative w-full aspect-video lg:flex-1">
             {/* Loading Overlay */}
             <AnimatePresence>
               {isLoading && (
@@ -472,14 +468,37 @@ const WatchPage = () => {
               referrerPolicy="origin"
               title="Video Player"
               onLoad={handleIframeLoad}
-            />
-
-            {/* Playback Overlay Controls - Always visible when not loading */}
-            <PlaybackOverlay
-              isVisible={!isLoading}
-              onToggle={toggleControls}
+              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-presentation allow-pointer-lock"
             />
           </div>
+
+          {/* Persistent Control Bar - Below video */}
+          <PlayerControlBar
+            mediaType={mediaType as 'movie' | 'tv'}
+            onRefresh={() => {
+              // Force re-render of iframe
+              const currentUrl = embedUrl;
+              if (iframeRef.current) {
+                iframeRef.current.src = '';
+                setTimeout(() => {
+                  if (iframeRef.current) {
+                    iframeRef.current.src = currentUrl;
+                  }
+                }, 100);
+              }
+              setIsLoading(true);
+            }}
+            onPrevEpisode={() => {
+              if (selectedEpisode > 1) {
+                setSelectedEpisode(selectedEpisode - 1);
+              }
+            }}
+            onNextEpisode={() => {
+              setSelectedEpisode(selectedEpisode + 1);
+            }}
+            hasPrev={selectedEpisode > 1}
+            hasNext={mediaType === 'tv'}
+          />
         </div>
 
         {/* Info Panel */}
