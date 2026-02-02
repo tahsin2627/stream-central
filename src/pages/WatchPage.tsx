@@ -420,9 +420,9 @@ const WatchPage = () => {
                 </>
               )}
 
-              {/* Primary servers */}
-              <div className="px-2 py-1 text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase">Primary</div>
-              {primaryServers.map((server) => {
+              {/* Dubbed / Hindi servers - TOP PRIORITY */}
+              <div className="px-2 py-1 text-[10px] sm:text-xs font-semibold text-amber-500 uppercase">🔊 Hindi / Dubbed</div>
+              {dubbedServers.map((server) => {
                 const serverReported = isServerReported(server.id, tmdbId, mediaType as 'movie' | 'tv');
                 return (
                   <DropdownMenuItem
@@ -442,9 +442,9 @@ const WatchPage = () => {
                 );
               })}
               
-              {/* Dubbed / Multi-language servers */}
-              <div className="px-2 py-1 mt-1 text-[10px] sm:text-xs font-semibold text-amber-500 uppercase border-t border-border/50">🔊 Dubbed / Regional</div>
-              {dubbedServers.map((server) => {
+              {/* Primary servers (English/International) */}
+              <div className="px-2 py-1 mt-1 text-[10px] sm:text-xs font-semibold text-muted-foreground uppercase border-t border-border/50">Primary (English)</div>
+              {primaryServers.map((server) => {
                 const serverReported = isServerReported(server.id, tmdbId, mediaType as 'movie' | 'tv');
                 return (
                   <DropdownMenuItem
