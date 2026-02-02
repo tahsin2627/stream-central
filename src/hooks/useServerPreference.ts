@@ -8,7 +8,7 @@ export interface VideoServer {
   getUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => string;
 }
 
-export type LanguagePreference = 'default' | 'hindi' | 'asian' | 'dubbed';
+export type LanguagePreference = 'default' | 'hindi' | 'bengali' | 'asian' | 'dubbed';
 
 export interface ReportedServer {
   serverId: string;
@@ -283,6 +283,9 @@ export const getDefaultServerForLanguage = (lang: LanguagePreference): VideoServ
   switch (lang) {
     case 'hindi':
       return VIDEO_SERVERS.find(s => s.id === 'moviesapi') || VIDEO_SERVERS[0];
+    case 'bengali':
+      // Bengali content works best with South Asian servers that have regional content
+      return VIDEO_SERVERS.find(s => s.id === 'nontongo') || VIDEO_SERVERS[0];
     case 'asian':
       return VIDEO_SERVERS.find(s => s.id === 'nontongo') || VIDEO_SERVERS[0];
     case 'dubbed':
