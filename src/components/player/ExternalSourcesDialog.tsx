@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Globe, Loader2, ExternalLink, Film, Languages, HardDrive, Sparkles, Play, Download } from 'lucide-react';
+import { Globe, Loader2, ExternalLink, Film, Languages, HardDrive, Sparkles, Database, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -22,7 +22,6 @@ interface ExternalSourcesDialogProps {
   tmdbId?: number;
   season?: number;
   episode?: number;
-  onSelectSource?: (embedUrl: string, sourceName: string) => void;
 }
 
 const QualityBadge = ({ quality }: { quality: string }) => {
@@ -32,6 +31,7 @@ const QualityBadge = ({ quality }: { quality: string }) => {
       case '2160p':
         return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
       case '1080p':
+      case 'hd':
         return 'bg-green-500/20 text-green-400 border-green-500/30';
       case '720p':
         return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
@@ -52,12 +52,10 @@ const QualityBadge = ({ quality }: { quality: string }) => {
 
 const SourceCard = ({ 
   result, 
-  onPlay, 
-  onOpenExternal 
+  onOpen,
 }: { 
   result: ScrapedResult; 
-  onPlay?: () => void;
-  onOpenExternal: () => void;
+  onOpen: () => void;
 }) => {
   return (
     <div className="w-full p-4 rounded-lg border border-border bg-card hover:bg-accent/30 transition-colors">
@@ -67,10 +65,10 @@ const SourceCard = ({
             <span className="font-medium text-sm text-primary">
               {result.sourceName}
             </span>
-            {result.isEmbeddable && (
-              <Badge variant="secondary" className="text-[10px] bg-green-500/20 text-green-400 border-green-500/30">
-                <Play className="h-2.5 w-2.5 mr-1" />
-                Playable
+            {result.isTmdbSource && (
+              <Badge variant="secondary" className="text-[10px] bg-blue-500/20 text-blue-400 border-blue-500/30">
+                <Database className="h-2.5 w-2.5 mr-1" />
+                TMDB
               </Badge>
             )}
           </div>
@@ -93,28 +91,15 @@ const SourceCard = ({
             )}
           </div>
         </div>
-        <div className="flex flex-col gap-2">
-          {result.isEmbeddable && onPlay ? (
-            <Button 
-              size="sm" 
-              onClick={onPlay}
-              className="gap-1.5 bg-primary hover:bg-primary/90"
-            >
-              <Play className="h-3.5 w-3.5" />
-              Play
-            </Button>
-          ) : (
-            <Button 
-              size="sm" 
-              variant="outline"
-              onClick={onOpenExternal}
-              className="gap-1.5"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-              Open
-            </Button>
-          )}
-        </div>
+        <Button 
+          size="sm" 
+          variant="outline"
+          onClick={onOpen}
+          className="gap-1.5"
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+          Open
+        </Button>
       </div>
     </div>
   );
@@ -127,7 +112,6 @@ export const ExternalSourcesDialog = ({
   tmdbId,
   season,
   episode,
-  onSelectSource 
 }: ExternalSourcesDialogProps) => {
   const [open, setOpen] = useState(false);
   const searchQuery = year ? `${title} ${year}` : title;
@@ -141,17 +125,10 @@ export const ExternalSourcesDialog = ({
     episode
   );
 
-  const embeddableSources = sources?.filter(s => s.isEmbeddable) || [];
-  const externalSources = sources?.filter(s => !s.isEmbeddable) || [];
+  const tmdbSources = sources?.filter(s => s.isTmdbSource) || [];
+  const scrapedSources = sources?.filter(s => !s.isTmdbSource) || [];
 
-  const handlePlaySource = (result: ScrapedResult) => {
-    if (result.embedUrl && onSelectSource) {
-      onSelectSource(result.embedUrl, result.sourceName);
-      setOpen(false);
-    }
-  };
-
-  const handleOpenExternal = (result: ScrapedResult) => {
+  const handleOpenSource = (result: ScrapedResult) => {
     window.open(result.url, '_blank', 'noopener,noreferrer');
   };
 
@@ -198,58 +175,57 @@ export const ExternalSourcesDialog = ({
             </Button>
           </div>
         ) : sources && sources.length > 0 ? (
-          <Tabs defaultValue="playable" className="w-full">
+          <Tabs defaultValue="tmdb" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="playable" className="gap-2">
-                <Play className="h-3.5 w-3.5" />
-                Playable ({embeddableSources.length})
+              <TabsTrigger value="tmdb" className="gap-2">
+                <Database className="h-3.5 w-3.5" />
+                Reliable ({tmdbSources.length})
               </TabsTrigger>
-              <TabsTrigger value="external" className="gap-2">
-                <Download className="h-3.5 w-3.5" />
-                External ({externalSources.length})
+              <TabsTrigger value="scraped" className="gap-2">
+                <Link2 className="h-3.5 w-3.5" />
+                Scraped ({scrapedSources.length})
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="playable">
+            <TabsContent value="tmdb">
               <ScrollArea className="max-h-[40vh] pr-4">
-                {embeddableSources.length > 0 ? (
+                {tmdbSources.length > 0 ? (
                   <div className="space-y-3 py-2">
-                    {embeddableSources.map((result, index) => (
+                    {tmdbSources.map((result, index) => (
                       <SourceCard 
                         key={`${result.source}-${index}`} 
                         result={result} 
-                        onPlay={() => handlePlaySource(result)}
-                        onOpenExternal={() => handleOpenExternal(result)}
+                        onOpen={() => handleOpenSource(result)}
                       />
                     ))}
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-                    <Play className="h-10 w-10 mb-3 opacity-50" />
-                    <p className="text-sm">No playable sources found</p>
-                    <p className="text-xs mt-1">Check external sources tab</p>
+                    <Database className="h-10 w-10 mb-3 opacity-50" />
+                    <p className="text-sm">No TMDB sources found</p>
+                    <p className="text-xs mt-1">Check scraped sources tab</p>
                   </div>
                 )}
               </ScrollArea>
             </TabsContent>
             
-            <TabsContent value="external">
+            <TabsContent value="scraped">
               <ScrollArea className="max-h-[40vh] pr-4">
-                {externalSources.length > 0 ? (
+                {scrapedSources.length > 0 ? (
                   <div className="space-y-3 py-2">
-                    {externalSources.map((result, index) => (
+                    {scrapedSources.map((result, index) => (
                       <SourceCard 
                         key={`${result.source}-${index}`} 
                         result={result}
-                        onOpenExternal={() => handleOpenExternal(result)}
+                        onOpen={() => handleOpenSource(result)}
                       />
                     ))}
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-                    <Download className="h-10 w-10 mb-3 opacity-50" />
-                    <p className="text-sm">No external sources found</p>
-                    <p className="text-xs mt-1">Try playable sources tab</p>
+                    <Link2 className="h-10 w-10 mb-3 opacity-50" />
+                    <p className="text-sm">No scraped sources found</p>
+                    <p className="text-xs mt-1">Try reliable sources tab</p>
                   </div>
                 )}
               </ScrollArea>
@@ -263,11 +239,12 @@ export const ExternalSourcesDialog = ({
           </div>
         )}
 
-        <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground mt-2">
-          <p className="font-medium mb-1">💡 Tip</p>
-          <p>
-            <strong>Playable</strong> sources play directly in WellPlayer. 
-            <strong> External</strong> sources open in a new tab for download/streaming.
+        <div className="rounded-lg bg-amber-500/10 border border-amber-500/30 p-3 text-xs text-amber-200 mt-2">
+          <p className="font-medium mb-1">⚠️ Why do sources open in new tabs?</p>
+          <p className="text-amber-200/80">
+            Most streaming sites block iframe embedding for security reasons. 
+            These sources open in a new browser tab where they work fully.
+            <strong className="text-amber-300"> Reliable sources</strong> use TMDB IDs for exact matching.
           </p>
         </div>
       </DialogContent>

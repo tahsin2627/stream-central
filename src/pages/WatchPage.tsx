@@ -46,8 +46,7 @@ const WatchPage = () => {
   const [showControls, setShowControls] = useState(false);
   const [attemptedServers, setAttemptedServers] = useState<string[]>([]);
   const [isFallbackTriggered, setIsFallbackTriggered] = useState(false);
-  const [externalEmbedUrl, setExternalEmbedUrl] = useState<string | null>(null);
-  const [externalSourceName, setExternalSourceName] = useState<string | null>(null);
+  // External embed feature removed - most providers block iframe embedding
 
   const mediaType = type === 'tv' ? 'tv' : 'movie';
   const tmdbId = Number(id);
@@ -99,9 +98,9 @@ const WatchPage = () => {
     name: `Episode ${i + 1}`,
   }));
 
-  // Use external embed URL if set, otherwise use selected server
-  const embedUrl = externalEmbedUrl || selectedServer.getUrl(tmdbId, mediaType, selectedSeason, selectedEpisode);
-  const currentSourceName = externalSourceName || `${selectedServer.flag} ${selectedServer.name}`;
+  // Embed URL from selected server
+  const embedUrl = selectedServer.getUrl(tmdbId, mediaType, selectedSeason, selectedEpisode);
+  const currentSourceName = `${selectedServer.flag} ${selectedServer.name}`;
 
   // Clear fallback timer
   const clearFallbackTimer = useCallback(() => {
@@ -192,24 +191,8 @@ const WatchPage = () => {
       setPreferredServer(server); // Remember preference
       setAttemptedServers([]); // Reset attempts when manually changing
       setIsFallbackTriggered(false);
-      setExternalEmbedUrl(null); // Clear external source when switching servers
-      setExternalSourceName(null);
     }
   }, [selectedServer, setPreferredServer]);
-
-  // Handle external source selection from dialog
-  const handleExternalSourceSelect = useCallback((embedUrl: string, sourceName: string) => {
-    setExternalEmbedUrl(embedUrl);
-    setExternalSourceName(sourceName);
-    setIsLoading(true);
-    setAttemptedServers([]);
-    setIsFallbackTriggered(false);
-    toast({
-      title: "Playing external source",
-      description: `Streaming from ${sourceName}`,
-      duration: 3000,
-    });
-  }, [toast]);
 
   const handleIframeLoad = useCallback(() => {
     iframeLoadedRef.current = true;
@@ -284,7 +267,6 @@ const WatchPage = () => {
             tmdbId={tmdbId}
             season={mediaType === 'tv' ? selectedSeason : undefined}
             episode={mediaType === 'tv' ? selectedEpisode : undefined}
-            onSelectSource={handleExternalSourceSelect}
           />
 
           {/* Settings Dialog */}
@@ -296,11 +278,10 @@ const WatchPage = () => {
               <Button variant="secondary" size="sm" className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3">
                 <Server className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span className="text-xs sm:text-sm">
-                  {externalSourceName ? `🌐 ${externalSourceName}` : `${selectedServer.flag} ${selectedServer.name}`}
+                  {selectedServer.flag} {selectedServer.name}
                 </span>
-                {!externalSourceName && isReported && <span className="text-[10px] bg-destructive/20 text-destructive px-1 rounded">⚠️</span>}
-                {!externalSourceName && autoFallback && !isReported && <span className="text-[10px] bg-amber-500/20 text-amber-500 px-1 rounded hidden sm:inline">AUTO</span>}
-                {externalSourceName && <span className="text-[10px] bg-purple-500/20 text-purple-400 px-1 rounded">EXT</span>}
+                {isReported && <span className="text-[10px] bg-destructive/20 text-destructive px-1 rounded">⚠️</span>}
+                {autoFallback && !isReported && <span className="text-[10px] bg-amber-500/20 text-amber-500 px-1 rounded hidden sm:inline">AUTO</span>}
                 <ChevronDown className="h-3 w-3 opacity-60" />
               </Button>
             </DropdownMenuTrigger>
