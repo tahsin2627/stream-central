@@ -4,17 +4,28 @@ export interface VideoServer {
   id: string;
   name: string;
   flag: string;
-  category: 'primary' | 'dubbed' | 'backup';
-  getUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => string;
+  category: 'primary' | 'dubbed' | 'backup' | 'external';
+  getUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number, title?: string) => string;
+  isExternal?: boolean; // Opens in new tab
 }
 
 export type LanguagePreference = 'default' | 'hindi' | 'asian' | 'dubbed';
+
+export interface ReportedServer {
+  serverId: string;
+  tmdbId: number;
+  mediaType: 'movie' | 'tv';
+  reportedAt: number;
+}
 
 const STORAGE_KEYS = {
   SERVER: 'wellplayer_preferred_server',
   LANGUAGE: 'wellplayer_language_preference',
   AUTO_FALLBACK: 'wellplayer_auto_fallback',
+  REPORTED_SERVERS: 'wellplayer_reported_servers',
 };
+
+const REPORT_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export const VIDEO_SERVERS: VideoServer[] = [
   // Primary servers
@@ -187,11 +198,32 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://vidsrc.in/embed/${mediaType}/${tmdbId}`;
     },
   },
+  // External servers (open in new tab)
+  {
+    id: 'rtally',
+    name: 'Rtally',
+    flag: '🔗',
+    category: 'external',
+    isExternal: true,
+    getUrl: (tmdbId, mediaType, season, episode, title) => {
+      // Rtally uses slug-based URLs, so we search by title
+      const searchQuery = encodeURIComponent(title || '');
+      return `https://www.rtally.xyz/search?query=${searchQuery}`;
+    },
+  },
 ];
 
-// Get servers by category
+// Get servers by category (excluding external by default)
 export const getServersByCategory = (category: VideoServer['category']) => 
   VIDEO_SERVERS.filter(s => s.category === category);
+
+// Get all internal servers (for fallback)
+export const getInternalServers = () => 
+  VIDEO_SERVERS.filter(s => !s.isExternal);
+
+// Get external servers
+export const getExternalServers = () => 
+  VIDEO_SERVERS.filter(s => s.isExternal);
 
 // Get default server based on language preference
 export const getDefaultServerForLanguage = (lang: LanguagePreference): VideoServer => {
@@ -207,19 +239,88 @@ export const getDefaultServerForLanguage = (lang: LanguagePreference): VideoServ
   }
 };
 
-// Get next server for fallback
-export const getNextServer = (currentServer: VideoServer, attemptedServers: string[]): VideoServer | null => {
-  // First try other servers in the same category
-  const sameCategoryServers = VIDEO_SERVERS.filter(
-    s => s.category === currentServer.category && 
-         s.id !== currentServer.id && 
-         !attemptedServers.includes(s.id)
-  );
-  if (sameCategoryServers.length > 0) return sameCategoryServers[0];
+// Get reported servers from storage
+const getReportedServers = (): ReportedServer[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const stored = localStorage.getItem(STORAGE_KEYS.REPORTED_SERVERS);
+    if (!stored) return [];
+    const reports: ReportedServer[] = JSON.parse(stored);
+    // Filter out expired reports
+    const now = Date.now();
+    return reports.filter(r => now - r.reportedAt < REPORT_EXPIRY_MS);
+  } catch {
+    return [];
+  }
+};
 
-  // Then try any server not yet attempted
-  const anyServer = VIDEO_SERVERS.find(s => !attemptedServers.includes(s.id));
-  return anyServer || null;
+// Save reported servers to storage
+const saveReportedServers = (reports: ReportedServer[]) => {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(STORAGE_KEYS.REPORTED_SERVERS, JSON.stringify(reports));
+};
+
+// Check if a server is reported for specific content
+export const isServerReported = (
+  serverId: string, 
+  tmdbId: number, 
+  mediaType: 'movie' | 'tv'
+): boolean => {
+  const reports = getReportedServers();
+  return reports.some(
+    r => r.serverId === serverId && r.tmdbId === tmdbId && r.mediaType === mediaType
+  );
+};
+
+// Get report count for a server (across all content)
+export const getServerReportCount = (serverId: string): number => {
+  const reports = getReportedServers();
+  return reports.filter(r => r.serverId === serverId).length;
+};
+
+// Get next server for fallback - prioritizes servers with fewer reports
+export const getNextServer = (
+  currentServer: VideoServer, 
+  attemptedServers: string[],
+  tmdbId?: number,
+  mediaType?: 'movie' | 'tv'
+): VideoServer | null => {
+  const internalServers = getInternalServers();
+  const reports = getReportedServers();
+  
+  // Create a score for each server (lower is better)
+  const getServerScore = (server: VideoServer): number => {
+    let score = 0;
+    
+    // Penalize servers reported for this specific content
+    if (tmdbId && mediaType) {
+      const isReportedForContent = reports.some(
+        r => r.serverId === server.id && r.tmdbId === tmdbId && r.mediaType === mediaType
+      );
+      if (isReportedForContent) score += 100;
+    }
+    
+    // Penalize servers with more general reports
+    const reportCount = reports.filter(r => r.serverId === server.id).length;
+    score += reportCount * 10;
+    
+    return score;
+  };
+  
+  // Get available servers sorted by score
+  const availableServers = internalServers
+    .filter(s => s.id !== currentServer.id && !attemptedServers.includes(s.id))
+    .sort((a, b) => {
+      // First prioritize same category
+      const aCategory = a.category === currentServer.category ? 0 : 1;
+      const bCategory = b.category === currentServer.category ? 0 : 1;
+      if (aCategory !== bCategory) return aCategory - bCategory;
+      
+      // Then sort by report score
+      return getServerScore(a) - getServerScore(b);
+    });
+    
+  return availableServers[0] || null;
 };
 
 export const useServerPreference = () => {
@@ -244,6 +345,8 @@ export const useServerPreference = () => {
     return saved !== 'false'; // Default to true
   });
 
+  const [reportedServers, setReportedServers] = useState<ReportedServer[]>(() => getReportedServers());
+
   const setPreferredServer = useCallback((server: VideoServer) => {
     setPreferredServerState(server);
     localStorage.setItem(STORAGE_KEYS.SERVER, server.id);
@@ -263,6 +366,39 @@ export const useServerPreference = () => {
     localStorage.setItem(STORAGE_KEYS.AUTO_FALLBACK, String(enabled));
   }, []);
 
+  const reportServer = useCallback((
+    serverId: string, 
+    tmdbId: number, 
+    mediaType: 'movie' | 'tv'
+  ) => {
+    const newReport: ReportedServer = {
+      serverId,
+      tmdbId,
+      mediaType,
+      reportedAt: Date.now(),
+    };
+    
+    // Remove any existing report for same server+content combo
+    const existing = reportedServers.filter(
+      r => !(r.serverId === serverId && r.tmdbId === tmdbId && r.mediaType === mediaType)
+    );
+    
+    const updated = [...existing, newReport];
+    setReportedServers(updated);
+    saveReportedServers(updated);
+  }, [reportedServers]);
+
+  const clearServerReports = useCallback((serverId?: string) => {
+    if (serverId) {
+      const updated = reportedServers.filter(r => r.serverId !== serverId);
+      setReportedServers(updated);
+      saveReportedServers(updated);
+    } else {
+      setReportedServers([]);
+      saveReportedServers([]);
+    }
+  }, [reportedServers]);
+
   return {
     preferredServer,
     setPreferredServer,
@@ -271,5 +407,11 @@ export const useServerPreference = () => {
     autoFallback,
     setAutoFallback,
     servers: VIDEO_SERVERS,
+    reportedServers,
+    reportServer,
+    clearServerReports,
+    isServerReported: (serverId: string, tmdbId: number, mediaType: 'movie' | 'tv') => 
+      isServerReported(serverId, tmdbId, mediaType),
+    getServerReportCount,
   };
 };
