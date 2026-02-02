@@ -423,10 +423,12 @@ export const useServerPreference = () => {
     setLanguagePreferenceState(lang);
     localStorage.setItem(STORAGE_KEYS.LANGUAGE, lang);
     
-    // Auto-update preferred server based on language
+    // IMPORTANT: Auto-update preferred server based on language
+    // This ensures the server actually changes when user selects a language
     const defaultServer = getDefaultServerForLanguage(lang);
-    setPreferredServer(defaultServer);
-  }, [setPreferredServer]);
+    setPreferredServerState(defaultServer);
+    localStorage.setItem(STORAGE_KEYS.SERVER, defaultServer.id);
+  }, []);
 
   const setAutoFallback = useCallback((enabled: boolean) => {
     setAutoFallbackState(enabled);

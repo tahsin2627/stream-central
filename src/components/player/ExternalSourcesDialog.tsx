@@ -74,7 +74,10 @@ const SourceCard = ({
   onOpenExternal: () => void;
 }) => {
   return (
-    <div className="w-full p-4 rounded-lg border border-border bg-card hover:bg-accent/30 transition-colors">
+    <div 
+      className="w-full p-4 rounded-lg border border-border bg-card hover:bg-accent/30 transition-colors cursor-pointer group"
+      onClick={onOpenInApp}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
@@ -109,24 +112,26 @@ const SourceCard = ({
           </div>
         </div>
         <div className="flex flex-col gap-1.5">
+          {/* Big Play Button */}
           <Button 
-            size="sm" 
+            size="default" 
             variant="default"
-            onClick={onOpenInApp}
-            className="gap-1.5"
-            title="Open in WellPlayer browser"
+            onClick={(e) => { e.stopPropagation(); onOpenInApp(); }}
+            className="gap-2 bg-primary hover:bg-primary/90"
+            title="Play in WellPlayer browser"
           >
-            <Monitor className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Open</span>
+            <Play className="h-4 w-4" fill="currentColor" />
+            <span>Play</span>
           </Button>
           <Button 
             size="sm" 
             variant="ghost"
-            onClick={onOpenExternal}
-            className="gap-1.5 text-muted-foreground"
+            onClick={(e) => { e.stopPropagation(); onOpenExternal(); }}
+            className="gap-1.5 text-muted-foreground text-xs"
             title="Open in new tab"
           >
             <ExternalLink className="h-3.5 w-3.5" />
+            <span>New Tab</span>
           </Button>
         </div>
       </div>
@@ -207,7 +212,7 @@ export const ExternalSourcesDialog = ({
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Loader2 className="h-8 w-8 animate-spin mb-3" />
               <p className="text-sm">Searching external sources...</p>
-              <p className="text-xs mt-1">Checking TamilBlasters, SkyMoviesHD & more</p>
+              <p className="text-xs mt-1">Checking TamilBlasters & TMDB sources</p>
             </div>
           ) : error ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
