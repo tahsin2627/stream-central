@@ -369,7 +369,7 @@ const WatchPage = () => {
             <span className="text-xs hidden sm:inline">{useNativePlayer ? 'Native' : 'Try Native'}</span>
           </Button>
 
-          {/* AI Engine Button - Auto-fetches from Cineby & MovieLinkBD */}
+          {/* AI Engine Button - Auto-fetches streams */}
           <Button
             variant={aiEngine.streams.length > 0 ? "default" : "ghost"}
             size="sm"
@@ -386,14 +386,14 @@ const WatchPage = () => {
                   setUseNativePlayer(true);
                   toast({
                     title: "🧠 AI Engine Active",
-                    description: `Playing from ${bestStream.sourceName}`,
+                    description: "Playing stream",
                   });
                 }
               } else if (!aiEngine.isSearching) {
                 // Manually trigger search
                 toast({
                   title: "🧠 AI Engine",
-                  description: "Searching Cineby & MovieLinkBD...",
+                  description: "Searching for streams...",
                 });
                 await aiEngine.searchStreams();
                 if (aiEngine.streams.length > 0) {
@@ -403,9 +403,8 @@ const WatchPage = () => {
                   });
                 } else {
                   toast({
-                    title: "No streams",
-                    description: aiEngine.error || "Try other sources",
-                    variant: "destructive",
+                    title: "Still searching",
+                    description: "Try again in a moment",
                   });
                 }
               }
@@ -420,9 +419,9 @@ const WatchPage = () => {
             }`}
             title={
               aiEngine.streams.length > 0 
-                ? `${aiEngine.streams.length} streams found from AI engine` 
+                ? `${aiEngine.streams.length} streams ready` 
                 : aiEngine.isSearching 
-                  ? 'Searching...' 
+                  ? 'AI Engine loading...' 
                   : 'AI-powered stream finder'
             }
           >
@@ -435,7 +434,7 @@ const WatchPage = () => {
               {aiEngine.streams.length > 0 
                 ? `AI (${aiEngine.streams.length})` 
                 : aiEngine.isSearching 
-                  ? 'Finding...' 
+                  ? 'Loading...' 
                   : 'AI Engine'}
             </span>
             {aiEngine.streams.length > 0 && (
