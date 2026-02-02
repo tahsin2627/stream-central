@@ -19,6 +19,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 const LANGUAGE_OPTIONS: { value: LanguagePreference; label: string; description: string; icon: string }[] = [
   { value: 'default', label: 'Default', description: 'English / Original audio', icon: '🌐' },
   { value: 'hindi', label: 'Hindi', description: 'Hindi dubbed content', icon: '🇮🇳' },
+  { value: 'bengali', label: 'Bengali', description: 'Bangla / Bangladeshi content', icon: '🇧🇩' },
   { value: 'asian', label: 'Asian', description: 'K-Drama, Anime, Asian content', icon: '🇯🇵' },
   { value: 'dubbed', label: 'Multi-Dub', description: 'Various dubbed versions', icon: '🌏' },
 ];
