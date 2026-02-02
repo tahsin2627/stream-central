@@ -5,9 +5,11 @@ export interface ScrapedResult {
   sourceName: string;
   title: string;
   url: string;
+  embedUrl?: string;
   quality?: string;
   size?: string;
   language?: string;
+  isEmbeddable: boolean;
 }
 
 export interface ScrapeResponse {
@@ -21,10 +23,16 @@ export const scraperApi = {
   /**
    * Search external sources for streaming links
    */
-  async searchSources(query: string, mediaType: 'movie' | 'tv'): Promise<ScrapeResponse> {
+  async searchSources(
+    query: string, 
+    mediaType: 'movie' | 'tv',
+    tmdbId?: number,
+    season?: number,
+    episode?: number
+  ): Promise<ScrapeResponse> {
     try {
       const { data, error } = await supabase.functions.invoke('scrape-sources', {
-        body: { query, mediaType },
+        body: { query, mediaType, tmdbId, season, episode },
       });
 
       if (error) {

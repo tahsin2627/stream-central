@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Globe, Loader2, ExternalLink, Film, Languages, HardDrive, Sparkles } from 'lucide-react';
+import { Globe, Loader2, ExternalLink, Film, Languages, HardDrive, Sparkles, Play, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useScrapedSources, ScrapedResult } from '@/hooks/useScrapedSources';
 import { cn } from '@/lib/utils';
 
@@ -18,6 +19,10 @@ interface ExternalSourcesDialogProps {
   title: string;
   mediaType: 'movie' | 'tv';
   year?: string;
+  tmdbId?: number;
+  season?: number;
+  episode?: number;
+  onSelectSource?: (embedUrl: string, sourceName: string) => void;
 }
 
 const QualityBadge = ({ quality }: { quality: string }) => {
@@ -45,19 +50,29 @@ const QualityBadge = ({ quality }: { quality: string }) => {
   );
 };
 
-const SourceCard = ({ result, onSelect }: { result: ScrapedResult; onSelect: () => void }) => {
+const SourceCard = ({ 
+  result, 
+  onPlay, 
+  onOpenExternal 
+}: { 
+  result: ScrapedResult; 
+  onPlay?: () => void;
+  onOpenExternal: () => void;
+}) => {
   return (
-    <button
-      onClick={onSelect}
-      className="w-full text-left p-4 rounded-lg border border-border bg-card hover:bg-accent/50 transition-colors group"
-    >
+    <div className="w-full p-4 rounded-lg border border-border bg-card hover:bg-accent/30 transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <span className="font-medium text-sm text-primary">
               {result.sourceName}
             </span>
-            <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            {result.isEmbeddable && (
+              <Badge variant="secondary" className="text-[10px] bg-green-500/20 text-green-400 border-green-500/30">
+                <Play className="h-2.5 w-2.5 mr-1" />
+                Playable
+              </Badge>
+            )}
           </div>
           <p className="text-sm text-foreground truncate mb-2">
             {result.title}
@@ -78,23 +93,65 @@ const SourceCard = ({ result, onSelect }: { result: ScrapedResult; onSelect: () 
             )}
           </div>
         </div>
+        <div className="flex flex-col gap-2">
+          {result.isEmbeddable && onPlay ? (
+            <Button 
+              size="sm" 
+              onClick={onPlay}
+              className="gap-1.5 bg-primary hover:bg-primary/90"
+            >
+              <Play className="h-3.5 w-3.5" />
+              Play
+            </Button>
+          ) : (
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={onOpenExternal}
+              className="gap-1.5"
+            >
+              <ExternalLink className="h-3.5 w-3.5" />
+              Open
+            </Button>
+          )}
+        </div>
       </div>
-    </button>
+    </div>
   );
 };
 
-export const ExternalSourcesDialog = ({ title, mediaType, year }: ExternalSourcesDialogProps) => {
+export const ExternalSourcesDialog = ({ 
+  title, 
+  mediaType, 
+  year, 
+  tmdbId,
+  season,
+  episode,
+  onSelectSource 
+}: ExternalSourcesDialogProps) => {
   const [open, setOpen] = useState(false);
   const searchQuery = year ? `${title} ${year}` : title;
   
   const { data: sources, isLoading, error, refetch } = useScrapedSources(
     searchQuery,
     mediaType,
-    open // Only fetch when dialog is open
+    open, // Only fetch when dialog is open
+    tmdbId,
+    season,
+    episode
   );
 
-  const handleSelectSource = (result: ScrapedResult) => {
-    // Open the source URL in a new tab
+  const embeddableSources = sources?.filter(s => s.isEmbeddable) || [];
+  const externalSources = sources?.filter(s => !s.isEmbeddable) || [];
+
+  const handlePlaySource = (result: ScrapedResult) => {
+    if (result.embedUrl && onSelectSource) {
+      onSelectSource(result.embedUrl, result.sourceName);
+      setOpen(false);
+    }
+  };
+
+  const handleOpenExternal = (result: ScrapedResult) => {
     window.open(result.url, '_blank', 'noopener,noreferrer');
   };
 
@@ -121,47 +178,96 @@ export const ExternalSourcesDialog = ({ title, mediaType, year }: ExternalSource
             <Film className="h-4 w-4" />
             <span className="truncate">{title}</span>
             {year && <Badge variant="outline">{year}</Badge>}
+            {mediaType === 'tv' && season && episode && (
+              <Badge variant="outline">S{season} E{episode}</Badge>
+            )}
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[50vh] pr-4">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <Loader2 className="h-8 w-8 animate-spin mb-3" />
-              <p className="text-sm">Searching external sources...</p>
-              <p className="text-xs mt-1">This may take a moment</p>
-            </div>
-          ) : error ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <p className="text-sm text-destructive mb-3">Failed to search sources</p>
-              <Button variant="outline" size="sm" onClick={() => refetch()}>
-                Try Again
-              </Button>
-            </div>
-          ) : sources && sources.length > 0 ? (
-            <div className="space-y-3">
-              {sources.map((result, index) => (
-                <SourceCard 
-                  key={`${result.source}-${index}`} 
-                  result={result} 
-                  onSelect={() => handleSelectSource(result)}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-              <Globe className="h-12 w-12 mb-3 opacity-50" />
-              <p className="text-sm">No external sources found</p>
-              <p className="text-xs mt-1">Try the built-in servers above</p>
-            </div>
-          )}
-        </ScrollArea>
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+            <Loader2 className="h-8 w-8 animate-spin mb-3" />
+            <p className="text-sm">Searching external sources...</p>
+            <p className="text-xs mt-1">This may take a moment</p>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <p className="text-sm text-destructive mb-3">Failed to search sources</p>
+            <Button variant="outline" size="sm" onClick={() => refetch()}>
+              Try Again
+            </Button>
+          </div>
+        ) : sources && sources.length > 0 ? (
+          <Tabs defaultValue="playable" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="playable" className="gap-2">
+                <Play className="h-3.5 w-3.5" />
+                Playable ({embeddableSources.length})
+              </TabsTrigger>
+              <TabsTrigger value="external" className="gap-2">
+                <Download className="h-3.5 w-3.5" />
+                External ({externalSources.length})
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="playable">
+              <ScrollArea className="max-h-[40vh] pr-4">
+                {embeddableSources.length > 0 ? (
+                  <div className="space-y-3 py-2">
+                    {embeddableSources.map((result, index) => (
+                      <SourceCard 
+                        key={`${result.source}-${index}`} 
+                        result={result} 
+                        onPlay={() => handlePlaySource(result)}
+                        onOpenExternal={() => handleOpenExternal(result)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                    <Play className="h-10 w-10 mb-3 opacity-50" />
+                    <p className="text-sm">No playable sources found</p>
+                    <p className="text-xs mt-1">Check external sources tab</p>
+                  </div>
+                )}
+              </ScrollArea>
+            </TabsContent>
+            
+            <TabsContent value="external">
+              <ScrollArea className="max-h-[40vh] pr-4">
+                {externalSources.length > 0 ? (
+                  <div className="space-y-3 py-2">
+                    {externalSources.map((result, index) => (
+                      <SourceCard 
+                        key={`${result.source}-${index}`} 
+                        result={result}
+                        onOpenExternal={() => handleOpenExternal(result)}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                    <Download className="h-10 w-10 mb-3 opacity-50" />
+                    <p className="text-sm">No external sources found</p>
+                    <p className="text-xs mt-1">Try playable sources tab</p>
+                  </div>
+                )}
+              </ScrollArea>
+            </TabsContent>
+          </Tabs>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+            <Globe className="h-12 w-12 mb-3 opacity-50" />
+            <p className="text-sm">No external sources found</p>
+            <p className="text-xs mt-1">Try the built-in servers above</p>
+          </div>
+        )}
 
         <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground mt-2">
-          <p className="font-medium mb-1">⚠️ Disclaimer</p>
+          <p className="font-medium mb-1">💡 Tip</p>
           <p>
-            External sources are scraped from the web and may contain ads or unreliable links. 
-            Use at your own discretion.
+            <strong>Playable</strong> sources play directly in WellPlayer. 
+            <strong> External</strong> sources open in a new tab for download/streaming.
           </p>
         </div>
       </DialogContent>
