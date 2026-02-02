@@ -27,6 +27,7 @@ import { ExternalSourcesDialog } from '@/components/player/ExternalSourcesDialog
 import { LoadingOverlay } from '@/components/player/LoadingOverlay';
 import { LanguageSelector } from '@/components/player/LanguageSelector';
 import { PlayerControlBar } from '@/components/player/PlayerControlBar';
+import { VideoOverlay } from '@/components/player/VideoOverlay';
 import { useToast } from '@/hooks/use-toast';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
 import { AddCustomStreamDialog } from '@/components/player/AddCustomStreamDialog';
@@ -473,6 +474,11 @@ const WatchPage = () => {
                 handleAutoFallback();
               }}
             />
+
+            {/* Video Controls Overlay - Tap to show/hide */}
+            {!isLoading && (
+              <VideoOverlay showInitially={false} />
+            )}
           </div>
 
           {/* Persistent Control Bar - Below video */}
