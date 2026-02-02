@@ -4,14 +4,17 @@ import { scraperApi, ScrapedResult } from '@/lib/api/scraper';
 export const useScrapedSources = (
   query: string | undefined,
   mediaType: 'movie' | 'tv',
-  enabled: boolean = true
+  enabled: boolean = true,
+  tmdbId?: number,
+  season?: number,
+  episode?: number
 ) => {
   return useQuery({
-    queryKey: ['scraped-sources', query, mediaType],
+    queryKey: ['scraped-sources', query, mediaType, tmdbId, season, episode],
     queryFn: async () => {
       if (!query) return [];
       
-      const response = await scraperApi.searchSources(query, mediaType);
+      const response = await scraperApi.searchSources(query, mediaType, tmdbId, season, episode);
       
       if (!response.success) {
         console.warn('Scraping failed:', response.error);
