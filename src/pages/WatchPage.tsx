@@ -375,18 +375,20 @@ const WatchPage = () => {
             size="sm"
             onClick={async () => {
               if (aiEngine.streams.length > 0) {
-                // Play best AI stream in native player
+                // Play best AI stream in native player using proxied URL
                 const bestStream = aiEngine.getBestStream();
                 if (bestStream) {
+                  // Use proxied URL to bypass CORS
+                  const streamUrl = bestStream.proxiedUrl || bestStream.streamUrl;
                   setNativeSources([{
-                    url: bestStream.streamUrl,
+                    url: streamUrl,
                     quality: bestStream.quality,
                     type: bestStream.type,
                   }]);
                   setUseNativePlayer(true);
                   toast({
                     title: "🧠 AI Engine Active",
-                    description: "Playing stream",
+                    description: "Playing stream via proxy",
                   });
                 }
               } else if (!aiEngine.isSearching) {
