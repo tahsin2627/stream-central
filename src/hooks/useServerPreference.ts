@@ -38,7 +38,104 @@ const STORAGE_KEYS = {
 const REPORT_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export const VIDEO_SERVERS: VideoServer[] = [
-  // Primary servers
+  // HINDI DUBBED - TOP PRIORITY (for India/Bangladesh audience)
+  {
+    id: 'moviesapi',
+    name: 'Hindi',
+    flag: '🇮🇳',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://moviesapi.club/tv/${tmdbId}-${season}-${episode}`;
+      }
+      return `https://moviesapi.club/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'embedsu',
+    name: 'Desi',
+    flag: '🇮🇳',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://embed.su/embed/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'vidsrcme',
+    name: 'Regal',
+    flag: '🇮🇳',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.me/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`;
+      }
+      return `https://vidsrc.me/embed/${mediaType}?tmdb=${tmdbId}`;
+    },
+  },
+  {
+    id: 'autoco',
+    name: 'Prime',
+    flag: '🇮🇳',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}`;
+      }
+      return `https://autoembed.co/movie/tmdb/${tmdbId}`;
+    },
+  },
+  {
+    id: 'vidsrcwin',
+    name: 'Max',
+    flag: '🇮🇳',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.win/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidsrc.win/embed/${mediaType}/${tmdbId}`;
+    },
+  },
+  {
+    id: 'vidsrcicu',
+    name: 'Dub',
+    flag: '🌏',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.icu/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidsrc.icu/embed/${mediaType}/${tmdbId}`;
+    },
+  },
+  {
+    id: 'hindiserver',
+    name: 'Bolly',
+    flag: '🎬',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.xyz/embed/tv/${tmdbId}/${season}-${episode}`;
+      }
+      return `https://vidsrc.xyz/embed/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'nontongo',
+    name: 'Asia',
+    flag: '🇯🇵',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://www.nontongo.win/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://www.nontongo.win/embed/movie/${tmdbId}`;
+    },
+  },
+  // Primary servers (English/International) 
   {
     id: 'autoembed',
     name: 'Crown',
@@ -96,103 +193,6 @@ export const VIDEO_SERVERS: VideoServer[] = [
         return `https://www.superembed.stream/embed/${tmdbId}/${season}/${episode}`;
       }
       return `https://www.superembed.stream/embed/${tmdbId}`;
-    },
-  },
-  // Dubbed / Multi-language servers
-  {
-    id: 'moviesapi',
-    name: 'Hindi',
-    flag: '🇮🇳',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://moviesapi.club/tv/${tmdbId}-${season}-${episode}`;
-      }
-      return `https://moviesapi.club/movie/${tmdbId}`;
-    },
-  },
-  {
-    id: 'embedsu',
-    name: 'Desi',
-    flag: '🇮🇳',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://embed.su/embed/movie/${tmdbId}`;
-    },
-  },
-  {
-    id: 'vidsrcicu',
-    name: 'Dub',
-    flag: '🌏',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.icu/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://vidsrc.icu/embed/${mediaType}/${tmdbId}`;
-    },
-  },
-  {
-    id: 'nontongo',
-    name: 'Asia',
-    flag: '🇯🇵',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://www.nontongo.win/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://www.nontongo.win/embed/movie/${tmdbId}`;
-    },
-  },
-  {
-    id: 'hindiserver',
-    name: 'Bolly',
-    flag: '🎬',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.xyz/embed/tv/${tmdbId}/${season}-${episode}`;
-      }
-      return `https://vidsrc.xyz/embed/movie/${tmdbId}`;
-    },
-  },
-  {
-    id: 'vidsrcme',
-    name: 'Regal',
-    flag: '🇮🇳',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.me/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`;
-      }
-      return `https://vidsrc.me/embed/${mediaType}?tmdb=${tmdbId}`;
-    },
-  },
-  {
-    id: 'autoco',
-    name: 'Prime',
-    flag: '🇮🇳',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://autoembed.co/tv/tmdb/${tmdbId}-${season}-${episode}`;
-      }
-      return `https://autoembed.co/movie/tmdb/${tmdbId}`;
-    },
-  },
-  {
-    id: 'vidsrcwin',
-    name: 'Max',
-    flag: '🇮🇳',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.win/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://vidsrc.win/embed/${mediaType}/${tmdbId}`;
     },
   },
   // Backup servers
