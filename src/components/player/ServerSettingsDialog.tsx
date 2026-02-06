@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Settings, Globe, Zap, Check, Trash2, AlertTriangle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Settings, Globe, Zap, Check, Trash2, AlertTriangle, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,6 +13,8 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useServerPreference, LanguagePreference, getServerReportCount, getDefaultServerForLanguage } from '@/hooks/useServerPreference';
+import { useServerHealth, getServerTestUrls } from '@/hooks/useServerHealth';
+import { ServerHealthPanel } from '@/components/player/ServerHealthBadge';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from 'sonner';
@@ -35,10 +37,19 @@ export const ServerSettingsDialog = () => {
     reportedServers,
     clearServerReports,
   } = useServerPreference();
+  const { checkAllServers, isChecking, healthData } = useServerHealth();
   const [open, setOpen] = useState(false);
 
   const totalReports = reportedServers.length;
   const serversWithReports = [...new Set(reportedServers.map(r => r.serverId))];
+  
+  // Auto-run health check when dialog opens
+  useEffect(() => {
+    if (open && Object.keys(healthData).length === 0) {
+      const testUrls = getServerTestUrls();
+      checkAllServers(testUrls);
+    }
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -131,6 +142,15 @@ export const ServerSettingsDialog = () => {
                 checked={autoFallback}
                 onCheckedChange={setAutoFallback}
               />
+            </div>
+
+            {/* Server Health Panel */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2 text-sm font-semibold">
+                <Activity className="h-4 w-4" />
+                Server Health
+              </Label>
+              <ServerHealthPanel />
             </div>
 
             {/* Reported Servers */}

@@ -20,6 +20,7 @@ interface ScraperResult {
 }
 
 // Provider configurations - these use TMDB IDs for reliable matching
+// Updated Feb 2026: Removed vidsrc.in (domain expired)
 const PROVIDERS = [
   {
     name: 'netmirr',
@@ -52,13 +53,13 @@ const PROVIDERS = [
     },
   },
   {
-    name: 'embedsu',
+    name: 'vidsrc.wtf',
     priority: 4,
     getPageUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
+        return `https://vidsrc.wtf/embed/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://embed.su/embed/movie/${tmdbId}`;
+      return `https://vidsrc.wtf/embed/movie/${tmdbId}`;
     },
   },
   {
@@ -69,6 +70,16 @@ const PROVIDERS = [
         return `https://player.autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}`;
       }
       return `https://player.autoembed.cc/embed/movie/${tmdbId}`;
+    },
+  },
+  {
+    name: 'superembed',
+    priority: 6,
+    getPageUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`;
+      }
+      return `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1`;
     },
   },
 ];
