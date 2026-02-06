@@ -38,82 +38,10 @@ const STORAGE_KEYS = {
 const REPORT_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 // VERIFIED WORKING PROVIDERS (Tested February 2026)
-// These are actively maintained and allow iframe embedding
+// Removed dead servers: embed.su (DNS failure), vidsrc.xyz (500 errors)
+// Using providers that support iframe embedding without sandbox issues
 export const VIDEO_SERVERS: VideoServer[] = [
-  // HINDI / DUBBED - High Priority for regional content
-  {
-    id: 'vidsrcxyz',
-    name: 'Hindi',
-    flag: '🇮🇳',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.xyz/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://vidsrc.xyz/embed/movie/${tmdbId}`;
-    },
-  },
-  {
-    id: 'embedsu',
-    name: 'Desi',
-    flag: '🇮🇳',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://embed.su/embed/movie/${tmdbId}`;
-    },
-  },
-  {
-    id: 'vidsrcpro',
-    name: 'Prime',
-    flag: '🇮🇳',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.pro/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://vidsrc.pro/embed/movie/${tmdbId}`;
-    },
-  },
-  {
-    id: 'vidsrcin',
-    name: 'Max',
-    flag: '🌏',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.in/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://vidsrc.in/embed/movie/${tmdbId}`;
-    },
-  },
-  {
-    id: 'vidlink',
-    name: 'Regal',
-    flag: '🎬',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://vidlink.pro/movie/${tmdbId}`;
-    },
-  },
-  // PRIMARY - English/International (Fast & Reliable)
-  {
-    id: 'autoembed',
-    name: 'Crown',
-    flag: '🇺🇸',
-    category: 'primary',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://player.autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://player.autoembed.cc/embed/movie/${tmdbId}`;
-    },
-  },
+  // PRIMARY - Most reliable English servers
   {
     id: 'vidsrcto',
     name: 'Apex',
@@ -124,6 +52,18 @@ export const VIDEO_SERVERS: VideoServer[] = [
         return `https://vidsrc.to/embed/tv/${tmdbId}/${season}/${episode}`;
       }
       return `https://vidsrc.to/embed/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'vidsrccc',
+    name: 'Crown',
+    flag: '👑',
+    category: 'primary',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.cc/v2/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidsrc.cc/v2/embed/movie/${tmdbId}`;
     },
   },
   {
@@ -148,6 +88,55 @@ export const VIDEO_SERVERS: VideoServer[] = [
         return `https://player.smashy.stream/tv/${tmdbId}?s=${season}&e=${episode}`;
       }
       return `https://player.smashy.stream/movie/${tmdbId}`;
+    },
+  },
+  // HINDI / DUBBED - Regional content servers
+  {
+    id: 'vidsrcpro',
+    name: 'Hindi',
+    flag: '🇮🇳',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.pro/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidsrc.pro/embed/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'vidsrcin',
+    name: 'Desi',
+    flag: '🇮🇳',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.in/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidsrc.in/embed/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'vidlink',
+    name: 'Prime',
+    flag: '🎬',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidlink.pro/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'autoembed2',
+    name: 'Max',
+    flag: '🌏',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://autoembed.cc/embed/movie/${tmdbId}`;
     },
   },
   // BACKUP - Alternative sources
@@ -176,15 +165,27 @@ export const VIDEO_SERVERS: VideoServer[] = [
     },
   },
   {
-    id: 'moviesapi',
+    id: 'vidsrcicu',
     name: 'Orion',
     flag: '🌙',
     category: 'backup',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://moviesapi.club/tv/${tmdbId}-${season}-${episode}`;
+        return `https://vidsrc.icu/embed/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://moviesapi.club/movie/${tmdbId}`;
+      return `https://vidsrc.icu/embed/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'superembed',
+    name: 'Titan',
+    flag: '💫',
+    category: 'backup',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`;
+      }
+      return `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1`;
     },
   },
 ];
@@ -200,14 +201,14 @@ export const getAllServers = () => VIDEO_SERVERS;
 export const getDefaultServerForLanguage = (lang: LanguagePreference): VideoServer => {
   switch (lang) {
     case 'hindi':
-      return VIDEO_SERVERS.find(s => s.id === 'moviesapi') || VIDEO_SERVERS[0];
+      return VIDEO_SERVERS.find(s => s.id === 'vidsrcpro') || VIDEO_SERVERS[0];
     case 'bengali':
       // Bengali content works best with dubbed servers
-      return VIDEO_SERVERS.find(s => s.id === 'multiembed') || VIDEO_SERVERS[0];
+      return VIDEO_SERVERS.find(s => s.id === 'vidsrcin') || VIDEO_SERVERS[0];
     case 'asian':
-      return VIDEO_SERVERS.find(s => s.id === 'embedapi') || VIDEO_SERVERS[0];
+      return VIDEO_SERVERS.find(s => s.id === 'vidlink') || VIDEO_SERVERS[0];
     case 'dubbed':
-      return VIDEO_SERVERS.find(s => s.id === 'multiembed') || VIDEO_SERVERS[0];
+      return VIDEO_SERVERS.find(s => s.id === 'autoembed2') || VIDEO_SERVERS[0];
     default:
       return VIDEO_SERVERS[0];
   }
