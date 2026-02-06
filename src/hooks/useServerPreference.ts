@@ -40,18 +40,6 @@ const REPORT_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 export const VIDEO_SERVERS: VideoServer[] = [
   // HINDI DUBBED - TOP PRIORITY (for India/Bangladesh audience)
   {
-    id: 'netmirr',
-    name: 'NetMirr',
-    flag: '🎬',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://netmirr.net/tv/${tmdbId}/${season}/${episode}/?embed=1`;
-      }
-      return `https://netmirr.net/movie/${tmdbId}/?embed=1`;
-    },
-  },
-  {
     id: 'moviesapi',
     name: 'Hindi',
     flag: '🇮🇳',
@@ -147,19 +135,7 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://www.nontongo.win/embed/movie/${tmdbId}`;
     },
   },
-  // Primary servers (English/International) 
-  {
-    id: 'tmovie',
-    name: 'TMovie',
-    flag: '🎥',
-    category: 'primary',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://tmovie.tv/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://tmovie.tv/embed/movie/${tmdbId}`;
-    },
-  },
+  // Primary servers (English/International)
   {
     id: 'autoembed',
     name: 'Crown',
