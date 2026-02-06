@@ -273,6 +273,8 @@ const WatchPage = () => {
       setIsFallbackTriggered(false);
       // Mark that user has made a manual selection
       localStorage.setItem('wellplayer_manual_server_selection', 'true');
+      // Use replaceState to prevent server changes from creating history entries
+      window.history.replaceState(window.history.state, '', window.location.href);
     }
   }, [selectedServer, setPreferredServer]);
 
@@ -311,18 +313,19 @@ const WatchPage = () => {
   return (
     <div className="fixed inset-0 bg-background z-50 flex flex-col overflow-hidden">
       {/* Header */}
-      <header className="flex items-center justify-between px-3 sm:px-4 py-2 sm:py-3 bg-background/80 backdrop-blur-sm border-b border-border/50 z-20">
-        <div className="flex items-center gap-2 sm:gap-3">
+      <header className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 bg-background/80 backdrop-blur-sm border-b border-border/50 z-20">
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           <Button variant="ghost" size="icon" onClick={handleClose} className="h-8 w-8 sm:h-9 sm:w-9">
             <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <img src={wellplayerLogo} alt="Wellplayer" className="h-5 w-5 sm:h-6 sm:w-6 rounded" />
-            <span className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:inline">Wellplayer</span>
+            <span className="text-xs sm:text-sm font-medium text-muted-foreground hidden md:inline">Wellplayer</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Scrollable controls container for small screens */}
+        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto hide-scrollbar max-w-[calc(100%-80px)] sm:max-w-none">
           {/* Native Player Toggle Button */}
           <Button
             variant={useNativePlayer ? "default" : "ghost"}
@@ -505,13 +508,13 @@ const WatchPage = () => {
           {/* Server Selector */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="secondary" size="sm" className="gap-1.5 sm:gap-2 h-8 sm:h-9 px-2 sm:px-3">
+              <Button variant="secondary" size="sm" className="gap-1 sm:gap-2 h-8 sm:h-9 px-1.5 sm:px-3 shrink-0">
                 <Server className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <span className="text-xs sm:text-sm">
-                  {selectedServer.flag} {selectedServer.name}
+                <span className="text-[10px] sm:text-sm whitespace-nowrap">
+                  {selectedServer.flag} <span className="hidden xs:inline">{selectedServer.name}</span>
                 </span>
-                {isReported && <span className="text-[10px] bg-destructive/20 text-destructive px-1 rounded">⚠️</span>}
-                {autoFallback && !isReported && <span className="text-[10px] bg-amber-500/20 text-amber-500 px-1 rounded hidden sm:inline">AUTO</span>}
+                {isReported && <span className="text-[10px] bg-destructive/20 text-destructive px-0.5 rounded">⚠️</span>}
+                {autoFallback && !isReported && <span className="text-[10px] bg-amber-500/20 text-amber-500 px-0.5 rounded hidden sm:inline">AUTO</span>}
                 <ChevronDown className="h-3 w-3 opacity-60" />
               </Button>
             </DropdownMenuTrigger>

@@ -111,4 +111,15 @@
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
+
+  .bg-gradient-radial {
+    background-image: radial-gradient(circle, var(--tw-gradient-stops));
+  }
+
+  /* Extra small breakpoint for very narrow screens */
+  @media (min-width: 400px) {
+    .xs\:inline {
+      display: inline;
+    }
+  }
 }
