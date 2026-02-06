@@ -580,7 +580,7 @@ const WatchPage = () => {
                   )}
                 </AnimatePresence>
 
-                {/* Video Iframe */}
+                {/* Video Iframe - NO SANDBOX to prevent "sandbox not allowed" errors from Hindi/dubbed providers */}
                 <iframe
                   ref={iframeRef}
                   key={embedUrl}
@@ -589,7 +589,6 @@ const WatchPage = () => {
                   allowFullScreen
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                   referrerPolicy="no-referrer"
-                  sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-presentation allow-pointer-lock allow-downloads allow-top-navigation"
                   title="Video Player"
                   onLoad={handleIframeLoad}
                   onError={() => {
