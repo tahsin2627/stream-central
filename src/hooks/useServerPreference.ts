@@ -37,68 +37,68 @@ const STORAGE_KEYS = {
 
 const REPORT_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
-// VERIFIED WORKING PROVIDERS (Tested 2025)
+// VERIFIED WORKING PROVIDERS (Tested February 2026)
 // These are actively maintained and allow iframe embedding
 export const VIDEO_SERVERS: VideoServer[] = [
   // HINDI / DUBBED - High Priority for regional content
   {
-    id: 'moviesapi',
-    name: 'Hindi HD',
+    id: 'vidsrcxyz',
+    name: 'Hindi',
     flag: '🇮🇳',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://moviesapi.club/tv/${tmdbId}-${season}-${episode}`;
+        return `https://vidsrc.xyz/embed/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://moviesapi.club/movie/${tmdbId}`;
+      return `https://vidsrc.xyz/embed/movie/${tmdbId}`;
     },
   },
   {
-    id: 'vidsrcme',
+    id: 'embedsu',
     name: 'Desi',
     flag: '🇮🇳',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.me/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`;
+        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`;
+      return `https://embed.su/embed/movie/${tmdbId}`;
     },
   },
   {
-    id: 'multiembed',
+    id: 'vidsrcpro',
     name: 'Prime',
     flag: '🇮🇳',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`;
+        return `https://vidsrc.pro/embed/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`;
+      return `https://vidsrc.pro/embed/movie/${tmdbId}`;
     },
   },
   {
-    id: 'embedapi',
+    id: 'vidsrcin',
     name: 'Max',
     flag: '🌏',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://player.embed-api.stream/?id=${tmdbId}&s=${season}&e=${episode}`;
+        return `https://vidsrc.in/embed/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://player.embed-api.stream/?id=${tmdbId}`;
+      return `https://vidsrc.in/embed/movie/${tmdbId}`;
     },
   },
   {
-    id: 'superembed',
+    id: 'vidlink',
     name: 'Regal',
     flag: '🎬',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`;
+        return `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1`;
+      return `https://vidlink.pro/movie/${tmdbId}`;
     },
   },
   // PRIMARY - English/International (Fast & Reliable)
@@ -127,9 +127,21 @@ export const VIDEO_SERVERS: VideoServer[] = [
     },
   },
   {
-    id: 'smashystream',
+    id: 'multiembed',
     name: 'Blaze',
     flag: '⚡',
+    category: 'primary',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`;
+      }
+      return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`;
+    },
+  },
+  {
+    id: 'smashystream',
+    name: 'Nexon',
+    flag: '🌐',
     category: 'primary',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
@@ -138,29 +150,17 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://player.smashy.stream/movie/${tmdbId}`;
     },
   },
-  {
-    id: 'embedsu',
-    name: 'Nexon',
-    flag: '🌐',
-    category: 'primary',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://embed.su/embed/movie/${tmdbId}`;
-    },
-  },
   // BACKUP - Alternative sources
   {
-    id: '2embedcc',
+    id: '2embed',
     name: 'Echo',
     flag: '🔷',
     category: 'backup',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`;
+        return `https://2embed.org/embed/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://www.2embed.cc/embed/${tmdbId}`;
+      return `https://2embed.org/embed/movie/${tmdbId}`;
     },
   },
   {
@@ -176,15 +176,15 @@ export const VIDEO_SERVERS: VideoServer[] = [
     },
   },
   {
-    id: 'vidsrcicu',
+    id: 'moviesapi',
     name: 'Orion',
     flag: '🌙',
     category: 'backup',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.icu/embed/tv/${tmdbId}/${season}/${episode}`;
+        return `https://moviesapi.club/tv/${tmdbId}-${season}-${episode}`;
       }
-      return `https://vidsrc.icu/embed/movie/${tmdbId}`;
+      return `https://moviesapi.club/movie/${tmdbId}`;
     },
   },
 ];

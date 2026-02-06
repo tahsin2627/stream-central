@@ -80,6 +80,54 @@ export type Database = {
         }
         Relationships: []
       }
+      stream_cache: {
+        Row: {
+          created_at: string
+          episode: number | null
+          expires_at: string
+          id: string
+          is_working: boolean | null
+          last_verified_at: string | null
+          media_type: string
+          provider: string
+          quality: string | null
+          season: number | null
+          stream_type: string
+          stream_url: string
+          tmdb_id: number
+        }
+        Insert: {
+          created_at?: string
+          episode?: number | null
+          expires_at?: string
+          id?: string
+          is_working?: boolean | null
+          last_verified_at?: string | null
+          media_type: string
+          provider: string
+          quality?: string | null
+          season?: number | null
+          stream_type?: string
+          stream_url: string
+          tmdb_id: number
+        }
+        Update: {
+          created_at?: string
+          episode?: number | null
+          expires_at?: string
+          id?: string
+          is_working?: boolean | null
+          last_verified_at?: string | null
+          media_type?: string
+          provider?: string
+          quality?: string | null
+          season?: number | null
+          stream_type?: string
+          stream_url?: string
+          tmdb_id?: number
+        }
+        Relationships: []
+      }
       watch_history: {
         Row: {
           backdrop_path: string | null
