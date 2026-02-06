@@ -5,13 +5,34 @@ const corsHeaders = {
 
 // External streaming sites with TMDB ID support
 const EXTERNAL_TMDB_SOURCES = [
-  // TOP PRIORITY - Cineby (Best regional content, uses TMDB IDs) - NO EMBED, opens in new tab only
+  // TOP PRIORITY - NetMirr (Best regional Indian content, uses TMDB IDs) - Blocks iframe, opens in new tab
+  {
+    id: 'netmirr',
+    name: '🎬 NetMirr',
+    getMovieUrl: (tmdbId: number) => `https://netmirr.net/movie/${tmdbId}`,
+    getTvUrl: (tmdbId: number, season: number, episode: number) => `https://netmirr.net/tv/${tmdbId}/${season}/${episode}`,
+    getEmbedUrl: null,
+    quality: 'HD',
+    language: 'Hindi/Telugu/Tamil',
+    canEmbed: false,
+  },
+  // TMovie - Great international content, uses TMDB IDs but requires slug
+  {
+    id: 'tmovie',
+    name: '🎥 TMovie',
+    getMovieUrl: (tmdbId: number) => `https://tmovie.tv/movie/watch-${tmdbId}`,
+    getTvUrl: (tmdbId: number, season: number, episode: number) => `https://tmovie.tv/tv/watch-${tmdbId}/${season}/${episode}`,
+    getEmbedUrl: null,
+    quality: 'HD',
+    language: 'English/Multi',
+    canEmbed: false,
+  },
+  // Cineby (Best regional content, uses TMDB IDs) - Blocks iframe, opens in new tab
   {
     id: 'cineby',
-    name: '🎬 Cineby',
+    name: '🌟 Cineby',
     getMovieUrl: (tmdbId: number) => `https://www.cineby.gd/movie/${tmdbId}?play=true`,
     getTvUrl: (tmdbId: number, season: number, episode: number) => `https://www.cineby.gd/tv/${tmdbId}/${season}/${episode}?play=true`,
-    // No embed URL - Cineby blocks iframe embedding
     getEmbedUrl: null,
     quality: 'HD',
     language: 'Hindi/Multi',
@@ -22,7 +43,6 @@ const EXTERNAL_TMDB_SOURCES = [
     name: 'AutoEmbed V2',
     getMovieUrl: (tmdbId: number) => `https://watch-v2.autoembed.cc/movie/${tmdbId}`,
     getTvUrl: (tmdbId: number, season: number, episode: number) => `https://watch-v2.autoembed.cc/tv/${tmdbId}/${season}/${episode}`,
-    // Has embeddable player URL
     getEmbedUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
       if (mediaType === 'tv' && season && episode) {
         return `https://player.autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}`;
