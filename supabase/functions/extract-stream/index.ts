@@ -281,33 +281,42 @@ const extractFromEmbed = async (
   return sources;
 };
 
-// Backup embed providers for stream extraction
+// Verified working backup embed providers (2025)
 const BACKUP_PROVIDERS = [
   {
-    name: 'VidSrc.xyz',
+    name: 'MoviesAPI',
     getUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.xyz/embed/tv/${tmdbId}/${season}-${episode}`;
+        return `https://moviesapi.club/tv/${tmdbId}-${season}-${episode}`;
       }
-      return `https://vidsrc.xyz/embed/movie/${tmdbId}`;
+      return `https://moviesapi.club/movie/${tmdbId}`;
     },
   },
   {
-    name: 'EmbedSu',
+    name: 'VidSrc.me',
     getUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
+        return `https://vidsrc.me/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`;
       }
-      return `https://embed.su/embed/movie/${tmdbId}`;
+      return `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`;
     },
   },
   {
-    name: 'VidSrc.pro',
+    name: 'MultiEmbed',
     getUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.pro/embed/tv/${tmdbId}/${season}/${episode}`;
+        return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`;
       }
-      return `https://vidsrc.pro/embed/movie/${tmdbId}`;
+      return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1`;
+    },
+  },
+  {
+    name: 'AutoEmbed',
+    getUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://player.autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://player.autoembed.cc/embed/movie/${tmdbId}`;
     },
   },
 ];

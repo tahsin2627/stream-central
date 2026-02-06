@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Star, Calendar, Clock, Server, ChevronDown, Check, Play, RotateCcw, RotateCw, AlertTriangle, Loader2, Flag, Zap, Sparkles, Brain } from 'lucide-react';
+import { ArrowLeft, Star, Calendar, Clock, Server, ChevronDown, Check, Play, RotateCcw, RotateCw, AlertTriangle, Loader2, Flag, Zap, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -34,7 +34,7 @@ import wellplayerLogo from '@/assets/wellplayer-logo.png';
 import { AddCustomStreamDialog } from '@/components/player/AddCustomStreamDialog';
 import { useCustomStreams } from '@/hooks/useCustomStreams';
 import { useStreamExtraction, StreamSource } from '@/hooks/useStreamExtraction';
-import { useAIStreamEngine, AIStream } from '@/hooks/useAIStreamEngine';
+// AI Engine removed - was not functional
 const FALLBACK_TIMEOUT_MS = 10000; // 10 seconds
 
 const WatchPage = () => {
@@ -55,7 +55,7 @@ const WatchPage = () => {
   const [isFallbackTriggered, setIsFallbackTriggered] = useState(false);
   const [useNativePlayer, setUseNativePlayer] = useState(false);
   const [nativeSources, setNativeSources] = useState<StreamSource[]>([]);
-  const [aiEmbedUrl, setAiEmbedUrl] = useState<string | null>(null);
+  const [externalEmbedUrl, setExternalEmbedUrl] = useState<string | null>(null);
   
   // Stream extraction hook
   const { extractStreams, isExtracting, sources: extractedSources } = useStreamExtraction();
@@ -71,17 +71,7 @@ const WatchPage = () => {
     ? movieData?.release_date?.split('-')[0] 
     : tvData?.first_air_date?.split('-')[0];
 
-  // AI Stream Engine - auto-searches Cineby & MovieLinkBD
-  const aiEngine = useAIStreamEngine({
-    title: contentTitle || '',
-    year: contentYear,
-    tmdbId,
-    mediaType: mediaType as 'movie' | 'tv',
-    season: type === 'tv' ? selectedSeason : undefined,
-    episode: type === 'tv' ? selectedEpisode : undefined,
-    enabled: !!contentTitle && tmdbId > 0,
-    autoSearch: true,
-  });
+  // Removed non-functional AI Stream Engine
 
   const { 
     preferredServer, 
@@ -174,9 +164,9 @@ const WatchPage = () => {
     name: `Episode ${i + 1}`,
   }));
 
-  // Embed URL - use AI-found embed if available, otherwise use selected server
-  const embedUrl = aiEmbedUrl || selectedServer.getUrl(tmdbId, mediaType, selectedSeason, selectedEpisode);
-  const currentSourceName = aiEmbedUrl ? '🧠 AI Engine' : `${selectedServer.flag} ${selectedServer.name}`;
+  // Embed URL from selected server or external source
+  const embedUrl = externalEmbedUrl || selectedServer.getUrl(tmdbId, mediaType, selectedSeason, selectedEpisode);
+  const currentSourceName = externalEmbedUrl ? '🔗 External' : `${selectedServer.flag} ${selectedServer.name}`;
 
   // Clear fallback timer
   const clearFallbackTimer = useCallback(() => {
@@ -265,7 +255,7 @@ const WatchPage = () => {
   const handleServerChange = useCallback((server: VideoServer) => {
     if (server.id !== selectedServer.id) {
       setSelectedServer(server);
-      setAiEmbedUrl(null); // Clear AI embed when manually changing server
+      setExternalEmbedUrl(null); // Clear external embed when manually changing server
       if (server.id !== 'my-server') {
         setPreferredServer(server); // Remember preference (not for custom server)
       }
@@ -374,90 +364,26 @@ const WatchPage = () => {
             <span className="text-xs hidden sm:inline">{useNativePlayer ? 'Native' : 'Try Native'}</span>
           </Button>
 
-          {/* AI Engine Button - Auto-fetches streams */}
+          {/* Quick Shuffle Server Button - simpler than removed AI Engine */}
           <Button
-            variant={aiEngine.streams.length > 0 ? "default" : "ghost"}
+            variant="ghost"
             size="sm"
-            onClick={async () => {
-              if (aiEngine.streams.length > 0) {
-                const bestStream = aiEngine.getBestStream();
-                if (bestStream) {
-                  // For embed types, use the embed URL in iframe
-                  if (bestStream.type === 'embed' && bestStream.embedUrl) {
-                    setAiEmbedUrl(bestStream.embedUrl);
-                    setUseNativePlayer(false);
-                    setIsLoading(true);
-                    toast({
-                      title: "🧠 AI Engine Active",
-                      description: "Switching to AI-found source",
-                    });
-                  } else {
-                    // Play HLS/MP4 in native player using proxied URL
-                    setAiEmbedUrl(null);
-                    const streamUrl = bestStream.proxiedUrl || bestStream.streamUrl;
-                    setNativeSources([{
-                      url: streamUrl,
-                      quality: bestStream.quality,
-                      type: bestStream.type as 'hls' | 'mp4' | 'dash',
-                    }]);
-                    setUseNativePlayer(true);
-                    toast({
-                      title: "🧠 AI Engine Active",
-                      description: `Playing ${bestStream.quality} stream`,
-                    });
-                  }
-                }
-              } else if (!aiEngine.isSearching) {
-                // Manually trigger search
+            onClick={() => {
+              // Get next server
+              const nextServer = getNextServer(selectedServer, [selectedServer.id], tmdbId, mediaType as 'movie' | 'tv');
+              if (nextServer) {
+                handleServerChange(nextServer);
                 toast({
-                  title: "🧠 AI Engine",
-                  description: "Searching for streams...",
+                  title: "Server shuffled",
+                  description: `Trying ${nextServer.flag} ${nextServer.name}`,
                 });
-                await aiEngine.searchStreams();
-                if (aiEngine.streams.length > 0) {
-                  toast({
-                    title: "Streams found!",
-                    description: `Found ${aiEngine.streams.length} stream(s)`,
-                  });
-                } else {
-                  toast({
-                    title: "Still searching",
-                    description: "Try again in a moment",
-                  });
-                }
               }
             }}
-            disabled={aiEngine.isSearching}
-            className={`h-8 sm:h-9 px-2 sm:px-3 gap-1.5 ${
-              aiEngine.streams.length > 0 
-                ? 'bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:from-purple-600 hover:to-blue-600' 
-                : aiEngine.isSearching 
-                  ? 'text-purple-400' 
-                  : 'text-muted-foreground'
-            }`}
-            title={
-              aiEngine.streams.length > 0 
-                ? `${aiEngine.streams.length} streams ready` 
-                : aiEngine.isSearching 
-                  ? 'AI Engine loading...' 
-                  : 'AI-powered stream finder'
-            }
+            className="h-8 sm:h-9 px-2 sm:px-3 gap-1.5 text-muted-foreground"
+            title="Try another server"
           >
-            {aiEngine.isSearching ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-            ) : (
-              <Brain className="h-3.5 w-3.5" />
-            )}
-            <span className="text-xs hidden sm:inline">
-              {aiEngine.streams.length > 0 
-                ? `AI (${aiEngine.streams.length})` 
-                : aiEngine.isSearching 
-                  ? 'Loading...' 
-                  : 'AI Engine'}
-            </span>
-            {aiEngine.streams.length > 0 && (
-              <Sparkles className="h-3 w-3 text-yellow-300" />
-            )}
+            <RefreshCw className="h-3.5 w-3.5" />
+            <span className="text-xs hidden sm:inline">Shuffle</span>
           </Button>
 
           <Button 
@@ -488,8 +414,8 @@ const WatchPage = () => {
             tmdbId={tmdbId}
             season={mediaType === 'tv' ? selectedSeason : undefined}
             episode={mediaType === 'tv' ? selectedEpisode : undefined}
-            onPlayInApp={(embedUrl, sourceName) => {
-              setAiEmbedUrl(embedUrl);
+            onPlayInApp={(url, sourceName) => {
+              setExternalEmbedUrl(url);
               setUseNativePlayer(false);
               setIsLoading(true);
               toast({
