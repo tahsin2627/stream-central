@@ -37,9 +37,9 @@ const STORAGE_KEYS = {
 
 const REPORT_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
-// VERIFIED WORKING PROVIDERS (Tested February 2026)
-// Removed dead servers: embed.su (DNS failure), vidsrc.xyz (500 errors)
-// Using providers that support iframe embedding without sandbox issues
+// VERIFIED WORKING PROVIDERS (Updated February 2026)
+// Removed dead servers: vidsrc.in (domain expired), embed.su (DNS failure)
+// Added: vidsrc.wtf, vidsrc-embed.su, superembed.stream
 export const VIDEO_SERVERS: VideoServer[] = [
   // PRIMARY - Most reliable English servers
   {
@@ -90,7 +90,7 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://player.smashy.stream/movie/${tmdbId}`;
     },
   },
-  // HINDI / DUBBED - Regional content servers
+  // HINDI / DUBBED - Regional content servers (fixed: removed expired vidsrc.in)
   {
     id: 'vidsrcpro',
     name: 'Hindi',
@@ -104,15 +104,15 @@ export const VIDEO_SERVERS: VideoServer[] = [
     },
   },
   {
-    id: 'vidsrcin',
+    id: 'superembed',
     name: 'Desi',
     flag: '🇮🇳',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.in/embed/tv/${tmdbId}/${season}/${episode}`;
+        return `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`;
       }
-      return `https://vidsrc.in/embed/movie/${tmdbId}`;
+      return `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1`;
     },
   },
   {
@@ -137,6 +137,19 @@ export const VIDEO_SERVERS: VideoServer[] = [
         return `https://autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}`;
       }
       return `https://autoembed.cc/embed/movie/${tmdbId}`;
+    },
+  },
+  // NEW - VidSrc WTF (Multi-language support)
+  {
+    id: 'vidsrcwtf',
+    name: 'Global',
+    flag: '🌍',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.wtf/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidsrc.wtf/embed/movie/${tmdbId}`;
     },
   },
   // BACKUP - Alternative sources
@@ -176,16 +189,17 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://vidsrc.icu/embed/movie/${tmdbId}`;
     },
   },
+  // NEW - VidSrc ME / Embed SU (great alternative)
   {
-    id: 'superembed',
+    id: 'vidsrcme',
     name: 'Titan',
     flag: '💫',
     category: 'backup',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`;
+        return `https://vidsrc-embed.su/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`;
       }
-      return `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1`;
+      return `https://vidsrc-embed.su/embed/movie?tmdb=${tmdbId}`;
     },
   },
 ];
@@ -203,8 +217,8 @@ export const getDefaultServerForLanguage = (lang: LanguagePreference): VideoServ
     case 'hindi':
       return VIDEO_SERVERS.find(s => s.id === 'vidsrcpro') || VIDEO_SERVERS[0];
     case 'bengali':
-      // Bengali content works best with dubbed servers
-      return VIDEO_SERVERS.find(s => s.id === 'vidsrcin') || VIDEO_SERVERS[0];
+      // Bengali content works best with Global (vidsrc.wtf has multi-language)
+      return VIDEO_SERVERS.find(s => s.id === 'vidsrcwtf') || VIDEO_SERVERS[0];
     case 'asian':
       return VIDEO_SERVERS.find(s => s.id === 'vidlink') || VIDEO_SERVERS[0];
     case 'dubbed':

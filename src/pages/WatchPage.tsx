@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select';
 import { useMovieDetails, useTVShowDetails, useSeasonDetails } from '@/hooks/useTMDB';
 import { useServerPreference, getServersByCategory, getNextServer, VideoServer } from '@/hooks/useServerPreference';
+import { useServerHealth, getServerTestUrls } from '@/hooks/useServerHealth';
 import { EpisodeList } from '@/components/player/EpisodeList';
 import { ServerSettingsDialog } from '@/components/player/ServerSettingsDialog';
 import { ExternalSourcesDialog } from '@/components/player/ExternalSourcesDialog';
@@ -29,6 +30,7 @@ import { LanguageSelector } from '@/components/player/LanguageSelector';
 import { PlayerControlBar } from '@/components/player/PlayerControlBar';
 import { VideoOverlay } from '@/components/player/VideoOverlay';
 import { NativePlayer } from '@/components/player/NativePlayer';
+import { ServerHealthBadge } from '@/components/player/ServerHealthBadge';
 import { useToast } from '@/hooks/use-toast';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
 import { AddCustomStreamDialog } from '@/components/player/AddCustomStreamDialog';
@@ -479,6 +481,7 @@ const WatchPage = () => {
                       <span>{server.flag}</span>
                       <span className={serverReported ? 'line-through opacity-50' : ''}>{server.name}</span>
                       {serverReported && <span className="text-[10px] text-destructive">⚠️</span>}
+                      <ServerHealthBadge serverId={server.id} compact />
                     </span>
                     {selectedServer.id === server.id && (
                       <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
@@ -501,6 +504,7 @@ const WatchPage = () => {
                       <span>{server.flag}</span>
                       <span className={serverReported ? 'line-through opacity-50' : ''}>{server.name}</span>
                       {serverReported && <span className="text-[10px] text-destructive">⚠️</span>}
+                      <ServerHealthBadge serverId={server.id} compact />
                     </span>
                     {selectedServer.id === server.id && (
                       <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
@@ -523,6 +527,7 @@ const WatchPage = () => {
                       <span>{server.flag}</span>
                       <span className={serverReported ? 'line-through opacity-50' : ''}>{server.name}</span>
                       {serverReported && <span className="text-[10px] text-destructive">⚠️</span>}
+                      <ServerHealthBadge serverId={server.id} compact />
                     </span>
                     {selectedServer.id === server.id && (
                       <Check className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
