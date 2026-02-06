@@ -5,24 +5,25 @@ const corsHeaders = {
 
 // External streaming sites with TMDB ID support
 const EXTERNAL_TMDB_SOURCES = [
-  // TOP PRIORITY - NetMirr (Best regional Indian content, uses TMDB IDs) - Blocks iframe, opens in new tab
+  // TOP PRIORITY - NetMirr (Best regional Indian content, uses TMDB IDs)
+  // Has multiple servers with Hindi/Telugu/Tamil dubbed content, minimal ads
   {
     id: 'netmirr',
-    name: '🎬 NetMirr',
+    name: '🎬 NetMirr (Hindi/Regional)',
     getMovieUrl: (tmdbId: number) => `https://netmirr.net/movie/${tmdbId}`,
     getTvUrl: (tmdbId: number, season: number, episode: number) => `https://netmirr.net/tv/${tmdbId}/${season}/${episode}`,
-    getEmbedUrl: null,
+    getEmbedUrl: null, // Blocks iframe - opens in new tab
     quality: 'HD',
-    language: 'Hindi/Telugu/Tamil',
+    language: 'Hindi/Telugu/Tamil/Bengali',
     canEmbed: false,
   },
-  // TMovie - Great international content, uses TMDB IDs but requires slug
+  // TMovie - Great international content, uses TMDB IDs
   {
     id: 'tmovie',
-    name: '🎥 TMovie',
+    name: '🎥 TMovie (Multi-Language)',
     getMovieUrl: (tmdbId: number) => `https://tmovie.tv/movie/watch-${tmdbId}`,
     getTvUrl: (tmdbId: number, season: number, episode: number) => `https://tmovie.tv/tv/watch-${tmdbId}/${season}/${episode}`,
-    getEmbedUrl: null,
+    getEmbedUrl: null, // Blocks iframe - opens in new tab
     quality: 'HD',
     language: 'English/Multi',
     canEmbed: false,

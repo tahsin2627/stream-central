@@ -17,7 +17,135 @@ interface ExtractionResult {
 }
 
 // Provider extractors
-const extractors: Record<string, (url: string) => Promise<StreamSource[]>> = {
+const extractors: Record<string, (url: string, firecrawlKey?: string) => Promise<StreamSource[]>> = {
+  // NetMirr - Best regional Indian content (Hindi/Telugu/Tamil dubbed)
+  'netmirr.net': async (pageUrl: string, firecrawlKey?: string): Promise<StreamSource[]> => {
+    try {
+      console.log('[NetMirr] Extracting from:', pageUrl);
+      
+      // First try direct fetch
+      let html = '';
+      try {
+        const response = await fetch(pageUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Referer': 'https://netmirr.net/',
+          },
+        });
+        html = await response.text();
+      } catch (e) {
+        console.log('[NetMirr] Direct fetch failed, trying Firecrawl');
+      }
+      
+      // If direct fetch didn't work or returned minimal content, use Firecrawl
+      if (firecrawlKey && (!html || html.length < 5000)) {
+        try {
+          const fcResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${firecrawlKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              url: pageUrl,
+              formats: ['rawHtml'],
+              waitFor: 10000, // Wait for player to load
+              timeout: 45000,
+            }),
+          });
+          
+          if (fcResponse.ok) {
+            const data = await fcResponse.json();
+            html = data.data?.rawHtml || html;
+          }
+        } catch (e) {
+          console.log('[NetMirr] Firecrawl failed:', e);
+        }
+      }
+      
+      if (!html) {
+        console.log('[NetMirr] No HTML content obtained');
+        return [];
+      }
+      
+      const sources: StreamSource[] = [];
+      
+      // Look for HLS streams in various patterns
+      const hlsPatterns = [
+        /["'](https?:\/\/[^"'\s]+\.m3u8[^"'\s]*)["']/gi,
+        /file:\s*["'](https?:\/\/[^"']+\.m3u8[^"']*)["']/gi,
+        /source:\s*["'](https?:\/\/[^"']+\.m3u8[^"']*)["']/gi,
+        /src:\s*["'](https?:\/\/[^"']+\.m3u8[^"']*)["']/gi,
+        /hls:\s*["'](https?:\/\/[^"']+\.m3u8[^"']*)["']/gi,
+        /playbackUrl["']?\s*[:=]\s*["'](https?:\/\/[^"']+\.m3u8[^"']*)["']/gi,
+        /streamUrl["']?\s*[:=]\s*["'](https?:\/\/[^"']+\.m3u8[^"']*)["']/gi,
+      ];
+      
+      for (const pattern of hlsPatterns) {
+        let match;
+        const regex = new RegExp(pattern.source, pattern.flags);
+        while ((match = regex.exec(html)) !== null) {
+          const url = (match[1] || match[0])
+            .replace(/\\/g, '')
+            .replace(/&amp;/g, '&')
+            .replace(/["']/g, '');
+          
+          if (url.includes('.m3u8') && !url.includes('preview') && !url.includes('demo') && !url.includes('sample')) {
+            if (!sources.find(s => s.url === url)) {
+              sources.push({ url, quality: 'HD', type: 'hls' });
+              console.log('[NetMirr] Found HLS:', url.substring(0, 80) + '...');
+            }
+          }
+        }
+      }
+      
+      // Look for MP4 streams
+      const mp4Patterns = [
+        /["'](https?:\/\/[^"'\s]+\.mp4[^"'\s]*)["']/gi,
+        /file:\s*["'](https?:\/\/[^"']+\.mp4[^"']*)["']/gi,
+        /source:\s*["'](https?:\/\/[^"']+\.mp4[^"']*)["']/gi,
+      ];
+      
+      for (const pattern of mp4Patterns) {
+        let match;
+        const regex = new RegExp(pattern.source, pattern.flags);
+        while ((match = regex.exec(html)) !== null) {
+          const url = (match[1] || match[0])
+            .replace(/\\/g, '')
+            .replace(/&amp;/g, '&')
+            .replace(/["']/g, '');
+          
+          if (url.includes('.mp4') && !url.includes('sample') && !url.includes('trailer') && !url.includes('preview')) {
+            if (!sources.find(s => s.url === url)) {
+              sources.push({ url, quality: 'HD', type: 'mp4' });
+              console.log('[NetMirr] Found MP4:', url.substring(0, 80) + '...');
+            }
+          }
+        }
+      }
+      
+      // Look for embedded player iframes that might have streams
+      const iframePattern = /<iframe[^>]+src=["']([^"']+)["'][^>]*>/gi;
+      let iframeMatch;
+      while ((iframeMatch = iframePattern.exec(html)) !== null) {
+        const iframeSrc = iframeMatch[1].replace(/&amp;/g, '&');
+        // Check if it's an embeddable player we can use
+        if (iframeSrc.includes('embed') || iframeSrc.includes('player')) {
+          console.log('[NetMirr] Found iframe player:', iframeSrc);
+          // We could recursively extract from this iframe
+        }
+      }
+      
+      console.log(`[NetMirr] Extracted ${sources.length} streams`);
+      return sources;
+    } catch (error) {
+      console.error('[NetMirr] Extraction failed:', error);
+      return [];
+    }
+  },
+
   // VidSrc.to - Uses API endpoint
   'vidsrc.to': async (embedUrl: string): Promise<StreamSource[]> => {
     try {
@@ -203,7 +331,7 @@ const extractors: Record<string, (url: string) => Promise<StreamSource[]>> = {
 };
 
 // Determine which extractor to use based on URL
-const getExtractor = (url: string): ((url: string) => Promise<StreamSource[]>) => {
+const getExtractor = (url: string): ((url: string, firecrawlKey?: string) => Promise<StreamSource[]>) => {
   const domain = new URL(url).hostname.replace('www.', '');
   
   for (const [key, extractor] of Object.entries(extractors)) {
@@ -230,6 +358,7 @@ Deno.serve(async (req) => {
       );
     }
 
+    const firecrawlKey = Deno.env.get('FIRECRAWL_API_KEY');
     console.log('Extracting streams from:', embedUrl || `TMDB: ${tmdbId}`);
 
     let sources: StreamSource[] = [];
@@ -238,27 +367,40 @@ Deno.serve(async (req) => {
     if (embedUrl) {
       // Extract from provided embed URL
       const extractor = getExtractor(embedUrl);
-      sources = await extractor(embedUrl);
+      sources = await extractor(embedUrl, firecrawlKey);
       provider = new URL(embedUrl).hostname;
     } else {
-      // Try multiple providers for TMDB ID
-      const providers = [
-        { name: 'vidsrc.to', url: `https://vidsrc.to/embed/${mediaType}/${tmdbId}${season ? `/${season}/${episode}` : ''}` },
-        { name: 'vidsrc.cc', url: `https://vidsrc.cc/v2/embed/${mediaType}/${tmdbId}${season ? `/${season}/${episode}` : ''}` },
-        { name: 'superembed.stream', url: `https://www.superembed.stream/embed/${tmdbId}${season ? `/${season}/${episode}` : ''}` },
-        { name: 'embed.su', url: `https://embed.su/embed/${mediaType}/${tmdbId}${season ? `/${season}/${episode}` : ''}` },
-      ];
+      // Try NetMirr FIRST as priority backend source
+      const netmirrUrl = mediaType === 'tv' && season && episode
+        ? `https://netmirr.net/tv/${tmdbId}/${season}/${episode}/`
+        : `https://netmirr.net/movie/${tmdbId}/`;
+      
+      console.log('[Priority] Trying NetMirr first:', netmirrUrl);
+      sources = await extractors['netmirr.net'](netmirrUrl, firecrawlKey);
+      
+      if (sources.length > 0) {
+        provider = 'netmirr.net';
+        console.log(`[Priority] NetMirr success! Found ${sources.length} streams`);
+      } else {
+        // Fallback to other providers
+        const providers = [
+          { name: 'vidsrc.to', url: `https://vidsrc.to/embed/${mediaType}/${tmdbId}${season ? `/${season}/${episode}` : ''}` },
+          { name: 'vidsrc.cc', url: `https://vidsrc.cc/v2/embed/${mediaType}/${tmdbId}${season ? `/${season}/${episode}` : ''}` },
+          { name: 'superembed.stream', url: `https://www.superembed.stream/embed/${tmdbId}${season ? `/${season}/${episode}` : ''}` },
+          { name: 'embed.su', url: `https://embed.su/embed/${mediaType}/${tmdbId}${season ? `/${season}/${episode}` : ''}` },
+        ];
 
-      for (const p of providers) {
-        console.log(`Trying provider: ${p.name}`);
-        const extractor = extractors[p.name] || extractors.generic;
-        const result = await extractor(p.url);
-        
-        if (result.length > 0) {
-          sources = result;
-          provider = p.name;
-          console.log(`Found ${result.length} sources from ${p.name}`);
-          break;
+        for (const p of providers) {
+          console.log(`Trying provider: ${p.name}`);
+          const extractor = extractors[p.name] || extractors.generic;
+          const result = await extractor(p.url, firecrawlKey);
+          
+          if (result.length > 0) {
+            sources = result;
+            provider = p.name;
+            console.log(`Found ${result.length} sources from ${p.name}`);
+            break;
+          }
         }
       }
     }

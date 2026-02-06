@@ -21,7 +21,25 @@ interface AIEngineResponse {
 
 // Embed providers that work reliably with TMDB IDs
 const EMBED_PROVIDERS = {
-  // TOP PRIORITY - Cineby (Best for Hindi/Regional content)
+  // TOP PRIORITY - NetMirr (Best regional Indian content, Hindi/Telugu/Tamil dubbed)
+  netmirr: {
+    name: 'NetMirr',
+    priority: 0, // Highest priority
+    getEmbed: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://netmirr.net/tv/${tmdbId}/${season}/${episode}/`;
+      }
+      return `https://netmirr.net/movie/${tmdbId}/`;
+    },
+    // NetMirr page URL for scraping (not iframe)
+    getPageUrl: (tmdbId: number, mediaType: 'movie' | 'tv', season?: number, episode?: number) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://netmirr.net/tv/${tmdbId}/${season}/${episode}/`;
+      }
+      return `https://netmirr.net/movie/${tmdbId}/`;
+    },
+  },
+  // Cineby (Best for Hindi/Regional content)
   cineby: {
     name: 'Cineby',
     priority: 1,
