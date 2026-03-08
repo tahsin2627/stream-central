@@ -303,6 +303,9 @@ Deno.serve(async (req) => {
             size = `${sizeMatch[1]} ${sizeMatch[2].toUpperCase()}`;
           }
 
+          // Check if URL is a direct watch/streaming link
+          const isWatchUrl = url.includes('/watch/') || url.includes('/movie/') || url.includes('/tv/');
+          
           results.push({
             source: matchedSite.domain,
             sourceName: matchedSite.name,
@@ -312,9 +315,9 @@ Deno.serve(async (req) => {
             quality,
             size,
             language,
-            opensInNewTab: true, // Will use in-app browser which can fallback to new tab
-            isTmdbSource: false, // Scraped results may not match exactly
-            canEmbed: false, // Regional scraped sources cannot be embedded
+            opensInNewTab: true,
+            isTmdbSource: url.includes('netmirr.net'), // NetMirr uses TMDB IDs
+            canEmbed: false,
           });
         }
       }
