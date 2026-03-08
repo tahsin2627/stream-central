@@ -572,6 +572,13 @@ const WatchPage = () => {
                 sources={nativeSources}
                 title={title}
                 poster={content?.backdrop_path ? `https://image.tmdb.org/t/p/w1280${content.backdrop_path}` : undefined}
+                isTV={mediaType === 'tv'}
+                onPrevEpisode={() => {
+                  if (selectedEpisode > 1) setSelectedEpisode(selectedEpisode - 1);
+                }}
+                onNextEpisode={() => setSelectedEpisode(selectedEpisode + 1)}
+                hasPrev={selectedEpisode > 1}
+                hasNext={mediaType === 'tv'}
                 onError={() => {
                   toast({
                     title: "Playback failed",
