@@ -100,13 +100,19 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
 
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
           setIsLoading(false);
-          // Get available quality levels
           const levels = hls.levels.map((level, i) => ({
             label: level.height ? `${level.height}p` : `Level ${i + 1}`,
             level: i,
           }));
           setAvailableQualities([{ label: 'Auto', level: -1 }, ...levels]);
-          video.play().catch(() => {});
+          // Start muted for iOS autoplay compliance, unmute after play succeeds
+          video.muted = true;
+          video.play().then(() => {
+            // Unmute after successful play if user has interacted
+            if (hasUserInteracted) {
+              video.muted = false;
+            }
+          }).catch(() => {});
         });
 
         hls.on(Hls.Events.ERROR, (event, data) => {
