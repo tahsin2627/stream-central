@@ -350,7 +350,7 @@ export const tmdbApi = {
   },
 
   searchTVShows: (query: string, page = 1) => {
-    return tmdbRequest<TMDBPaginatedResponse<TMDBTVShow>>('/search/tv', { query, page });
+    return tmdbRequest<TMDBPaginatedResponse<TMDBTVShow>>('/search/tv', { query, page, include_adult: false });
   },
 
   // Genres
