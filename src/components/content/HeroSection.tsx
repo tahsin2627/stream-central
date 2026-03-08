@@ -223,22 +223,55 @@ export const HeroSection = ({ items, isLoading }: HeroSectionProps) => {
         </div>
       </div>
 
-      {/* Dot indicators */}
+      {/* Thumbnail strip */}
       {validItems.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-          {validItems.slice(0, 10).map((_, idx) => (
-            <button
-              key={idx}
-              onClick={() => goTo(idx)}
-              className={cn(
-                "h-2 rounded-full transition-all duration-300",
-                idx === currentIndex 
-                  ? "w-6 bg-primary" 
-                  : "w-2 bg-white/40 hover:bg-white/60"
-              )}
-              aria-label={`Go to slide ${idx + 1}`}
-            />
-          ))}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 w-full max-w-[90%] md:max-w-2xl">
+          <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar px-2 py-1">
+            {validItems.slice(0, 10).map((item, idx) => {
+              const itemTitle = isMovie(item) ? item.title : item.name;
+              const posterUrl = item.poster_path 
+                ? `https://image.tmdb.org/t/p/w154${item.poster_path}`
+                : null;
+              
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => goTo(idx)}
+                  className={cn(
+                    "relative flex-shrink-0 rounded-md overflow-hidden transition-all duration-300 group",
+                    idx === currentIndex 
+                      ? "ring-2 ring-primary scale-105" 
+                      : "opacity-60 hover:opacity-100 hover:scale-102"
+                  )}
+                  aria-label={`Go to ${itemTitle}`}
+                >
+                  {posterUrl ? (
+                    <img
+                      src={posterUrl}
+                      alt={itemTitle}
+                      className="h-14 w-10 md:h-16 md:w-11 object-cover"
+                    />
+                  ) : (
+                    <div className="h-14 w-10 md:h-16 md:w-11 bg-secondary flex items-center justify-center">
+                      <span className="text-[8px] text-muted-foreground text-center px-0.5 line-clamp-2">
+                        {itemTitle}
+                      </span>
+                    </div>
+                  )}
+                  {/* Progress indicator for current */}
+                  {idx === currentIndex && (
+                    <motion.div
+                      className="absolute bottom-0 left-0 h-0.5 bg-primary"
+                      initial={{ width: 0 }}
+                      animate={{ width: '100%' }}
+                      transition={{ duration: 10, ease: 'linear' }}
+                      key={`progress-${currentIndex}`}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </section>
