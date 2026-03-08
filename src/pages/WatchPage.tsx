@@ -626,19 +626,20 @@ const WatchPage = () => {
                 {!showTapToPlay && (
                   <iframe
                     ref={iframeRef}
-                    key={embedUrl}
+                    key={`${embedUrl}-${shieldEnabled}`}
                     src={embedUrl}
                     className="absolute inset-0 w-full h-full"
                     allowFullScreen
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                     referrerPolicy="no-referrer"
                     title="Video Player"
+                    {...(shieldEnabled ? {
+                      sandbox: "allow-scripts allow-same-origin allow-forms allow-presentation allow-top-navigation-by-user-activation"
+                    } : {})}
                     onLoad={handleIframeLoad}
                     onError={() => {
-                      // Track stall count for smarter fallback
                       setIframeStallCount(prev => prev + 1);
                       if (iframeStallCount >= 1) {
-                        // After 2 fails on same server, auto-switch
                         handleAutoFallback();
                         setIframeStallCount(0);
                       } else {
