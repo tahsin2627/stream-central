@@ -150,11 +150,14 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
         setIsLoading(false);
       }
     } else {
-      // MP4 or other native format
+      // MP4 or other native format - start muted for iOS
       video.src = currentSource.url;
+      video.muted = true;
       video.addEventListener('loadedmetadata', () => {
         setIsLoading(false);
-        video.play().catch(() => {});
+        video.play().then(() => {
+          if (hasUserInteracted) video.muted = false;
+        }).catch(() => {});
       });
     }
 
