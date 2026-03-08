@@ -36,7 +36,8 @@ import wellplayerLogo from '@/assets/wellplayer-logo.png';
 import { AddCustomStreamDialog } from '@/components/player/AddCustomStreamDialog';
 import { useCustomStreams } from '@/hooks/useCustomStreams';
 import { useStreamExtraction, StreamSource } from '@/hooks/useStreamExtraction';
-// AI Engine removed - was not functional
+import { useIOSDetection } from '@/hooks/useIOSDetection';
+import { TapToPlayOverlay } from '@/components/player/TapToPlayOverlay';
 const FALLBACK_TIMEOUT_MS = 10000; // 10 seconds
 
 const WatchPage = () => {
@@ -58,6 +59,12 @@ const WatchPage = () => {
   const [useNativePlayer, setUseNativePlayer] = useState(false);
   const [nativeSources, setNativeSources] = useState<StreamSource[]>([]);
   const [externalEmbedUrl, setExternalEmbedUrl] = useState<string | null>(null);
+  const [userGestureGiven, setUserGestureGiven] = useState(false);
+  const [iframeStallCount, setIframeStallCount] = useState(0);
+  
+  // iOS detection
+  const { needsUserGesture } = useIOSDetection();
+  const showTapToPlay = needsUserGesture && !userGestureGiven;
   
   // Stream extraction hook
   const { extractStreams, isExtracting, sources: extractedSources } = useStreamExtraction();
@@ -564,9 +571,19 @@ const WatchPage = () => {
               />
             ) : (
               <>
+                {/* iOS/Brave Tap-to-Play Overlay */}
+                {showTapToPlay && (
+                  <TapToPlayOverlay
+                    title={title}
+                    serverName={selectedServer.name}
+                    serverFlag={selectedServer.flag}
+                    onPlay={() => setUserGestureGiven(true)}
+                  />
+                )}
+
                 {/* Loading Overlay */}
                 <AnimatePresence>
-                  {isLoading && !useNativePlayer && (
+                  {isLoading && !useNativePlayer && !showTapToPlay && (
                     <LoadingOverlay
                       mediaType={mediaType as 'movie' | 'tv'}
                       season={selectedSeason}
@@ -580,25 +597,34 @@ const WatchPage = () => {
                   )}
                 </AnimatePresence>
 
-                {/* Video Iframe - NO SANDBOX to prevent "sandbox not allowed" errors from Hindi/dubbed providers */}
-                <iframe
-                  ref={iframeRef}
-                  key={embedUrl}
-                  src={embedUrl}
-                  className="absolute inset-0 w-full h-full"
-                  allowFullScreen
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-                  referrerPolicy="no-referrer"
-                  title="Video Player"
-                  onLoad={handleIframeLoad}
-                  onError={() => {
-                    // Auto-fallback on error
-                    handleAutoFallback();
-                  }}
-                />
+                {/* Video Iframe - Only load after user gesture on iOS */}
+                {!showTapToPlay && (
+                  <iframe
+                    ref={iframeRef}
+                    key={embedUrl}
+                    src={embedUrl}
+                    className="absolute inset-0 w-full h-full"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                    referrerPolicy="no-referrer"
+                    title="Video Player"
+                    onLoad={handleIframeLoad}
+                    onError={() => {
+                      // Track stall count for smarter fallback
+                      setIframeStallCount(prev => prev + 1);
+                      if (iframeStallCount >= 1) {
+                        // After 2 fails on same server, auto-switch
+                        handleAutoFallback();
+                        setIframeStallCount(0);
+                      } else {
+                        handleAutoFallback();
+                      }
+                    }}
+                  />
+                )}
 
                 {/* Video Controls Overlay - Tap to show/hide */}
-                {!isLoading && (
+                {!isLoading && !showTapToPlay && (
                   <VideoOverlay showInitially={false} />
                 )}
               </>

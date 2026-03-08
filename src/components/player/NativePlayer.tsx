@@ -49,7 +49,7 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
 
   const [currentSource, setCurrentSource] = useState<StreamSource | null>(sources[0] || null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true); // Start muted for iOS autoplay compliance
   const [volume, setVolume] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -60,6 +60,7 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
   const [error, setError] = useState<string | null>(null);
   const [availableQualities, setAvailableQualities] = useState<{ label: string; level: number }[]>([]);
   const [selectedQuality, setSelectedQuality] = useState<number>(-1);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
   // Format time helper
   const formatTime = (seconds: number): string => {
@@ -99,13 +100,19 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
 
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
           setIsLoading(false);
-          // Get available quality levels
           const levels = hls.levels.map((level, i) => ({
             label: level.height ? `${level.height}p` : `Level ${i + 1}`,
             level: i,
           }));
           setAvailableQualities([{ label: 'Auto', level: -1 }, ...levels]);
-          video.play().catch(() => {});
+          // Start muted for iOS autoplay compliance, unmute after play succeeds
+          video.muted = true;
+          video.play().then(() => {
+            // Unmute after successful play if user has interacted
+            if (hasUserInteracted) {
+              video.muted = false;
+            }
+          }).catch(() => {});
         });
 
         hls.on(Hls.Events.ERROR, (event, data) => {
@@ -129,22 +136,28 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
 
         hlsRef.current = hls;
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        // Safari native HLS support
+        // Safari native HLS support - start muted for iOS
         video.src = currentSource.url;
+        video.muted = true;
         video.addEventListener('loadedmetadata', () => {
           setIsLoading(false);
-          video.play().catch(() => {});
+          video.play().then(() => {
+            if (hasUserInteracted) video.muted = false;
+          }).catch(() => {});
         });
       } else {
         setError('HLS not supported in this browser');
         setIsLoading(false);
       }
     } else {
-      // MP4 or other native format
+      // MP4 or other native format - start muted for iOS
       video.src = currentSource.url;
+      video.muted = true;
       video.addEventListener('loadedmetadata', () => {
         setIsLoading(false);
-        video.play().catch(() => {});
+        video.play().then(() => {
+          if (hasUserInteracted) video.muted = false;
+        }).catch(() => {});
       });
     }
 
@@ -236,10 +249,15 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
   // Control handlers
   const togglePlay = () => {
     if (videoRef.current) {
+      setHasUserInteracted(true);
       if (isPlaying) {
         videoRef.current.pause();
       } else {
-        videoRef.current.play();
+        // Unmute on first user-initiated play (iOS compliance)
+        if (videoRef.current.muted && !isMuted) {
+          videoRef.current.muted = false;
+        }
+        videoRef.current.play().catch(() => {});
       }
     }
   };
@@ -314,6 +332,7 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
         poster={poster}
         className="w-full h-full object-contain"
         playsInline
+        muted
         crossOrigin="anonymous"
       />
 
