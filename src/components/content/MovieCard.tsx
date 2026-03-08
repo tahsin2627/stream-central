@@ -55,10 +55,10 @@ export const MovieCard = ({ item, index = 0, size = 'default' }: MovieCardProps)
             </div>
           )}
 
-          {/* Mobile: Show rating badge always */}
-          <div className="absolute top-2 right-2 md:hidden flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/60 backdrop-blur-sm">
-            <Star className="h-3 w-3 text-yellow-500" fill="currentColor" />
-            <span className="text-[10px] text-white font-medium">{item.vote_average?.toFixed(1) ?? 'N/A'}</span>
+          {/* Mobile: Show IMDb-style rating badge always */}
+          <div className="absolute top-2 right-2 md:hidden flex items-center gap-1 px-1.5 py-0.5 rounded bg-yellow-500/90 backdrop-blur-sm">
+            <Star className="h-2.5 w-2.5 text-black" fill="currentColor" />
+            <span className="text-[10px] text-black font-bold">{item.vote_average?.toFixed(1) ?? 'N/A'}</span>
           </div>
 
           {/* Desktop: Overlay on hover */}
