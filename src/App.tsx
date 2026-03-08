@@ -62,6 +62,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <PWAInstallPrompt />
+          <DonationBanner />
           <BrowserRouter>
             <PrefetchWrapper>
               <ScrollToTop />
