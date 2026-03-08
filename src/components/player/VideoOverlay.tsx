@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Maximize, Minimize, RotateCcw, Smartphone, ZoomIn, ZoomOut } from 'lucide-react';
+import { Maximize, Minimize, Smartphone, ZoomIn, ZoomOut, Scan } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -10,17 +10,22 @@ interface VideoOverlayProps {
   className?: string;
 }
 
+type ZoomMode = 'normal' | 'fill' | 'custom';
+
 /**
  * Video overlay with:
  * - Fullscreen + landscape lock
  * - Dedicated landscape toggle button
  * - YouTube-style pinch-to-zoom / double-tap zoom
+ * - Fit-to-screen / zoom-to-fill mode
  * - Rotation instructions fallback
+ * - Single taps pass through to iframe
  */
 export const VideoOverlay = ({ showInitially = true, className }: VideoOverlayProps) => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showButton, setShowButton] = useState(showInitially);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [zoomMode, setZoomMode] = useState<ZoomMode>('normal');
   const [showRotateHint, setShowRotateHint] = useState(false);
   const [isLandscapeLocked, setIsLandscapeLocked] = useState(false);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -28,6 +33,7 @@ export const VideoOverlay = ({ showInitially = true, className }: VideoOverlayPr
   const lastTapRef = useRef<number>(0);
   const pinchStartRef = useRef<number | null>(null);
   const zoomStartRef = useRef<number>(1);
+  const doubleTapPending = useRef<NodeJS.Timeout | null>(null);
 
   const ZOOM_LEVELS = [1, 1.25, 1.5, 1.75, 2];
 
@@ -47,8 +53,9 @@ export const VideoOverlay = ({ showInitially = true, className }: VideoOverlayPr
       setIsFullscreen(isFs);
       if (!isFs) {
         setZoomLevel(1);
+        setZoomMode('normal');
         setIsLandscapeLocked(false);
-        applyZoom(1);
+        applyZoom(1, 'normal');
         unlockOrientation();
       }
     };
@@ -57,23 +64,37 @@ export const VideoOverlay = ({ showInitially = true, className }: VideoOverlayPr
   }, []);
 
   // Apply zoom to player container
-  const applyZoom = useCallback((level: number) => {
+  const applyZoom = useCallback((level: number, mode: ZoomMode = 'custom') => {
     const playerContainer = document.querySelector('.player-container');
     const iframe = playerContainer?.querySelector('iframe');
     const nativePlayer = playerContainer?.querySelector('video');
     const target = iframe || nativePlayer;
     if (target) {
-      (target as HTMLElement).style.transform = level === 1 ? '' : `scale(${level})`;
-      (target as HTMLElement).style.transformOrigin = 'center center';
+      if (mode === 'fill') {
+        // Zoom-to-fill: scale up to cover the container (crops black bars)
+        // Typically 4:3 content in 16:9 container needs ~1.33x scale
+        const fillScale = 1.33;
+        (target as HTMLElement).style.transform = `scale(${fillScale})`;
+        (target as HTMLElement).style.transformOrigin = 'center center';
+        (target as HTMLElement).style.objectFit = 'cover';
+      } else if (level === 1 && mode === 'normal') {
+        (target as HTMLElement).style.transform = '';
+        (target as HTMLElement).style.objectFit = '';
+      } else {
+        (target as HTMLElement).style.transform = `scale(${level})`;
+        (target as HTMLElement).style.transformOrigin = 'center center';
+        (target as HTMLElement).style.objectFit = '';
+      }
     }
   }, []);
 
   const cycleZoom = useCallback(() => {
+    setZoomMode('custom');
     setZoomLevel(prev => {
       const currentIdx = ZOOM_LEVELS.indexOf(prev);
       const nextIdx = (currentIdx + 1) % ZOOM_LEVELS.length;
       const newLevel = ZOOM_LEVELS[nextIdx];
-      applyZoom(newLevel);
+      applyZoom(newLevel, 'custom');
       if (newLevel !== 1) {
         toast(`Zoom: ${Math.round(newLevel * 100)}%`, { duration: 1000 });
       }
@@ -81,9 +102,25 @@ export const VideoOverlay = ({ showInitially = true, className }: VideoOverlayPr
     });
   }, [applyZoom]);
 
-  // Pinch-to-zoom handlers
+  const toggleFillMode = useCallback(() => {
+    if (zoomMode === 'fill') {
+      setZoomMode('normal');
+      setZoomLevel(1);
+      applyZoom(1, 'normal');
+      toast('Fit to screen', { duration: 1000 });
+    } else {
+      setZoomMode('fill');
+      applyZoom(1, 'fill');
+      toast('Fill screen (cropped)', { duration: 1000 });
+    }
+  }, [zoomMode, applyZoom]);
+
+  // Pinch-to-zoom handlers - only capture multi-touch, let single taps through
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2) {
+      // Pinch gesture - capture it
+      e.preventDefault();
+      e.stopPropagation();
       const dist = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
@@ -91,20 +128,47 @@ export const VideoOverlay = ({ showInitially = true, className }: VideoOverlayPr
       pinchStartRef.current = dist;
       zoomStartRef.current = zoomLevel;
     }
-    // Double-tap to cycle zoom
-    if (e.touches.length === 1) {
+    setShowButton(true);
+  }, [zoomLevel]);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    // Handle double-tap detection
+    if (e.changedTouches.length === 1 && pinchStartRef.current === null) {
       const now = Date.now();
       if (now - lastTapRef.current < 300) {
+        // Double tap detected - cycle zoom
+        if (doubleTapPending.current) {
+          clearTimeout(doubleTapPending.current);
+          doubleTapPending.current = null;
+        }
         cycleZoom();
         e.preventDefault();
+        lastTapRef.current = 0;
+      } else {
+        lastTapRef.current = now;
+        // Set a timeout - if no second tap, let the next single tap through
+        doubleTapPending.current = setTimeout(() => {
+          doubleTapPending.current = null;
+        }, 300);
       }
-      lastTapRef.current = now;
     }
-    setShowButton(true);
-  }, [zoomLevel, cycleZoom]);
+
+    // Snap pinch zoom to nearest level
+    if (pinchStartRef.current !== null) {
+      pinchStartRef.current = null;
+      const snapped = ZOOM_LEVELS.reduce((prev, curr) =>
+        Math.abs(curr - zoomLevel) < Math.abs(prev - zoomLevel) ? curr : prev
+      );
+      setZoomLevel(snapped);
+      setZoomMode('custom');
+      applyZoom(snapped, 'custom');
+    }
+  }, [zoomLevel, applyZoom, cycleZoom]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (e.touches.length === 2 && pinchStartRef.current !== null) {
+      e.preventDefault();
+      e.stopPropagation();
       const dist = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
@@ -112,21 +176,10 @@ export const VideoOverlay = ({ showInitially = true, className }: VideoOverlayPr
       const scale = dist / pinchStartRef.current;
       const newZoom = Math.min(2, Math.max(1, zoomStartRef.current * scale));
       setZoomLevel(newZoom);
-      applyZoom(newZoom);
+      setZoomMode('custom');
+      applyZoom(newZoom, 'custom');
     }
   }, [applyZoom]);
-
-  const handleTouchEnd = useCallback(() => {
-    if (pinchStartRef.current !== null) {
-      pinchStartRef.current = null;
-      // Snap to nearest zoom level
-      const snapped = ZOOM_LEVELS.reduce((prev, curr) =>
-        Math.abs(curr - zoomLevel) < Math.abs(prev - zoomLevel) ? curr : prev
-      );
-      setZoomLevel(snapped);
-      applyZoom(snapped);
-    }
-  }, [zoomLevel, applyZoom]);
 
   const lockOrientation = useCallback(async () => {
     try {
@@ -174,7 +227,6 @@ export const VideoOverlay = ({ showInitially = true, className }: VideoOverlayPr
 
     const success = await lockOrientation();
     if (!success) {
-      // Show rotation instructions if API not supported
       setShowRotateHint(true);
       if (rotateHintTimeoutRef.current) clearTimeout(rotateHintTimeoutRef.current);
       rotateHintTimeoutRef.current = setTimeout(() => setShowRotateHint(false), 5000);
@@ -189,25 +241,30 @@ export const VideoOverlay = ({ showInitially = true, className }: VideoOverlayPr
 
   return (
     <>
-      {/* Touch/gesture tracker layer - captures pinch & double-tap only when 2+ fingers or double-tap */}
+      {/* Gesture detection layer - uses pointer-events: none to let single taps through */}
+      {/* Only captures pinch (2-finger) gestures via onTouchStart/Move/End */}
       <div
         className={cn("absolute inset-0 z-10", className)}
-        style={{ pointerEvents: 'none' }}
-        onMouseMove={handleMouseMove}
-      />
-
-      {/* Dedicated gesture zone for pinch-to-zoom (transparent, on top but allows single taps through) */}
-      <div
-        className="absolute inset-0 z-15"
-        style={{ touchAction: 'none', pointerEvents: 'auto' }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onClick={(e) => {
-          // Single click shows/hides controls
-          handleMouseMove();
-          // Allow click to pass through to iframe for single clicks
+        style={{ 
+          pointerEvents: 'none',
+          touchAction: 'manipulation'
         }}
+        onMouseMove={handleMouseMove}
+        onTouchStart={(e) => {
+          // Only intercept multi-touch (pinch)
+          if (e.touches.length >= 2) {
+            handleTouchStart(e);
+          } else {
+            // Single touch - just show controls, don't block
+            setShowButton(true);
+          }
+        }}
+        onTouchMove={(e) => {
+          if (e.touches.length >= 2) {
+            handleTouchMove(e);
+          }
+        }}
+        onTouchEnd={handleTouchEnd}
       />
 
       {/* Control buttons */}
@@ -221,16 +278,41 @@ export const VideoOverlay = ({ showInitially = true, className }: VideoOverlayPr
             className="absolute bottom-4 right-4 z-30 pointer-events-auto flex items-center gap-2"
           >
             {/* Zoom indicator */}
-            {zoomLevel !== 1 && (
+            {(zoomLevel !== 1 || zoomMode === 'fill') && (
               <motion.div
                 initial={{ scale: 0.8 }}
                 animate={{ scale: 1 }}
                 className="h-10 px-3 rounded-full bg-black/70 backdrop-blur-sm text-white flex items-center gap-1.5 text-xs font-medium"
               >
-                <ZoomIn className="h-3.5 w-3.5" />
-                {Math.round(zoomLevel * 100)}%
+                {zoomMode === 'fill' ? (
+                  <>
+                    <Scan className="h-3.5 w-3.5" />
+                    Fill
+                  </>
+                ) : (
+                  <>
+                    <ZoomIn className="h-3.5 w-3.5" />
+                    {Math.round(zoomLevel * 100)}%
+                  </>
+                )}
               </motion.div>
             )}
+
+            {/* Fill/Fit toggle - crops black bars like YouTube */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleFillMode}
+              className={cn(
+                "h-10 w-10 rounded-full backdrop-blur-sm shadow-lg",
+                zoomMode === 'fill'
+                  ? "bg-primary/90 hover:bg-primary text-primary-foreground"
+                  : "bg-black/70 hover:bg-black/90 text-white"
+              )}
+              title={zoomMode === 'fill' ? 'Fit to screen' : 'Fill screen (crop black bars)'}
+            >
+              <Scan className="h-5 w-5" />
+            </Button>
 
             {/* Zoom button - cycles through levels */}
             <Button
@@ -273,7 +355,7 @@ export const VideoOverlay = ({ showInitially = true, className }: VideoOverlayPr
         )}
       </AnimatePresence>
 
-      {/* Rotation instructions toast (when orientation lock API not supported) */}
+      {/* Rotation instructions toast */}
       <AnimatePresence>
         {showRotateHint && (
           <motion.div
