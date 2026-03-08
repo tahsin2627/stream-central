@@ -9,6 +9,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { usePrefetchContent } from "@/hooks/useTMDB";
 import { SplashScreen } from "@/components/SplashScreen";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { DonationBanner } from "@/components/DonationBanner";
 import Index from "./pages/Index";
 import MovieDetail from "./pages/MovieDetail";
 import TVShowDetail from "./pages/TVShowDetail";
@@ -61,6 +62,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <PWAInstallPrompt />
+          <DonationBanner />
           <BrowserRouter>
             <PrefetchWrapper>
               <ScrollToTop />
