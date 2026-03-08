@@ -227,47 +227,22 @@ export const HeroSection = ({ items, isLoading }: HeroSectionProps) => {
         </div>
       </div>
 
-      {/* Thumbnail strip */}
+      {/* Dot indicators */}
       {itemCount > 1 && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 w-full max-w-[90%] md:max-w-2xl">
-          <div className="flex items-center justify-center gap-2 overflow-x-auto hide-scrollbar px-2 py-1">
-            {validItems.slice(0, 10).map((item, idx) => {
-              const itemTitle = isMovie(item) ? item.title : item.name;
-              const posterUrl = item.poster_path 
-                ? `https://image.tmdb.org/t/p/w154${item.poster_path}`
-                : null;
-              const isActive = idx === currentIndex;
-              
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => goTo(idx)}
-                  className={cn(
-                    "relative flex-shrink-0 rounded-md overflow-hidden transition-all duration-200",
-                    isActive 
-                      ? "ring-2 ring-primary scale-110 z-10" 
-                      : "opacity-50 hover:opacity-80"
-                  )}
-                  aria-label={`Go to ${itemTitle}`}
-                >
-                  {posterUrl ? (
-                    <img
-                      src={posterUrl}
-                      alt={itemTitle}
-                      className="h-12 w-8 md:h-14 md:w-10 object-cover"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <div className="h-12 w-8 md:h-14 md:w-10 bg-secondary flex items-center justify-center">
-                      <span className="text-[6px] text-muted-foreground text-center px-0.5 line-clamp-2">
-                        {itemTitle}
-                      </span>
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5">
+          {validItems.slice(0, 10).map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => goTo(idx)}
+              className={cn(
+                "h-1.5 rounded-full transition-all duration-300",
+                idx === currentIndex 
+                  ? "w-5 bg-primary" 
+                  : "w-1.5 bg-foreground/30 hover:bg-foreground/50"
+              )}
+              aria-label={`Go to slide ${idx + 1}`}
+            />
+          ))}
         </div>
       )}
     </section>
