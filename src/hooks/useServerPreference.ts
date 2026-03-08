@@ -37,9 +37,9 @@ const STORAGE_KEYS = {
 
 const REPORT_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
-// VERIFIED WORKING PROVIDERS (Updated February 2026)
-// Removed dead servers: vidsrc.in (domain expired), embed.su (DNS failure)
-// Added: vidsrc.wtf, vidsrc-embed.su, superembed.stream
+// VERIFIED WORKING PROVIDERS (Updated March 2026)
+// Removed dead: vidsrc.pro (sandbox), vidsrc.in (expired), vidlink.pro (blank), vidsrc.wtf (dead)
+// Added: vembed.stream, 2embed.cc, 123embed.net, embedplayapi.site
 export const VIDEO_SERVERS: VideoServer[] = [
   // PRIMARY - Most reliable English servers
   {
