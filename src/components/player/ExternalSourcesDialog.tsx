@@ -213,7 +213,7 @@ export const ExternalSourcesDialog = ({
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <Loader2 className="h-8 w-8 animate-spin mb-3" />
             <p className="text-sm">Searching external sources...</p>
-            <p className="text-xs mt-1">Checking TamilBlasters & TMDB sources</p>
+            <p className="text-xs mt-1">Checking streaming & regional sources</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
