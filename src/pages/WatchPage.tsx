@@ -83,10 +83,14 @@ const WatchPage = () => {
   });
   const [sandboxRetrying, setSandboxRetrying] = useState(false);
 
-  // Whether to actually apply sandbox for current server
-  const applySandbox = shieldEnabled && !sandboxIncompatible.has(selectedServer?.id || '');
-
   const markSandboxIncompatible = useCallback((serverId: string) => {
+    setSandboxIncompatible(prev => {
+      const next = new Set(prev);
+      next.add(serverId);
+      localStorage.setItem('wellplayer_sandbox_incompatible', JSON.stringify([...next]));
+      return next;
+    });
+  }, []);
     setSandboxIncompatible(prev => {
       const next = new Set(prev);
       next.add(serverId);
