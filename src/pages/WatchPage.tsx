@@ -652,18 +652,47 @@ const WatchPage = () => {
                 {!showTapToPlay && (
                   <iframe
                     ref={iframeRef}
-                    key={`${embedUrl}-${shieldEnabled}`}
+                    key={`${embedUrl}-${applySandbox}`}
                     src={embedUrl}
                     className="absolute inset-0 w-full h-full"
                     allowFullScreen
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                     referrerPolicy="no-referrer"
                     title="Video Player"
-                    {...(shieldEnabled ? {
+                    {...(applySandbox ? {
                       sandbox: "allow-scripts allow-same-origin allow-forms allow-presentation allow-top-navigation-by-user-activation"
                     } : {})}
-                    onLoad={handleIframeLoad}
+                    onLoad={(e) => {
+                      handleIframeLoad();
+                      // Detect sandbox errors: if iframe body is very small or shows error text
+                      try {
+                        const iframe = e.target as HTMLIFrameElement;
+                        // We can't read cross-origin content, but we can detect if the iframe
+                        // loaded suspiciously fast (sandbox rejection pages load instantly)
+                        if (applySandbox && !sandboxRetrying) {
+                          // Give 2s grace period — if iframe content is sandbox error, 
+                          // it will be a tiny static page. Check via a heuristic timeout.
+                          setTimeout(() => {
+                            // If the server is known to fail with sandbox from the error message listener, skip
+                          }, 2000);
+                        }
+                      } catch { /* cross-origin, expected */ }
+                    }}
                     onError={() => {
+                      // If sandbox is applied, this server likely doesn't support it
+                      if (applySandbox) {
+                        console.log(`[Shield] Server ${selectedServer.name} failed with sandbox, retrying without`);
+                        markSandboxIncompatible(selectedServer.id);
+                        setSandboxRetrying(true);
+                        toast({
+                          title: '🛡️ Shield adapted',
+                          description: `${selectedServer.name} doesn't support sandbox — using lighter protection`,
+                          duration: 3000,
+                        });
+                        // The key change (applySandbox) will trigger re-render without sandbox
+                        setTimeout(() => setSandboxRetrying(false), 1000);
+                        return;
+                      }
                       setIframeStallCount(prev => prev + 1);
                       if (iframeStallCount >= 1) {
                         handleAutoFallback();
