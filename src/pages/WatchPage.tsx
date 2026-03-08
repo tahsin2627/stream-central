@@ -69,6 +69,7 @@ const WatchPage = () => {
   const [externalEmbedUrl, setExternalEmbedUrl] = useState<string | null>(null);
   const [userGestureGiven, setUserGestureGiven] = useState(false);
   const [iframeStallCount, setIframeStallCount] = useState(0);
+  const [clickShieldActive, setClickShieldActive] = useState(true);
   
   // iOS detection
   const { needsUserGesture } = useIOSDetection();
