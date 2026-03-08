@@ -39,6 +39,7 @@ import { useStreamExtraction, StreamSource } from '@/hooks/useStreamExtraction';
 import { useIOSDetection } from '@/hooks/useIOSDetection';
 import { TapToPlayOverlay } from '@/components/player/TapToPlayOverlay';
 import { UnmuteBanner } from '@/components/player/UnmuteBanner';
+import { ElementBlocker } from '@/components/player/ElementBlocker';
 const FALLBACK_TIMEOUT_MS = 10000; // 10 seconds
 
 const WatchPage = () => {
@@ -446,6 +447,9 @@ const WatchPage = () => {
             }}
           />
 
+          {/* Element Blocker - Blocks ads/popups */}
+          <ElementBlocker />
+
           {/* Language Selector - Prominent in header */}
           <LanguageSelector compact />
 
@@ -571,6 +575,13 @@ const WatchPage = () => {
                 sources={nativeSources}
                 title={title}
                 poster={content?.backdrop_path ? `https://image.tmdb.org/t/p/w1280${content.backdrop_path}` : undefined}
+                isTV={mediaType === 'tv'}
+                onPrevEpisode={() => {
+                  if (selectedEpisode > 1) setSelectedEpisode(selectedEpisode - 1);
+                }}
+                onNextEpisode={() => setSelectedEpisode(selectedEpisode + 1)}
+                hasPrev={selectedEpisode > 1}
+                hasNext={mediaType === 'tv'}
                 onError={() => {
                   toast({
                     title: "Playback failed",

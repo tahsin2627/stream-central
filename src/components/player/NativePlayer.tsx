@@ -26,6 +26,7 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import { UnmuteBanner } from './UnmuteBanner';
+import { VideoEnhancer } from './VideoEnhancer';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
 
 interface StreamSource {
@@ -40,9 +41,14 @@ interface NativePlayerProps {
   poster?: string;
   onError?: () => void;
   onBack?: () => void;
+  isTV?: boolean;
+  onPrevEpisode?: () => void;
+  onNextEpisode?: () => void;
+  hasPrev?: boolean;
+  hasNext?: boolean;
 }
 
-export const NativePlayer = ({ sources, title, poster, onError, onBack }: NativePlayerProps) => {
+export const NativePlayer = ({ sources, title, poster, onError, onBack, isTV, onPrevEpisode, onNextEpisode, hasPrev, hasNext }: NativePlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
@@ -592,7 +598,18 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  {/* Video Enhancer: Speed, PiP, Skip, Episode Nav */}
+                  <VideoEnhancer
+                    videoRef={videoRef as React.RefObject<HTMLVideoElement>}
+                    duration={duration}
+                    currentTime={currentTime}
+                    isTV={isTV}
+                    onPrevEpisode={onPrevEpisode}
+                    onNextEpisode={onNextEpisode}
+                    hasPrev={hasPrev}
+                    hasNext={hasNext}
+                  />
                   <Button
                     variant="ghost"
                     size="icon"
