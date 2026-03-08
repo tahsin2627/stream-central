@@ -117,6 +117,12 @@ export const Navbar = () => {
                 <DropdownMenuItem asChild>
                   <Link to="/my-list">My List</Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/favorites" className="flex items-center gap-2">
+                    <Heart className="h-4 w-4" />
+                    Favorites
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
                   <LogOut className="h-4 w-4 mr-2" />

@@ -168,6 +168,15 @@ const MovieDetail = () => {
                   releaseDate={movie.release_date}
                   size="default"
                 />
+                <FavoriteButton
+                  tmdbId={movie.id}
+                  mediaType="movie"
+                  title={movie.title}
+                  posterPath={movie.poster_path}
+                  voteAverage={movie.vote_average}
+                  releaseDate={movie.release_date}
+                  size="icon"
+                />
                 <LogFilmDialog tmdbId={movie.id} mediaType="movie" title={movie.title} posterPath={movie.poster_path} />
                 <ShareStoryDialog
                   title={movie.title}

@@ -183,6 +183,7 @@ const TVShowDetail = () => {
                   <span className="text-xs md:text-sm">S{selectedSeason} E{selectedEpisode}</span>
                 </Button>
                 <WatchlistButton tmdbId={show.id} mediaType="tv" title={show.name} posterPath={show.poster_path} voteAverage={show.vote_average} releaseDate={show.first_air_date} size="default" />
+                <FavoriteButton tmdbId={show.id} mediaType="tv" title={show.name} posterPath={show.poster_path} voteAverage={show.vote_average} releaseDate={show.first_air_date} size="icon" />
                 <ShareStoryDialog
                   title={show.name} posterUrl={posterUrl} backdropUrl={backdropUrl} rating={show.vote_average} year={releaseYear} mediaType="tv" genres={show.genres} tmdbId={show.id}
                   trigger={
