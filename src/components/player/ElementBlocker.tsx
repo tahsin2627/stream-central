@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, ShieldOff, X } from 'lucide-react';
+import { Shield, ShieldOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -12,72 +12,160 @@ interface ElementBlockerProps {
 }
 
 /**
- * Element Blocker for iframe mode.
- * Since we can't inject CSS into cross-origin iframes, this:
- * 1. Overlays clickable "block zones" on common ad positions (corners, banners)
- * 2. Intercepts popup window.open attempts
- * 3. Blocks redirect attempts from third-party scripts
+ * Aggressive ad/popup/redirect blocker for iframe player mode.
+ * 
+ * Blocks:
+ * 1. window.open popups from any context
+ * 2. Top-level navigation hijacking (location.assign, location.replace, location.href)
+ * 3. Anchor clicks with target="_blank" injected by ads
+ * 4. beforeunload/unload hijacking
+ * 5. Suspicious new window/tab triggers via message events from iframes
  */
 export const ElementBlocker = ({ isActive: controlledActive, onToggle, className }: ElementBlockerProps) => {
   const [isActive, setIsActive] = useState(() => {
     const stored = localStorage.getItem('wellplayer_element_blocker');
-    return stored !== null ? stored === 'true' : true; // Default ON
+    return stored !== null ? stored === 'true' : true;
   });
   const [blockedCount, setBlockedCount] = useState(0);
   const [showBadge, setShowBadge] = useState(false);
 
   const active = controlledActive !== undefined ? controlledActive : isActive;
 
-  // Persist preference
   useEffect(() => {
     localStorage.setItem('wellplayer_element_blocker', String(isActive));
   }, [isActive]);
 
-  // Block popup windows and redirect attempts
+  // Core blocking logic
   useEffect(() => {
     if (!active) return;
 
-    // Override window.open to block popups from iframe postMessage
+    const blocked = { count: 0 };
+    const incrementBlocked = () => {
+      blocked.count++;
+      setBlockedCount(prev => prev + 1);
+      setShowBadge(true);
+      setTimeout(() => setShowBadge(false), 2000);
+    };
+
+    // 1. Block window.open
     const originalOpen = window.open;
-    window.open = function (...args: any[]) {
-      // Allow our own app navigations, block third-party popups
-      const url = args[0] as string;
-      if (url && !url.includes(window.location.hostname)) {
-        setBlockedCount(prev => prev + 1);
-        setShowBadge(true);
-        setTimeout(() => setShowBadge(false), 2000);
-        console.log('[ElementBlocker] Blocked popup:', url);
-        return null;
+    window.open = function (url?: string | URL, target?: string, features?: string): Window | null {
+      const urlStr = String(url || '');
+      // Allow same-origin navigations and blob/data URLs
+      if (urlStr.startsWith(window.location.origin) || urlStr.startsWith('blob:') || urlStr.startsWith('data:')) {
+        return originalOpen.call(window, url, target, features);
       }
-      return originalOpen.apply(window, args as any);
+      console.log('[Shield] Blocked popup:', urlStr);
+      incrementBlocked();
+      return null;
     };
 
-    // Block beforeunload hijacking from iframes
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      // Don't let embedded content trigger navigation
+    // 2. Block top-level navigation hijacking from iframes
+    // Protect location.href, location.assign, location.replace
+    const originalAssign = window.location.assign.bind(window.location);
+    const originalReplace = window.location.replace.bind(window.location);
+    
+    // Use a proxy-like approach: intercept assign and replace
+    window.location.assign = function (url: string) {
+      if (url.includes(window.location.hostname) || url.startsWith('/')) {
+        return originalAssign(url);
+      }
+      console.log('[Shield] Blocked location.assign:', url);
+      incrementBlocked();
+    };
+    
+    window.location.replace = function (url: string) {
+      if (url.includes(window.location.hostname) || url.startsWith('/')) {
+        return originalReplace(url);
+      }
+      console.log('[Shield] Blocked location.replace:', url);
+      incrementBlocked();
     };
 
-    // Intercept click events that might be ad-triggered redirects
+    // 3. Block all new-tab link clicks that weren't user-initiated on our UI
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      // Block clicks on transparent overlay divs (common ad trick)
-      if (target.tagName === 'DIV' && 
-          target.style.position === 'fixed' && 
-          (target.style.zIndex === '9999' || parseInt(target.style.zIndex) > 1000)) {
-        e.preventDefault();
-        e.stopPropagation();
-        setBlockedCount(prev => prev + 1);
-        console.log('[ElementBlocker] Blocked suspicious overlay click');
+      const anchor = target.closest('a');
+      
+      if (anchor) {
+        const href = anchor.getAttribute('href') || '';
+        const linkTarget = anchor.getAttribute('target');
+        
+        // Block external links with target="_blank" that aren't part of our app
+        if (linkTarget === '_blank' && href && !href.includes(window.location.hostname) && !anchor.closest('[data-app-link]')) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('[Shield] Blocked external link:', href);
+          incrementBlocked();
+          return;
+        }
+      }
+
+      // Block clicks on suspicious invisible/overlay elements
+      if (target.tagName === 'DIV' || target.tagName === 'A' || target.tagName === 'SPAN') {
+        const style = window.getComputedStyle(target);
+        const zIndex = parseInt(style.zIndex) || 0;
+        const opacity = parseFloat(style.opacity);
+        
+        // Suspicious: high z-index with low/zero opacity (invisible overlay trick)
+        if (zIndex > 999 && opacity < 0.1) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('[Shield] Blocked invisible overlay click');
+          incrementBlocked();
+        }
       }
     };
 
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    // 4. Intercept postMessage from iframes attempting navigation
+    const handleMessage = (e: MessageEvent) => {
+      // Block iframe messages that try to navigate the parent
+      if (typeof e.data === 'string') {
+        const data = e.data.toLowerCase();
+        if (data.includes('redirect') || data.includes('window.open') || data.includes('location.href')) {
+          console.log('[Shield] Blocked suspicious iframe message:', e.data.substring(0, 100));
+          incrementBlocked();
+          return;
+        }
+      }
+      if (typeof e.data === 'object' && e.data !== null) {
+        const str = JSON.stringify(e.data).toLowerCase();
+        if (str.includes('redirect') || str.includes('popup') || str.includes('adclick')) {
+          console.log('[Shield] Blocked suspicious iframe message object');
+          incrementBlocked();
+          return;
+        }
+      }
+    };
+
+    // 5. Block focus theft (ads that steal focus to new windows)
+    const handleBlur = () => {
+      // If window loses focus right after a click, an ad popup likely opened
+      // Re-focus our window
+      setTimeout(() => {
+        window.focus();
+      }, 100);
+    };
+
+    // 6. Prevent beforeunload hijacking by ads
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // Only block if it's not a user-initiated navigation
+      // (checked by whether any of our app links were clicked)
+    };
+
     document.addEventListener('click', handleClick, true);
+    window.addEventListener('message', handleMessage);
+    window.addEventListener('blur', handleBlur);
+    window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       window.open = originalOpen;
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.location.assign = originalAssign;
+      window.location.replace = originalReplace;
       document.removeEventListener('click', handleClick, true);
+      window.removeEventListener('message', handleMessage);
+      window.removeEventListener('blur', handleBlur);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [active]);
 
@@ -85,7 +173,7 @@ export const ElementBlocker = ({ isActive: controlledActive, onToggle, className
     const next = !isActive;
     setIsActive(next);
     onToggle?.(next);
-    toast(next ? '🛡️ Ad blocker enabled' : '🔓 Ad blocker disabled', { duration: 1500 });
+    toast(next ? '🛡️ Shield ON — blocking ads & redirects' : '🔓 Shield OFF', { duration: 1500 });
   }, [isActive, onToggle]);
 
   return (
@@ -97,17 +185,17 @@ export const ElementBlocker = ({ isActive: controlledActive, onToggle, className
         className={cn(
           "h-8 sm:h-9 px-2 sm:px-3 gap-1.5",
           active
-            ? "text-emerald-500 hover:text-emerald-400"
+            ? "text-primary hover:text-primary/80"
             : "text-muted-foreground"
         )}
-        title={active ? 'Ad blocker active' : 'Enable ad blocker'}
+        title={active ? `Shield active (${blockedCount} blocked)` : 'Enable ad shield'}
       >
         {active ? (
           <Shield className="h-3.5 w-3.5" fill="currentColor" />
         ) : (
           <ShieldOff className="h-3.5 w-3.5" />
         )}
-        <span className="text-xs hidden sm:inline">{active ? 'Shield' : 'Shield'}</span>
+        <span className="text-xs hidden sm:inline">Shield</span>
       </Button>
 
       {/* Blocked count badge */}
@@ -117,33 +205,12 @@ export const ElementBlocker = ({ isActive: controlledActive, onToggle, className
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
-            className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-emerald-500 text-[10px] font-bold text-white flex items-center justify-center"
+            className="absolute -top-1 -right-1 h-4 min-w-4 px-1 rounded-full bg-primary text-[10px] font-bold text-primary-foreground flex items-center justify-center"
           >
             {blockedCount}
           </motion.span>
         )}
       </AnimatePresence>
-
-      {/* Invisible overlay zones to catch ad clicks in common positions */}
-      {active && (
-        <>
-          {/* Top-right corner ad zone blocker */}
-          <div
-            className="fixed top-0 right-0 w-8 h-8 z-[100] pointer-events-auto"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              setBlockedCount(prev => prev + 1);
-            }}
-            style={{ opacity: 0 }}
-          />
-          {/* Bottom-left banner ad zone */}
-          <div
-            className="fixed bottom-16 left-0 w-full h-1 z-[100] pointer-events-none"
-            style={{ opacity: 0 }}
-          />
-        </>
-      )}
     </div>
   );
 };

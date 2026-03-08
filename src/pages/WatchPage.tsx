@@ -69,6 +69,7 @@ const WatchPage = () => {
   const [externalEmbedUrl, setExternalEmbedUrl] = useState<string | null>(null);
   const [userGestureGiven, setUserGestureGiven] = useState(false);
   const [iframeStallCount, setIframeStallCount] = useState(0);
+  const [clickShieldActive, setClickShieldActive] = useState(true);
   
   // iOS detection
   const { needsUserGesture } = useIOSDetection();
@@ -236,6 +237,7 @@ const WatchPage = () => {
     iframeLoadedRef.current = false;
     setIsLoading(true);
     setIsFallbackTriggered(false);
+    setClickShieldActive(true); // Re-arm click shield on source change
     clearFallbackTimer();
 
     // Start fallback timer if auto-fallback is enabled
@@ -638,6 +640,21 @@ const WatchPage = () => {
                       } else {
                         handleAutoFallback();
                       }
+                    }}
+                  />
+                )}
+
+                {/* Click Shield: absorbs the first click (which triggers ad popups), 
+                    then disables itself so second click reaches the actual player */}
+                {!showTapToPlay && clickShieldActive && !isLoading && (
+                  <div
+                    className="absolute inset-0 z-[5] cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setClickShieldActive(false);
+                      console.log('[Shield] Absorbed ad-trigger click, player now interactive');
+                      toast({ title: '🛡️ Ad click blocked', description: 'Tap again to play', duration: 2000 });
                     }}
                   />
                 )}
