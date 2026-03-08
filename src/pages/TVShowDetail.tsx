@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { WatchlistButton } from '@/components/content/WatchlistButton';
+import { FavoriteButton } from '@/components/content/FavoriteButton';
 import { ShareStoryDialog } from '@/components/share/ShareStoryDialog';
 import { LogFilmDialog } from '@/components/diary/LogFilmDialog';
 import { Button } from '@/components/ui/button';
