@@ -182,6 +182,34 @@ export const useBengaliTVShows = (page = 1) => {
   });
 };
 
+// Malayalam Movies - Latest first
+export const useMalayalamMovies = (page = 1) => {
+  return useQuery({
+    queryKey: ['movies', 'malayalam', page],
+    queryFn: async () => {
+      const response = await tmdbApi.getMalayalamMovies(page);
+      if (!response.success) throw new Error(response.error);
+      return response.data as TMDBPaginatedResponse<TMDBMovie>;
+    },
+    staleTime: STALE_TIME_SHORT,
+    gcTime: GC_TIME,
+  });
+};
+
+// Kannada Movies - Latest first
+export const useKannadaMovies = (page = 1) => {
+  return useQuery({
+    queryKey: ['movies', 'kannada', page],
+    queryFn: async () => {
+      const response = await tmdbApi.getKannadaMovies(page);
+      if (!response.success) throw new Error(response.error);
+      return response.data as TMDBPaginatedResponse<TMDBMovie>;
+    },
+    staleTime: STALE_TIME_SHORT,
+    gcTime: GC_TIME,
+  });
+};
+
 // Latest Movies - All languages
 export const useLatestMovies = (page = 1) => {
   return useQuery({
