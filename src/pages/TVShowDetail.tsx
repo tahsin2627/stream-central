@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { WatchlistButton } from '@/components/content/WatchlistButton';
 import { ShareStoryDialog } from '@/components/share/ShareStoryDialog';
+import { LogFilmDialog } from '@/components/diary/LogFilmDialog';
 import { Button } from '@/components/ui/button';
 import { useTVShowDetails, useSeasonDetails } from '@/hooks/useTMDB';
 import { tmdbApi } from '@/lib/api/tmdb';
