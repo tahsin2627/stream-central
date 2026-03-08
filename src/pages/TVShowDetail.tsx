@@ -150,9 +150,16 @@ const TVShowDetail = () => {
                     <SelectTrigger className="w-16 md:w-24 h-8 md:h-10 text-xs md:text-sm bg-secondary border-none">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-64">
                       {(episodes.length > 0 ? episodes : Array.from({ length: 10 }, (_, i) => ({ number: i + 1 }))).map((ep: any) => (
-                        <SelectItem key={ep.number} value={String(ep.number)}>{ep.number}</SelectItem>
+                        <SelectItem key={ep.number} value={String(ep.number)}>
+                          <span className="flex items-center gap-2">
+                            <span>{ep.number}</span>
+                            {ep.name && ep.name !== `Episode ${ep.number}` && (
+                              <span className="text-muted-foreground text-xs truncate max-w-[150px]">· {ep.name}</span>
+                            )}
+                          </span>
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
