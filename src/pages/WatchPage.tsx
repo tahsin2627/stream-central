@@ -49,11 +49,17 @@ const WatchPage = () => {
   const fallbackTimerRef = useRef<NodeJS.Timeout | null>(null);
   const { toast } = useToast();
 
-  const initialSeason = Number(searchParams.get('s')) || 1;
-  const initialEpisode = Number(searchParams.get('e')) || 1;
+  const paramSeason = Number(searchParams.get('s')) || 1;
+  const paramEpisode = Number(searchParams.get('e')) || 1;
 
-  const [selectedSeason, setSelectedSeason] = useState(initialSeason);
-  const [selectedEpisode, setSelectedEpisode] = useState(initialEpisode);
+  const [selectedSeason, setSelectedSeason] = useState(paramSeason);
+  const [selectedEpisode, setSelectedEpisode] = useState(paramEpisode);
+
+  // Sync URL params → state when URL changes externally (e.g. browser navigation)
+  useEffect(() => {
+    if (paramSeason !== selectedSeason) setSelectedSeason(paramSeason);
+    if (paramEpisode !== selectedEpisode) setSelectedEpisode(paramEpisode);
+  }, [paramSeason, paramEpisode]);
   const [isLoading, setIsLoading] = useState(true);
   const [attemptedServers, setAttemptedServers] = useState<string[]>([]);
   const [isFallbackTriggered, setIsFallbackTriggered] = useState(false);
