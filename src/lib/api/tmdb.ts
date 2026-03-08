@@ -245,17 +245,16 @@ export const tmdbApi = {
   },
 
   // Bengali/Bangla Web Series (Hoichoi, Chorki, iScreen, BongoBD style)
-  // Uses popularity sort + drama/thriller/crime genres common on these platforms
+  // Uses popularity sort to surface OTT-style web series content
   getBengaliWebSeries: (page = 1) => {
     const today = new Date().toISOString().split('T')[0];
-    const threeYearsAgo = new Date(Date.now() - 36 * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const fiveYearsAgo = new Date(Date.now() - 60 * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
     return tmdbRequest<TMDBPaginatedResponse<TMDBTVShow>>('/discover/tv', { 
       with_original_language: 'bn',
       page,
       sort_by: 'popularity.desc',
-      'first_air_date.gte': threeYearsAgo,
+      'first_air_date.gte': fiveYearsAgo,
       'first_air_date.lte': today,
-      with_genres: '18,80,9648,53', // Drama, Crime, Mystery, Thriller
     });
   },
 
