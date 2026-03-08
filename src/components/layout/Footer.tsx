@@ -18,7 +18,7 @@ export const Footer = () => {
               </span>
             </Link>
             <p className="text-muted-foreground mt-2 text-sm italic">
-              it's a really wellplayer
+              it's Really A Wellplayer
             </p>
           </div>
 

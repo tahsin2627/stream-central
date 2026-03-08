@@ -122,7 +122,7 @@ export const SplashScreen = ({ onComplete }: SplashScreenProps) => {
                 transition={{ delay: 1 }}
                 className="text-sm text-muted-foreground mt-2 italic"
               >
-                It's a really wellplayer
+                it's Really A Wellplayer
               </motion.p>
             </motion.div>
 

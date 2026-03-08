@@ -82,6 +82,9 @@ export const Navbar = () => {
 
         {/* Right Section */}
         <div className="flex items-center gap-2">
+          {/* Theme Toggle */}
+          <ThemeToggle />
+
           {/* Search */}
           <Button
             variant="ghost"
