@@ -598,7 +598,18 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack, isTV, on
                   </span>
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1">
+                  {/* Video Enhancer: Speed, PiP, Skip, Episode Nav */}
+                  <VideoEnhancer
+                    videoRef={videoRef as React.RefObject<HTMLVideoElement>}
+                    duration={duration}
+                    currentTime={currentTime}
+                    isTV={isTV}
+                    onPrevEpisode={onPrevEpisode}
+                    onNextEpisode={onNextEpisode}
+                    hasPrev={hasPrev}
+                    hasNext={hasNext}
+                  />
                   <Button
                     variant="ghost"
                     size="icon"
