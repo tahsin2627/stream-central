@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
+import { Eye, EyeOff, User, Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,9 +10,9 @@ import { useToast } from '@/hooks/use-toast';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
 
 const Signup = () => {
-  const [displayName, setDisplayName] = useState('');
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { signUp } = useAuth();
@@ -22,6 +22,28 @@ const Signup = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
+    const trimmedUsername = username.toLowerCase().trim();
+
+    if (!/^[a-z0-9_]+$/.test(trimmedUsername)) {
+      toast({
+        title: 'Invalid username',
+        description: 'Username can only contain letters, numbers, and underscores.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (trimmedUsername.length < 3) {
+      toast({
+        title: 'Username too short',
+        description: 'Username must be at least 3 characters.',
+        variant: 'destructive',
+      });
+      setIsLoading(false);
+      return;
+    }
 
     if (password.length < 6) {
       toast({
@@ -33,20 +55,40 @@ const Signup = () => {
       return;
     }
 
-    const { error } = await signUp(email, password, displayName);
-
-    if (error) {
+    if (password !== confirmPassword) {
       toast({
-        title: 'Signup failed',
-        description: error.message,
+        title: 'Passwords don\'t match',
+        description: 'Please make sure your passwords match.',
         variant: 'destructive',
       });
+      setIsLoading(false);
+      return;
+    }
+
+    // Convert username to email format for Supabase
+    const email = `${trimmedUsername}@wellplayer.app`;
+    const { error } = await signUp(email, password, trimmedUsername);
+
+    if (error) {
+      if (error.message.includes('already registered')) {
+        toast({
+          title: 'Username taken',
+          description: 'This username is already in use. Try another one.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Signup failed',
+          description: error.message,
+          variant: 'destructive',
+        });
+      }
     } else {
       toast({
-        title: 'Check your email',
-        description: 'We sent you a confirmation link to verify your account.',
+        title: 'Account created!',
+        description: 'Welcome to Wellplayer. You are now logged in.',
       });
-      navigate('/login');
+      navigate('/');
     }
 
     setIsLoading(false);
@@ -70,34 +112,21 @@ const Signup = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="displayName">Display Name</Label>
+              <Label htmlFor="username">Username</Label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="displayName"
+                  id="username"
                   type="text"
-                  placeholder="Your name"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="choose_username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="pl-10"
                   required
+                  minLength={3}
                 />
               </div>
+              <p className="text-xs text-muted-foreground">Letters, numbers, and underscores only</p>
             </div>
 
             <div className="space-y-2">
@@ -123,6 +152,22 @@ const Signup = () => {
                 </button>
               </div>
               <p className="text-xs text-muted-foreground">At least 6 characters</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="confirmPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="pl-10"
+                  required
+                />
+              </div>
             </div>
 
             <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
