@@ -345,9 +345,6 @@ export const tmdbApi = {
     return tmdbRequest<TMDBPaginatedResponse<TMDBMovie>>('/search/movie', { query, page, include_adult: false });
   },
 
-  searchMovies: (query: string, page = 1) => {
-    return tmdbRequest<TMDBPaginatedResponse<TMDBMovie>>('/search/movie', { query, page });
-  },
 
   searchTVShows: (query: string, page = 1) => {
     return tmdbRequest<TMDBPaginatedResponse<TMDBTVShow>>('/search/tv', { query, page, include_adult: false });
