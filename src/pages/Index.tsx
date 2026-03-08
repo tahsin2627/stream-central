@@ -1,3 +1,4 @@
+import { useState, useEffect, useMemo } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { HeroSection } from '@/components/content/HeroSection';
 import { ContentCarousel } from '@/components/content/ContentCarousel';
@@ -47,12 +48,66 @@ const Index = () => {
   const { data: popularMovies, isLoading: popularMoviesLoading } = usePopularMovies();
   const { data: popularTV, isLoading: popularTVLoading } = usePopularTVShows();
 
-  const featuredIndex = trending?.results?.length ? Math.floor(Math.random() * Math.min(5, trending.results.length)) : 0;
-  const featured = trending?.results?.[featuredIndex] as (TMDBMovie | TMDBTVShow) | undefined;
+  // Build a diverse hero pool from multiple regional sources
+  const heroPool = useMemo(() => {
+    const pool: (TMDBMovie | TMDBTVShow)[] = [];
+    
+    // Add top trending (global)
+    if (trending?.results?.length) {
+      pool.push(...trending.results.slice(0, 3));
+    }
+    
+    // Add Bollywood (Hindi)
+    if (bollywood?.results?.length) {
+      pool.push(...bollywood.results.slice(0, 2));
+    }
+    
+    // Add South Indian content (Tamil, Telugu, Malayalam, Kannada)
+    if (tamil?.results?.length) {
+      pool.push(tamil.results[0]);
+    }
+    if (telugu?.results?.length) {
+      pool.push(telugu.results[0]);
+    }
+    if (malayalam?.results?.length) {
+      pool.push(malayalam.results[0]);
+    }
+    if (kannada?.results?.length) {
+      pool.push(kannada.results[0]);
+    }
+    
+    // Add Bengali/Kolkata content
+    if (bengali?.results?.length) {
+      pool.push(bengali.results[0]);
+    }
+    if (bengaliWeb?.results?.length) {
+      pool.push(bengaliWeb.results[0]);
+    }
+    
+    // Add Hindi Web Series
+    if (hindiWeb?.results?.length) {
+      pool.push(hindiWeb.results[0]);
+    }
+    
+    // Filter to only include items with backdrop images for hero display
+    return pool.filter(item => item.backdrop_path);
+  }, [trending, bollywood, tamil, telugu, malayalam, kannada, bengali, bengaliWeb, hindiWeb]);
+
+  // Random selection from diverse pool
+  const [featuredIndex, setFeaturedIndex] = useState(0);
+  
+  useEffect(() => {
+    if (heroPool.length > 0) {
+      setFeaturedIndex(Math.floor(Math.random() * heroPool.length));
+    }
+  }, [heroPool.length]);
+
+  const featured = heroPool[featuredIndex] || null;
+  const isHeroLoading = trendingLoading && bollywoodLoading && tamilLoading && bengaliLoading;
 
   return (
     <Layout>
-      <HeroSection featured={featured || null} isLoading={trendingLoading} />
+      <HeroSection featured={featured} isLoading={isHeroLoading} />
       
       <div className="relative -mt-16 sm:-mt-24 md:-mt-32 z-10 pb-16">
         {user && <ContinueWatchingCarousel />}
