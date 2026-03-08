@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Play, Plus, Info, Star, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,54 +21,69 @@ export const HeroSection = ({ items, isLoading }: HeroSectionProps) => {
   const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [direction, setDirection] = useState(0);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const touchStartRef = useRef<number | null>(null);
 
-  const validItems = items.filter(item => item.backdrop_path);
-  const featured = validItems[currentIndex];
+  // Memoize validItems to prevent recreation on every render
+  const validItems = useMemo(() => 
+    items.filter(item => item.backdrop_path), 
+    [items]
+  );
+  
+  const itemCount = validItems.length;
+  const featured = validItems[currentIndex] || null;
 
-  // Auto-advance every 10 seconds
+  // Reset index if it exceeds available items
   useEffect(() => {
-    if (validItems.length <= 1) return;
+    if (currentIndex >= itemCount && itemCount > 0) {
+      setCurrentIndex(0);
+    }
+  }, [itemCount, currentIndex]);
+
+  // Auto-advance every 10 seconds - use itemCount as dependency
+  useEffect(() => {
+    if (itemCount <= 1) return;
     const timer = setInterval(() => {
       setDirection(1);
-      setCurrentIndex(prev => (prev + 1) % validItems.length);
+      setCurrentIndex(prev => (prev + 1) % itemCount);
     }, 10000);
     return () => clearInterval(timer);
-  }, [validItems.length]);
+  }, [itemCount]);
 
   const goTo = useCallback((index: number) => {
-    setDirection(index > currentIndex ? 1 : -1);
-    setCurrentIndex(index);
-  }, [currentIndex]);
+    setCurrentIndex(prev => {
+      setDirection(index > prev ? 1 : -1);
+      return index;
+    });
+  }, []);
 
   const goNext = useCallback(() => {
     setDirection(1);
-    setCurrentIndex(prev => (prev + 1) % validItems.length);
-  }, [validItems.length]);
+    setCurrentIndex(prev => (prev + 1) % itemCount);
+  }, [itemCount]);
 
   const goPrev = useCallback(() => {
     setDirection(-1);
-    setCurrentIndex(prev => (prev - 1 + validItems.length) % validItems.length);
-  }, [validItems.length]);
+    setCurrentIndex(prev => (prev - 1 + itemCount) % itemCount);
+  }, [itemCount]);
 
   // Touch swipe handlers
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.touches[0].clientX);
-  };
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartRef.current = e.touches[0].clientX;
+  }, []);
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    if (touchStart === null) return;
-    const diff = touchStart - e.changedTouches[0].clientX;
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartRef.current === null) return;
+    const diff = touchStartRef.current - e.changedTouches[0].clientX;
     if (Math.abs(diff) > 50) {
       if (diff > 0) goNext();
       else goPrev();
     }
-    setTouchStart(null);
-  };
+    touchStartRef.current = null;
+  }, [goNext, goPrev]);
 
   if (isLoading || !featured) {
     return (
-      <section className="relative h-[80vh] min-h-[600px] max-h-[900px] overflow-hidden">
+      <section className="relative h-[55vh] sm:h-[65vh] md:h-[75vh] lg:h-[80vh] min-h-[350px] max-h-[700px] overflow-hidden">
         <Skeleton className="absolute inset-0" />
         <div className="relative h-full container mx-auto px-4 flex items-center">
           <div className="max-w-2xl">
@@ -95,28 +110,20 @@ export const HeroSection = ({ items, isLoading }: HeroSectionProps) => {
     navigate(`/${mediaType}/${featured.id}`);
   };
 
-  const slideVariants = {
-    enter: (dir: number) => ({ x: dir > 0 ? '100%' : '-100%', opacity: 0 }),
-    center: { x: 0, opacity: 1 },
-    exit: (dir: number) => ({ x: dir > 0 ? '-100%' : '100%', opacity: 0 }),
-  };
-
   return (
     <section 
       className="relative h-[55vh] sm:h-[65vh] md:h-[75vh] lg:h-[80vh] min-h-[350px] max-h-[700px] overflow-hidden"
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* Background Image with animation */}
-      <AnimatePresence initial={false} custom={direction} mode="popLayout">
+      {/* Background Image with crossfade */}
+      <AnimatePresence mode="wait">
         <motion.div
           key={featured.id}
-          custom={direction}
-          variants={slideVariants}
-          initial="enter"
-          animate="center"
-          exit="exit"
-          transition={{ duration: 0.5, ease: 'easeInOut' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
           className="absolute inset-0"
         >
           {backdropUrl ? (
@@ -135,7 +142,7 @@ export const HeroSection = ({ items, isLoading }: HeroSectionProps) => {
       </AnimatePresence>
 
       {/* Navigation arrows */}
-      {validItems.length > 1 && (
+      {itemCount > 1 && (
         <>
           <button
             onClick={goPrev}
@@ -155,93 +162,91 @@ export const HeroSection = ({ items, isLoading }: HeroSectionProps) => {
       )}
 
       {/* Content */}
-      <div className="relative h-full container mx-auto px-4 flex items-end pb-12 sm:pb-16 md:items-center md:pb-0 z-10">
+      <div className="relative h-full container mx-auto px-4 flex items-end pb-20 sm:pb-24 md:items-center md:pb-0 z-10">
         <div className="max-w-2xl w-full">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={featured.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-            >
-              {/* Genres */}
-              {genres.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-3 md:mb-4">
-                  {genres.map((genre) => (
-                    <span
-                      key={genre.id}
-                      className="text-[10px] md:text-xs px-2 md:px-3 py-0.5 md:py-1 rounded-full bg-secondary/60 text-muted-foreground backdrop-blur-sm"
-                    >
-                      {genre.name}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* Title */}
-              <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-3 md:mb-4 tracking-tight leading-tight">
-                {title}
-              </h1>
-
-              {/* Meta info */}
-              <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
-                <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-yellow-500/90">
-                  <Star className="h-3 w-3 md:h-4 md:w-4 text-black" fill="currentColor" />
-                  <span className="text-black font-bold text-xs md:text-sm">{featured.vote_average.toFixed(1)}</span>
-                  <span className="text-black/70 font-medium text-[10px] md:text-xs">IMDb</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3 md:h-4 md:w-4" />
-                  {releaseDate ? new Date(releaseDate).getFullYear() : 'N/A'}
-                </span>
-                <span className="capitalize">{mediaType}</span>
+          <motion.div
+            key={featured.id}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {/* Genres */}
+            {genres.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3 md:mb-4">
+                {genres.map((genre) => (
+                  <span
+                    key={genre.id}
+                    className="text-[10px] md:text-xs px-2 md:px-3 py-0.5 md:py-1 rounded-full bg-secondary/60 text-muted-foreground backdrop-blur-sm"
+                  >
+                    {genre.name}
+                  </span>
+                ))}
               </div>
+            )}
 
-              {/* Overview */}
-              <p className="hidden sm:block text-muted-foreground text-sm md:text-base lg:text-lg leading-relaxed mb-6 md:mb-8 line-clamp-2 md:line-clamp-3 lg:line-clamp-4">
-                {featured.overview}
-              </p>
+            {/* Title */}
+            <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-bold mb-3 md:mb-4 tracking-tight leading-tight">
+              {title}
+            </h1>
 
-              {/* Action Buttons */}
-              <div className="flex flex-wrap gap-3 md:gap-4">
-                <Button size="default" className="gap-2 px-6 md:px-8 flex-1 sm:flex-none" onClick={handlePlay}>
-                  <Play className="h-4 w-4 md:h-5 md:w-5" fill="currentColor" />
-                  Play
-                </Button>
-                <Button size="default" variant="secondary" className="gap-2 flex-1 sm:flex-none">
-                  <Plus className="h-4 w-4 md:h-5 md:w-5" />
-                  My List
-                </Button>
-                <Button size="default" variant="ghost" className="gap-2 hidden sm:flex" onClick={handlePlay}>
-                  <Info className="h-4 w-4 md:h-5 md:w-5" />
-                  More Info
-                </Button>
-              </div>
-            </motion.div>
-          </AnimatePresence>
+            {/* Meta info */}
+            <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-yellow-500/90">
+                <Star className="h-3 w-3 md:h-4 md:w-4 text-black" fill="currentColor" />
+                <span className="text-black font-bold text-xs md:text-sm">{featured.vote_average.toFixed(1)}</span>
+                <span className="text-black/70 font-medium text-[10px] md:text-xs">IMDb</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <Calendar className="h-3 w-3 md:h-4 md:w-4" />
+                {releaseDate ? new Date(releaseDate).getFullYear() : 'N/A'}
+              </span>
+              <span className="capitalize">{mediaType}</span>
+            </div>
+
+            {/* Overview */}
+            <p className="hidden sm:block text-muted-foreground text-sm md:text-base lg:text-lg leading-relaxed mb-6 md:mb-8 line-clamp-2 md:line-clamp-3 lg:line-clamp-4">
+              {featured.overview}
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-3 md:gap-4">
+              <Button size="default" className="gap-2 px-6 md:px-8 flex-1 sm:flex-none" onClick={handlePlay}>
+                <Play className="h-4 w-4 md:h-5 md:w-5" fill="currentColor" />
+                Play
+              </Button>
+              <Button size="default" variant="secondary" className="gap-2 flex-1 sm:flex-none">
+                <Plus className="h-4 w-4 md:h-5 md:w-5" />
+                My List
+              </Button>
+              <Button size="default" variant="ghost" className="gap-2 hidden sm:flex" onClick={handlePlay}>
+                <Info className="h-4 w-4 md:h-5 md:w-5" />
+                More Info
+              </Button>
+            </div>
+          </motion.div>
         </div>
       </div>
 
       {/* Thumbnail strip */}
-      {validItems.length > 1 && (
+      {itemCount > 1 && (
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 w-full max-w-[90%] md:max-w-2xl">
-          <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar px-2 py-1">
+          <div className="flex items-center justify-center gap-2 overflow-x-auto hide-scrollbar px-2 py-1">
             {validItems.slice(0, 10).map((item, idx) => {
               const itemTitle = isMovie(item) ? item.title : item.name;
               const posterUrl = item.poster_path 
                 ? `https://image.tmdb.org/t/p/w154${item.poster_path}`
                 : null;
+              const isActive = idx === currentIndex;
               
               return (
                 <button
                   key={item.id}
                   onClick={() => goTo(idx)}
                   className={cn(
-                    "relative flex-shrink-0 rounded-md overflow-hidden transition-all duration-300 group",
-                    idx === currentIndex 
-                      ? "ring-2 ring-primary scale-105" 
-                      : "opacity-60 hover:opacity-100 hover:scale-102"
+                    "relative flex-shrink-0 rounded-md overflow-hidden transition-all duration-200",
+                    isActive 
+                      ? "ring-2 ring-primary scale-110 z-10" 
+                      : "opacity-50 hover:opacity-80"
                   )}
                   aria-label={`Go to ${itemTitle}`}
                 >
@@ -249,24 +254,15 @@ export const HeroSection = ({ items, isLoading }: HeroSectionProps) => {
                     <img
                       src={posterUrl}
                       alt={itemTitle}
-                      className="h-14 w-10 md:h-16 md:w-11 object-cover"
+                      className="h-12 w-8 md:h-14 md:w-10 object-cover"
+                      loading="lazy"
                     />
                   ) : (
-                    <div className="h-14 w-10 md:h-16 md:w-11 bg-secondary flex items-center justify-center">
-                      <span className="text-[8px] text-muted-foreground text-center px-0.5 line-clamp-2">
+                    <div className="h-12 w-8 md:h-14 md:w-10 bg-secondary flex items-center justify-center">
+                      <span className="text-[6px] text-muted-foreground text-center px-0.5 line-clamp-2">
                         {itemTitle}
                       </span>
                     </div>
-                  )}
-                  {/* Progress indicator for current */}
-                  {idx === currentIndex && (
-                    <motion.div
-                      className="absolute bottom-0 left-0 h-0.5 bg-primary"
-                      initial={{ width: 0 }}
-                      animate={{ width: '100%' }}
-                      transition={{ duration: 10, ease: 'linear' }}
-                      key={`progress-${currentIndex}`}
-                    />
                   )}
                 </button>
               );
