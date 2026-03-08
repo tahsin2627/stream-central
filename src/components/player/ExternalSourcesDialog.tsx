@@ -227,7 +227,7 @@ export const ExternalSourcesDialog = ({
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="tmdb" className="gap-2">
                 <Database className="h-3.5 w-3.5" />
-                TMDB ({tmdbSources.length})
+                Streaming ({tmdbSources.length})
               </TabsTrigger>
               <TabsTrigger value="scraped" className="gap-2">
                 <Link2 className="h-3.5 w-3.5" />
