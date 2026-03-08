@@ -60,27 +60,9 @@ export const ElementBlocker = ({ isActive: controlledActive, onToggle, className
       return null;
     };
 
-    // 2. Block top-level navigation hijacking from iframes
-    // Protect location.href, location.assign, location.replace
-    const originalAssign = window.location.assign.bind(window.location);
-    const originalReplace = window.location.replace.bind(window.location);
-    
-    // Use a proxy-like approach: intercept assign and replace
-    window.location.assign = function (url: string) {
-      if (url.includes(window.location.hostname) || url.startsWith('/')) {
-        return originalAssign(url);
-      }
-      console.log('[Shield] Blocked location.assign:', url);
-      incrementBlocked();
-    };
-    
-    window.location.replace = function (url: string) {
-      if (url.includes(window.location.hostname) || url.startsWith('/')) {
-        return originalReplace(url);
-      }
-      console.log('[Shield] Blocked location.replace:', url);
-      incrementBlocked();
-    };
+    // 2. Block navigation via beforeunload — if an iframe triggers top navigation,
+    // the browser fires beforeunload. We can't block it but we can refocus.
+    // (location.assign/replace are read-only and cannot be overridden)
 
     // 3. Block all new-tab link clicks that weren't user-initiated on our UI
     const handleClick = (e: MouseEvent) => {
