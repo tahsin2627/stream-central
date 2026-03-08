@@ -215,12 +215,11 @@ export const getAllServers = () => VIDEO_SERVERS;
 export const getDefaultServerForLanguage = (lang: LanguagePreference): VideoServer => {
   switch (lang) {
     case 'hindi':
-      return VIDEO_SERVERS.find(s => s.id === 'vidsrcpro') || VIDEO_SERVERS[0];
+      return VIDEO_SERVERS.find(s => s.id === 'vembed') || VIDEO_SERVERS[0];
     case 'bengali':
-      // Bengali content works best with Global (vidsrc.wtf has multi-language)
-      return VIDEO_SERVERS.find(s => s.id === 'vidsrcwtf') || VIDEO_SERVERS[0];
+      return VIDEO_SERVERS.find(s => s.id === '2embedcc') || VIDEO_SERVERS[0];
     case 'asian':
-      return VIDEO_SERVERS.find(s => s.id === 'vidlink') || VIDEO_SERVERS[0];
+      return VIDEO_SERVERS.find(s => s.id === 'embedplay') || VIDEO_SERVERS[0];
     case 'dubbed':
       return VIDEO_SERVERS.find(s => s.id === 'autoembed2') || VIDEO_SERVERS[0];
     default:
