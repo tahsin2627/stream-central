@@ -294,7 +294,7 @@ export const ExternalSourcesDialog = ({
         <div className="rounded-lg bg-muted/50 border border-border p-3 text-xs text-muted-foreground mt-2">
           <p className="font-medium mb-1">💡 About External Sources</p>
           <p>
-            Click any source to open it. TMDB sources use reliable ID-based lookups, 
+            Click any source to open it. Streaming sources use reliable ID-based lookups, 
             while Regional sources are search-based and may vary in accuracy.
           </p>
         </div>

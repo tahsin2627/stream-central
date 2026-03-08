@@ -94,9 +94,10 @@ export const HeroSection = ({ featured, isLoading }: HeroSectionProps) => {
 
             {/* Meta info */}
             <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">
-              <span className="flex items-center gap-1">
-                <Star className="h-3 w-3 md:h-4 md:w-4 text-yellow-500" fill="currentColor" />
-                <span className="text-foreground font-medium">{featured.vote_average.toFixed(1)}</span>
+              <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-yellow-500/90">
+                <Star className="h-3 w-3 md:h-4 md:w-4 text-black" fill="currentColor" />
+                <span className="text-black font-bold text-xs md:text-sm">{featured.vote_average.toFixed(1)}</span>
+                <span className="text-black/70 font-medium text-[10px] md:text-xs">IMDb</span>
               </span>
               <span className="flex items-center gap-1">
                 <Calendar className="h-3 w-3 md:h-4 md:w-4" />
