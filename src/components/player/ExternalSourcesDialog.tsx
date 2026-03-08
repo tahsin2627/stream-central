@@ -252,7 +252,7 @@ export const ExternalSourcesDialog = ({
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
                     <Database className="h-10 w-10 mb-3 opacity-50" />
-                    <p className="text-sm">No TMDB sources found</p>
+                    <p className="text-sm">No streaming sources found</p>
                     <p className="text-xs mt-1">Check regional sources tab</p>
                   </div>
                 )}
