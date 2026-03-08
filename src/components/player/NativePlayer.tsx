@@ -40,6 +40,11 @@ interface NativePlayerProps {
   poster?: string;
   onError?: () => void;
   onBack?: () => void;
+  isTV?: boolean;
+  onPrevEpisode?: () => void;
+  onNextEpisode?: () => void;
+  hasPrev?: boolean;
+  hasNext?: boolean;
 }
 
 export const NativePlayer = ({ sources, title, poster, onError, onBack }: NativePlayerProps) => {
