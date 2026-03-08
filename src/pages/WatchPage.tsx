@@ -654,7 +654,7 @@ const WatchPage = () => {
                       e.stopPropagation();
                       setClickShieldActive(false);
                       console.log('[Shield] Absorbed ad-trigger click, player now interactive');
-                      toast('🛡️ Ad click blocked — tap again to play', { duration: 2000 });
+                      toast({ title: '🛡️ Ad click blocked', description: 'Tap again to play', duration: 2000 });
                     }}
                   />
                 )}
