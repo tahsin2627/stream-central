@@ -47,7 +47,7 @@ interface NativePlayerProps {
   hasNext?: boolean;
 }
 
-export const NativePlayer = ({ sources, title, poster, onError, onBack }: NativePlayerProps) => {
+export const NativePlayer = ({ sources, title, poster, onError, onBack, isTV, onPrevEpisode, onNextEpisode, hasPrev, hasNext }: NativePlayerProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const hlsRef = useRef<Hls | null>(null);
