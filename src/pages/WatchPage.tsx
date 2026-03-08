@@ -283,6 +283,47 @@ const WatchPage = () => {
     };
   }, [embedUrl, autoFallback, clearFallbackTimer, handleAutoFallback]);
 
+  // Detect sandbox rejection: listen for postMessage errors and check iframe content
+  useEffect(() => {
+    if (!applySandbox) return;
+
+    const handleMessage = (e: MessageEvent) => {
+      if (typeof e.data === 'string' && e.data.toLowerCase().includes('sandbox')) {
+        console.log(`[Shield] Sandbox rejection detected via message for ${selectedServer.name}`);
+        markSandboxIncompatible(selectedServer.id);
+      }
+    };
+
+    // Heuristic: if iframe loads but content height is tiny, it's likely a sandbox error page
+    const checkTimer = setTimeout(() => {
+      if (iframeRef.current && applySandbox) {
+        try {
+          // Try to detect sandbox error by checking if the iframe document is accessible
+          // Cross-origin will throw, which is fine — it means it loaded normally
+          const doc = iframeRef.current.contentDocument;
+          if (doc) {
+            const bodyText = doc.body?.innerText?.toLowerCase() || '';
+            if (bodyText.includes('sandbox') || bodyText.includes('not allowed')) {
+              console.log(`[Shield] Sandbox error detected in iframe content for ${selectedServer.name}`);
+              markSandboxIncompatible(selectedServer.id);
+              toast({
+                title: '🛡️ Shield adapted',
+                description: `${selectedServer.name} needs lighter protection — reloading`,
+                duration: 3000,
+              });
+            }
+          }
+        } catch { /* cross-origin — expected, means content loaded normally */ }
+      }
+    }, 3000);
+
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      clearTimeout(checkTimer);
+    };
+  }, [embedUrl, applySandbox, selectedServer.id, selectedServer.name, markSandboxIncompatible, toast]);
+
   // Reset attempted servers and manual selection when content changes
   useEffect(() => {
     setAttemptedServers([]);
