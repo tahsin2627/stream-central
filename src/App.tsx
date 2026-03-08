@@ -63,6 +63,7 @@ const App = () => {
           <PWAInstallPrompt />
           <BrowserRouter>
             <PrefetchWrapper>
+              <ScrollToTop />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/movie/:id" element={<MovieDetail />} />
