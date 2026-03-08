@@ -19,6 +19,7 @@ import Movies from "./pages/Movies";
 import TVShows from "./pages/TVShows";
 import Genres from "./pages/Genres";
 import MyList from "./pages/MyList";
+import Favorites from "./pages/Favorites";
 import WatchPage from "./pages/WatchPage";
 import NotFound from "./pages/NotFound";
 
@@ -71,6 +72,7 @@ const App = () => {
                 <Route path="/tv-shows" element={<TVShows />} />
                 <Route path="/genres" element={<Genres />} />
                 <Route path="/my-list" element={<MyList />} />
+                <Route path="/favorites" element={<Favorites />} />
                 <Route path="/watch/:type/:id" element={<WatchPage />} />
                 <Route path="/diary" element={<Diary />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
