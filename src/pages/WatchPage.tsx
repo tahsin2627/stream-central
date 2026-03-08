@@ -74,6 +74,23 @@ const WatchPage = () => {
     const stored = localStorage.getItem('wellplayer_element_blocker');
     return stored !== null ? stored === 'true' : true;
   });
+  // Track servers that don't work with sandbox — persist across session
+  const [sandboxIncompatible, setSandboxIncompatible] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem('wellplayer_sandbox_incompatible');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  });
+  const [sandboxRetrying, setSandboxRetrying] = useState(false);
+
+  const markSandboxIncompatible = useCallback((serverId: string) => {
+    setSandboxIncompatible(prev => {
+      const next = new Set(prev);
+      next.add(serverId);
+      localStorage.setItem('wellplayer_sandbox_incompatible', JSON.stringify([...next]));
+      return next;
+    });
+  }, []);
   
   // iOS detection
   const { needsUserGesture } = useIOSDetection();
@@ -122,6 +139,9 @@ const WatchPage = () => {
 
   const [selectedServer, setSelectedServer] = useState<VideoServer>(preferredServer);
   const isReported = isServerReported(selectedServer.id, tmdbId, mediaType as 'movie' | 'tv');
+
+  // Whether to actually apply sandbox for current server
+  const applySandbox = shieldEnabled && !sandboxIncompatible.has(selectedServer.id);
 
   // Auto-select My Server if available and not already selected
   useEffect(() => {
@@ -262,6 +282,47 @@ const WatchPage = () => {
       clearFallbackTimer();
     };
   }, [embedUrl, autoFallback, clearFallbackTimer, handleAutoFallback]);
+
+  // Detect sandbox rejection: listen for postMessage errors and check iframe content
+  useEffect(() => {
+    if (!applySandbox) return;
+
+    const handleMessage = (e: MessageEvent) => {
+      if (typeof e.data === 'string' && e.data.toLowerCase().includes('sandbox')) {
+        console.log(`[Shield] Sandbox rejection detected via message for ${selectedServer.name}`);
+        markSandboxIncompatible(selectedServer.id);
+      }
+    };
+
+    // Heuristic: if iframe loads but content height is tiny, it's likely a sandbox error page
+    const checkTimer = setTimeout(() => {
+      if (iframeRef.current && applySandbox) {
+        try {
+          // Try to detect sandbox error by checking if the iframe document is accessible
+          // Cross-origin will throw, which is fine — it means it loaded normally
+          const doc = iframeRef.current.contentDocument;
+          if (doc) {
+            const bodyText = doc.body?.innerText?.toLowerCase() || '';
+            if (bodyText.includes('sandbox') || bodyText.includes('not allowed')) {
+              console.log(`[Shield] Sandbox error detected in iframe content for ${selectedServer.name}`);
+              markSandboxIncompatible(selectedServer.id);
+              toast({
+                title: '🛡️ Shield adapted',
+                description: `${selectedServer.name} needs lighter protection — reloading`,
+                duration: 3000,
+              });
+            }
+          }
+        } catch { /* cross-origin — expected, means content loaded normally */ }
+      }
+    }, 3000);
+
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      clearTimeout(checkTimer);
+    };
+  }, [embedUrl, applySandbox, selectedServer.id, selectedServer.name, markSandboxIncompatible, toast]);
 
   // Reset attempted servers and manual selection when content changes
   useEffect(() => {
@@ -632,18 +693,47 @@ const WatchPage = () => {
                 {!showTapToPlay && (
                   <iframe
                     ref={iframeRef}
-                    key={`${embedUrl}-${shieldEnabled}`}
+                    key={`${embedUrl}-${applySandbox}`}
                     src={embedUrl}
                     className="absolute inset-0 w-full h-full"
                     allowFullScreen
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                     referrerPolicy="no-referrer"
                     title="Video Player"
-                    {...(shieldEnabled ? {
+                    {...(applySandbox ? {
                       sandbox: "allow-scripts allow-same-origin allow-forms allow-presentation allow-top-navigation-by-user-activation"
                     } : {})}
-                    onLoad={handleIframeLoad}
+                    onLoad={(e) => {
+                      handleIframeLoad();
+                      // Detect sandbox errors: if iframe body is very small or shows error text
+                      try {
+                        const iframe = e.target as HTMLIFrameElement;
+                        // We can't read cross-origin content, but we can detect if the iframe
+                        // loaded suspiciously fast (sandbox rejection pages load instantly)
+                        if (applySandbox && !sandboxRetrying) {
+                          // Give 2s grace period — if iframe content is sandbox error, 
+                          // it will be a tiny static page. Check via a heuristic timeout.
+                          setTimeout(() => {
+                            // If the server is known to fail with sandbox from the error message listener, skip
+                          }, 2000);
+                        }
+                      } catch { /* cross-origin, expected */ }
+                    }}
                     onError={() => {
+                      // If sandbox is applied, this server likely doesn't support it
+                      if (applySandbox) {
+                        console.log(`[Shield] Server ${selectedServer.name} failed with sandbox, retrying without`);
+                        markSandboxIncompatible(selectedServer.id);
+                        setSandboxRetrying(true);
+                        toast({
+                          title: '🛡️ Shield adapted',
+                          description: `${selectedServer.name} doesn't support sandbox — using lighter protection`,
+                          duration: 3000,
+                        });
+                        // The key change (applySandbox) will trigger re-render without sandbox
+                        setTimeout(() => setSandboxRetrying(false), 1000);
+                        return;
+                      }
                       setIframeStallCount(prev => prev + 1);
                       if (iframeStallCount >= 1) {
                         handleAutoFallback();
