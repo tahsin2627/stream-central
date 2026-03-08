@@ -38,6 +38,7 @@ import { useCustomStreams } from '@/hooks/useCustomStreams';
 import { useStreamExtraction, StreamSource } from '@/hooks/useStreamExtraction';
 import { useIOSDetection } from '@/hooks/useIOSDetection';
 import { TapToPlayOverlay } from '@/components/player/TapToPlayOverlay';
+import { UnmuteBanner } from '@/components/player/UnmuteBanner';
 const FALLBACK_TIMEOUT_MS = 10000; // 10 seconds
 
 const WatchPage = () => {
