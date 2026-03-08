@@ -229,7 +229,8 @@ Deno.serve(async (req) => {
     // 2. Search for additional sources using Firecrawl on regional sites
     const siteQueries = REGIONAL_SITES.flatMap(s => s.searchDomains).map(domain => `site:${domain}`).join(' OR ');
     const searchQuery = `${query} ${mediaType === 'tv' ? 'series' : 'movie'} (${siteQueries})`;
-    
+    const searchQuery2 = `"${query}" (site:movielinkbd.li OR site:netmirr.net)`;
+
     try {
       const response = await fetch('https://api.firecrawl.dev/v1/search', {
         method: 'POST',
