@@ -93,21 +93,11 @@ const Index = () => {
     return pool.filter(item => item.backdrop_path);
   }, [trending, bollywood, tamil, telugu, malayalam, kannada, bengali, bengaliWeb, hindiWeb]);
 
-  // Random selection from diverse pool
-  const [featuredIndex, setFeaturedIndex] = useState(0);
-  
-  useEffect(() => {
-    if (heroPool.length > 0) {
-      setFeaturedIndex(Math.floor(Math.random() * heroPool.length));
-    }
-  }, [heroPool.length]);
-
-  const featured = heroPool[featuredIndex] || null;
   const isHeroLoading = trendingLoading && bollywoodLoading && tamilLoading && bengaliLoading;
 
   return (
     <Layout>
-      <HeroSection featured={featured} isLoading={isHeroLoading} />
+      <HeroSection items={heroPool} isLoading={isHeroLoading} />
       
       <div className="relative -mt-16 sm:-mt-24 md:-mt-32 z-10 pb-16">
         {user && <ContinueWatchingCarousel />}
