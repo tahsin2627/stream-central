@@ -91,13 +91,6 @@ const WatchPage = () => {
       return next;
     });
   }, []);
-    setSandboxIncompatible(prev => {
-      const next = new Set(prev);
-      next.add(serverId);
-      localStorage.setItem('wellplayer_sandbox_incompatible', JSON.stringify([...next]));
-      return next;
-    });
-  }, []);
   
   // iOS detection
   const { needsUserGesture } = useIOSDetection();
