@@ -449,8 +449,14 @@ const WatchPage = () => {
             }}
           />
 
-          {/* Element Blocker - Blocks ads/popups */}
-          <ElementBlocker />
+          {/* Element Blocker - Blocks ads/popups via iframe sandbox */}
+          <ElementBlocker
+            isActive={shieldEnabled}
+            onToggle={(active) => {
+              setShieldEnabled(active);
+              setClickShieldActive(true); // Re-arm click shield
+            }}
+          />
 
           {/* Language Selector - Prominent in header */}
           <LanguageSelector compact />
