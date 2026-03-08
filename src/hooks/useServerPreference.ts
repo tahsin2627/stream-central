@@ -286,6 +286,58 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://netmirr.net/movie/${tmdbId}`;
     },
   },
+  // LetsEmbed - Multi-dubbed content (Hindi, Korean, Japanese, 10+ languages)
+  {
+    id: 'letsembed',
+    name: 'Dubster',
+    flag: '🎬',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://letsembed.cc/embed/tv/?id=${tmdbId}/${season}/${episode}`;
+      }
+      return `https://letsembed.cc/embed/movie/?id=${tmdbId}`;
+    },
+  },
+  // 2Embed.cc - Supports TMDB IDs, dubbed content
+  {
+    id: '2embedcc',
+    name: 'Duo',
+    flag: '🎭',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`;
+      }
+      return `https://www.2embed.cc/embed/${tmdbId}`;
+    },
+  },
+  // MoviesAPI.to - Alternative MoviesAPI domain
+  {
+    id: 'moviesapito',
+    name: 'Torrent',
+    flag: '🔥',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://moviesapi.to/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://moviesapi.to/movie/${tmdbId}`;
+    },
+  },
+  // VidEmbed.site - Streaming API with TMDB support
+  {
+    id: 'vidembed',
+    name: 'Vortex',
+    flag: '🌀',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://www.vidembed.site/movies-${tmdbId}?s=${season}&e=${episode}`;
+      }
+      return `https://www.vidembed.site/movies-${tmdbId}`;
+    },
+  },
 ];
 
 // Get servers by category
