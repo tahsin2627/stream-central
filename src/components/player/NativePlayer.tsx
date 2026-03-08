@@ -337,6 +337,17 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
         crossOrigin="anonymous"
       />
 
+      {/* Unmute Banner for iOS autoplay */}
+      <UnmuteBanner
+        isMuted={isMuted}
+        onUnmute={() => {
+          if (videoRef.current) {
+            videoRef.current.muted = false;
+            setHasUserInteracted(true);
+          }
+        }}
+      />
+
       {/* Loading Overlay */}
       <AnimatePresence>
         {isLoading && !error && (
