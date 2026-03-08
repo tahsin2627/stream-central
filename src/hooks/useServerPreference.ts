@@ -163,6 +163,66 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&lang=hindi`;
     },
   },
+  {
+    id: 'embedplayapi',
+    name: 'Prism',
+    flag: '🇮🇳',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://embedplayapi.site/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://embedplayapi.site/embed/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: '123embed',
+    name: 'Desi',
+    flag: '🇧🇩',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://123embed.net/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://123embed.net/embed/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'vidsrcxyz',
+    name: 'Stellar',
+    flag: '🇮🇳',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.xyz/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://vidsrc.xyz/embed/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'multiembed_bangla',
+    name: 'Blaze Bangla',
+    flag: '🇧🇩',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}&lang=bengali`;
+      }
+      return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&lang=bengali`;
+    },
+  },
+  {
+    id: 'vembed_hindi',
+    name: 'Viking Hindi',
+    flag: '🇮🇳',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vembed.stream/play/${tmdbId}?s=${season}&e=${episode}&lang=hindi`;
+      }
+      return `https://vembed.stream/play/${tmdbId}?lang=hindi`;
+    },
+  },
   // BACKUP - Alternative sources
   {
     id: '2embed',
@@ -228,9 +288,9 @@ export const getDefaultServerForLanguage = (lang: LanguagePreference): VideoServ
     case 'hindi':
       return VIDEO_SERVERS.find(s => s.id === 'vembed') || VIDEO_SERVERS[0];
     case 'bengali':
-      return VIDEO_SERVERS.find(s => s.id === 'vembed') || VIDEO_SERVERS[0]; // Viking handles Bengali content well
+      return VIDEO_SERVERS.find(s => s.id === 'multiembed_bangla') || VIDEO_SERVERS.find(s => s.id === 'vembed') || VIDEO_SERVERS[0];
     case 'asian':
-      return VIDEO_SERVERS.find(s => s.id === 'embedplay') || VIDEO_SERVERS[0];
+      return VIDEO_SERVERS.find(s => s.id === 'embedplayapi') || VIDEO_SERVERS[0];
     case 'dubbed':
       return VIDEO_SERVERS.find(s => s.id === 'autoembed2') || VIDEO_SERVERS[0];
     default:
