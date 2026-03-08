@@ -53,6 +53,42 @@ export type Database = {
         }
         Relationships: []
       }
+      favorites: {
+        Row: {
+          added_at: string
+          id: string
+          media_type: string
+          poster_path: string | null
+          release_date: string | null
+          title: string
+          tmdb_id: number
+          user_id: string
+          vote_average: number | null
+        }
+        Insert: {
+          added_at?: string
+          id?: string
+          media_type: string
+          poster_path?: string | null
+          release_date?: string | null
+          title: string
+          tmdb_id: number
+          user_id: string
+          vote_average?: number | null
+        }
+        Update: {
+          added_at?: string
+          id?: string
+          media_type?: string
+          poster_path?: string | null
+          release_date?: string | null
+          title?: string
+          tmdb_id?: number
+          user_id?: string
+          vote_average?: number | null
+        }
+        Relationships: []
+      }
       film_diary: {
         Row: {
           created_at: string
