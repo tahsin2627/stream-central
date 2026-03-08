@@ -1,11 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Star, Clock, Calendar, Share2 } from 'lucide-react';
+import { ArrowLeft, Play, Star, Clock, Calendar, Share2, BookOpen } from 'lucide-react';
 import { LetterboxdLink } from '@/components/content/LetterboxdLink';
 import { LetterboxdRating } from '@/components/content/LetterboxdRating';
 import { motion } from 'framer-motion';
 import { Layout } from '@/components/layout/Layout';
 import { WatchlistButton } from '@/components/content/WatchlistButton';
 import { ShareStoryDialog } from '@/components/share/ShareStoryDialog';
+import { LogFilmDialog } from '@/components/diary/LogFilmDialog';
 import { Button } from '@/components/ui/button';
 import { useMovieDetails } from '@/hooks/useTMDB';
 import { tmdbApi } from '@/lib/api/tmdb';
@@ -165,6 +166,7 @@ const MovieDetail = () => {
                   releaseDate={movie.release_date}
                   size="default"
                 />
+                <LogFilmDialog tmdbId={movie.id} mediaType="movie" title={movie.title} posterPath={movie.poster_path} />
                 <ShareStoryDialog
                   title={movie.title}
                   posterUrl={posterUrl}

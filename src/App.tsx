@@ -11,6 +11,7 @@ import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import Index from "./pages/Index";
 import MovieDetail from "./pages/MovieDetail";
 import TVShowDetail from "./pages/TVShowDetail";
+import Diary from "./pages/Diary";
 import Login from "./pages/Login";
 
 import Search from "./pages/Search";
@@ -70,6 +71,7 @@ const App = () => {
                 <Route path="/genres" element={<Genres />} />
                 <Route path="/my-list" element={<MyList />} />
                 <Route path="/watch/:type/:id" element={<WatchPage />} />
+                <Route path="/diary" element={<Diary />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>

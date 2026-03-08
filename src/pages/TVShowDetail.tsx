@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Star, Calendar, Share2 } from 'lucide-react';
+import { ArrowLeft, Play, Star, Calendar, Share2, BookOpen } from 'lucide-react';
 import { LetterboxdLink } from '@/components/content/LetterboxdLink';
 import { LetterboxdRating } from '@/components/content/LetterboxdRating';
 import { motion } from 'framer-motion';
@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import { WatchlistButton } from '@/components/content/WatchlistButton';
 import { ShareStoryDialog } from '@/components/share/ShareStoryDialog';
+import { LogFilmDialog } from '@/components/diary/LogFilmDialog';
 import { Button } from '@/components/ui/button';
 import { useTVShowDetails, useSeasonDetails } from '@/hooks/useTMDB';
 import { tmdbApi } from '@/lib/api/tmdb';
@@ -189,6 +190,7 @@ const TVShowDetail = () => {
                     </Button>
                   }
                 />
+                <LogFilmDialog tmdbId={show.id} mediaType="tv" title={show.name} posterPath={show.poster_path} />
               </div>
             </motion.div>
           </div>

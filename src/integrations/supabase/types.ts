@@ -53,6 +53,51 @@ export type Database = {
         }
         Relationships: []
       }
+      film_diary: {
+        Row: {
+          created_at: string
+          id: string
+          liked: boolean
+          media_type: string
+          poster_path: string | null
+          rating: number | null
+          review: string | null
+          title: string
+          tmdb_id: number
+          updated_at: string
+          user_id: string
+          watched_date: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          liked?: boolean
+          media_type?: string
+          poster_path?: string | null
+          rating?: number | null
+          review?: string | null
+          title: string
+          tmdb_id: number
+          updated_at?: string
+          user_id: string
+          watched_date?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          liked?: boolean
+          media_type?: string
+          poster_path?: string | null
+          rating?: number | null
+          review?: string | null
+          title?: string
+          tmdb_id?: number
+          updated_at?: string
+          user_id?: string
+          watched_date?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
