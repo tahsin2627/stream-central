@@ -140,6 +140,9 @@ const WatchPage = () => {
   const [selectedServer, setSelectedServer] = useState<VideoServer>(preferredServer);
   const isReported = isServerReported(selectedServer.id, tmdbId, mediaType as 'movie' | 'tv');
 
+  // Whether to actually apply sandbox for current server
+  const applySandbox = shieldEnabled && !sandboxIncompatible.has(selectedServer.id);
+
   // Auto-select My Server if available and not already selected
   useEffect(() => {
     if (myServerOption && selectedServer.id !== 'my-server') {
