@@ -624,6 +624,18 @@ const WatchPage = () => {
                   />
                 )}
 
+                {/* Unmute hint for iOS - iframe audio may be muted by browser */}
+                {needsUserGesture && userGestureGiven && !isLoading && (
+                  <UnmuteBanner
+                    isMuted={true}
+                    onUnmute={() => {
+                      // Can't directly unmute iframe, but dismiss the banner
+                      // The tap gesture itself helps iOS allow audio
+                    }}
+                    autoDismissMs={6000}
+                  />
+                )}
+
                 {/* Video Controls Overlay - Tap to show/hide */}
                 {!isLoading && !showTapToPlay && (
                   <VideoOverlay showInitially={false} />
