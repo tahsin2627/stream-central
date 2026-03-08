@@ -10,7 +10,7 @@ interface VideoOverlayProps {
 }
 
 /**
- * Minimal video overlay - only provides fullscreen button
+ * Minimal video overlay - fullscreen button + landscape orientation lock
  * DOES NOT block iframe interaction
  */
 export const VideoOverlay = ({ showInitially = true, className }: VideoOverlayProps) => {
@@ -18,60 +18,64 @@ export const VideoOverlay = ({ showInitially = true, className }: VideoOverlayPr
   const [showButton, setShowButton] = useState(showInitially);
   const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Auto-hide after 5 seconds of inactivity
   useEffect(() => {
     if (showButton) {
-      hideTimeoutRef.current = setTimeout(() => {
-        setShowButton(false);
-      }, 5000);
+      hideTimeoutRef.current = setTimeout(() => setShowButton(false), 5000);
     }
     return () => {
-      if (hideTimeoutRef.current) {
-        clearTimeout(hideTimeoutRef.current);
-      }
+      if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     };
   }, [showButton]);
 
-  // Track fullscreen state
+  // Track fullscreen state + orientation lock
   useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
+    const handleFullscreenChange = async () => {
+      const isFs = !!document.fullscreenElement;
+      setIsFullscreen(isFs);
+
+      // Lock to landscape on mobile when entering fullscreen
+      try {
+        const screenOrientation = (screen as any).orientation;
+        if (isFs && screenOrientation?.lock) {
+          await screenOrientation.lock('landscape').catch(() => {});
+        } else if (!isFs && screenOrientation?.unlock) {
+          screenOrientation.unlock();
+        }
+      } catch {
+        // Orientation API not supported
+      }
     };
     document.addEventListener('fullscreenchange', handleFullscreenChange);
     return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
   }, []);
 
-  const toggleFullscreen = useCallback(() => {
+  const toggleFullscreen = useCallback(async () => {
     const playerContainer = document.querySelector('.player-container');
     if (!playerContainer) return;
 
     if (!document.fullscreenElement) {
-      playerContainer.requestFullscreen().catch(console.error);
+      await playerContainer.requestFullscreen().catch(console.error);
     } else {
-      document.exitFullscreen().catch(console.error);
+      await document.exitFullscreen().catch(console.error);
     }
   }, []);
 
-  // Show button on mouse move
   const handleMouseMove = useCallback(() => {
     setShowButton(true);
-    if (hideTimeoutRef.current) {
-      clearTimeout(hideTimeoutRef.current);
-    }
-    hideTimeoutRef.current = setTimeout(() => {
-      setShowButton(false);
-    }, 5000);
+    if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
+    hideTimeoutRef.current = setTimeout(() => setShowButton(false), 5000);
   }, []);
 
   return (
     <>
-      {/* Invisible mouse tracker - doesn't block clicks */}
-      <div 
+      {/* Invisible mouse/touch tracker - doesn't block clicks */}
+      <div
         className={cn("absolute inset-0 z-10 pointer-events-none", className)}
         onMouseMove={handleMouseMove}
+        onTouchStart={handleMouseMove}
       />
-      
-      {/* Fullscreen button - positioned in corner, only this is clickable */}
+
+      {/* Fullscreen button */}
       <AnimatePresence>
         {showButton && (
           <motion.div

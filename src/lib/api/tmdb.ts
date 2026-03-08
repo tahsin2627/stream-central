@@ -223,6 +223,28 @@ export const tmdbApi = {
     });
   },
 
+  // Malayalam Movies - sorted by newest
+  getMalayalamMovies: (page = 1) => {
+    return tmdbRequest<TMDBPaginatedResponse<TMDBMovie>>('/discover/movie', { 
+      with_original_language: 'ml',
+      page,
+      sort_by: 'primary_release_date.desc',
+      'primary_release_date.lte': new Date().toISOString().split('T')[0],
+      'vote_count.gte': 5,
+    });
+  },
+
+  // Kannada Movies - sorted by newest
+  getKannadaMovies: (page = 1) => {
+    return tmdbRequest<TMDBPaginatedResponse<TMDBMovie>>('/discover/movie', { 
+      with_original_language: 'kn',
+      page,
+      sort_by: 'primary_release_date.desc',
+      'primary_release_date.lte': new Date().toISOString().split('T')[0],
+      'vote_count.gte': 5,
+    });
+  },
+
   // Latest Movies - All languages, most recent releases
   getLatestMovies: (page = 1) => {
     return tmdbRequest<TMDBPaginatedResponse<TMDBMovie>>('/discover/movie', { 
