@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, User, Menu, X, LogOut } from 'lucide-react';
+import { Search, User, Menu, X, LogOut, Heart } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -22,6 +22,7 @@ const navLinks = [
   { href: '/genres', label: 'Genres' },
   { href: '/diary', label: 'Diary' },
   { href: '/my-list', label: 'My List' },
+  { href: '/favorites', label: 'Favorites' },
 ];
 
 export const Navbar = () => {
@@ -115,6 +116,12 @@ export const Navbar = () => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link to="/my-list">My List</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/favorites" className="flex items-center gap-2">
+                    <Heart className="h-4 w-4" />
+                    Favorites
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive">

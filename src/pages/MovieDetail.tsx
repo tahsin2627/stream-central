@@ -5,6 +5,7 @@ import { LetterboxdRating } from '@/components/content/LetterboxdRating';
 import { motion } from 'framer-motion';
 import { Layout } from '@/components/layout/Layout';
 import { WatchlistButton } from '@/components/content/WatchlistButton';
+import { FavoriteButton } from '@/components/content/FavoriteButton';
 import { ShareStoryDialog } from '@/components/share/ShareStoryDialog';
 import { LogFilmDialog } from '@/components/diary/LogFilmDialog';
 import { Button } from '@/components/ui/button';
@@ -166,6 +167,15 @@ const MovieDetail = () => {
                   voteAverage={movie.vote_average}
                   releaseDate={movie.release_date}
                   size="default"
+                />
+                <FavoriteButton
+                  tmdbId={movie.id}
+                  mediaType="movie"
+                  title={movie.title}
+                  posterPath={movie.poster_path}
+                  voteAverage={movie.vote_average}
+                  releaseDate={movie.release_date}
+                  size="icon"
                 />
                 <LogFilmDialog tmdbId={movie.id} mediaType="movie" title={movie.title} posterPath={movie.poster_path} />
                 <ShareStoryDialog
