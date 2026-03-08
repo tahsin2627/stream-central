@@ -91,7 +91,6 @@ export const VIDEO_SERVERS: VideoServer[] = [
     },
   },
   // HINDI / DUBBED - Regional content servers (Updated March 2026)
-  // Removed: vidsrc.pro (sandbox errors), vidsrc.in (expired), vidlink.pro (blank screen)
   {
     id: 'vembed',
     name: 'Viking',
@@ -105,39 +104,39 @@ export const VIDEO_SERVERS: VideoServer[] = [
     },
   },
   {
-    id: '2embedcc',
-    name: 'Desi',
+    id: 'embedsu',
+    name: 'Phantom',
     flag: '🇮🇳',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`;
+        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://www.2embed.cc/embed/${tmdbId}`;
+      return `https://embed.su/embed/movie/${tmdbId}`;
     },
   },
   {
-    id: '123embed',
-    name: 'Prime',
-    flag: '🎬',
+    id: 'moviesapi',
+    name: 'Surge',
+    flag: '🇮🇳',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://play2.123embed.net/tv/${tmdbId}/${season}/${episode}`;
+        return `https://moviesapi.club/tv/${tmdbId}-${season}-${episode}`;
       }
-      return `https://play2.123embed.net/movie/${tmdbId}`;
+      return `https://moviesapi.club/movie/${tmdbId}`;
     },
   },
   {
-    id: 'embedplay',
-    name: 'Max',
-    flag: '🌏',
+    id: 'nontongo',
+    name: 'Bolt',
+    flag: '🇮🇳',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://embedplayapi.site/embed/${tmdbId}/${season}/${episode}`;
+        return `https://nontongo.win/embed/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://embedplayapi.site/embed/${tmdbId}`;
+      return `https://nontongo.win/embed/movie/${tmdbId}`;
     },
   },
   {
@@ -150,6 +149,18 @@ export const VIDEO_SERVERS: VideoServer[] = [
         return `https://autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}`;
       }
       return `https://autoembed.cc/embed/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'multiembed_hindi',
+    name: 'Blaze Hindi',
+    flag: '🔥',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}&lang=hindi`;
+      }
+      return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&lang=hindi`;
     },
   },
   // BACKUP - Alternative sources

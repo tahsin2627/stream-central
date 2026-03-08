@@ -79,8 +79,13 @@ export const EpisodeList = ({ episodes, currentEpisode, onEpisodeSelect }: Episo
               <div className="flex-1 text-left min-w-0">
                 <div className="flex items-center gap-1 sm:gap-2">
                   <p className="text-xs sm:text-sm font-medium">
-                    E{episode.number}
+                    Episode {episode.number}
+                    {episode.name && episode.name !== `Episode ${episode.number}` && (
+                      <span className="text-muted-foreground font-normal"> — {episode.name}</span>
+                    )}
                   </p>
+                </div>
+                <div className="flex items-center gap-2 mt-0.5">
                   {episode.runtime && (
                     <span className="flex items-center gap-0.5 text-[10px] sm:text-xs text-muted-foreground">
                       <Clock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
@@ -88,9 +93,9 @@ export const EpisodeList = ({ episodes, currentEpisode, onEpisodeSelect }: Episo
                     </span>
                   )}
                 </div>
-                {episode.name && episode.name !== `Episode ${episode.number}` && (
-                  <p className="text-[10px] sm:text-xs text-muted-foreground line-clamp-1 mt-0.5">
-                    {episode.name}
+                {episode.overview && (
+                  <p className="text-[10px] sm:text-xs text-muted-foreground/70 line-clamp-2 mt-1">
+                    {episode.overview}
                   </p>
                 )}
               </div>
