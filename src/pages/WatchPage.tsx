@@ -70,6 +70,10 @@ const WatchPage = () => {
   const [userGestureGiven, setUserGestureGiven] = useState(false);
   const [iframeStallCount, setIframeStallCount] = useState(0);
   const [clickShieldActive, setClickShieldActive] = useState(true);
+  const [shieldEnabled, setShieldEnabled] = useState(() => {
+    const stored = localStorage.getItem('wellplayer_element_blocker');
+    return stored !== null ? stored === 'true' : true;
+  });
   
   // iOS detection
   const { needsUserGesture } = useIOSDetection();
@@ -445,8 +449,14 @@ const WatchPage = () => {
             }}
           />
 
-          {/* Element Blocker - Blocks ads/popups */}
-          <ElementBlocker />
+          {/* Element Blocker - Blocks ads/popups via iframe sandbox */}
+          <ElementBlocker
+            isActive={shieldEnabled}
+            onToggle={(active) => {
+              setShieldEnabled(active);
+              setClickShieldActive(true); // Re-arm click shield
+            }}
+          />
 
           {/* Language Selector - Prominent in header */}
           <LanguageSelector compact />
@@ -622,19 +632,20 @@ const WatchPage = () => {
                 {!showTapToPlay && (
                   <iframe
                     ref={iframeRef}
-                    key={embedUrl}
+                    key={`${embedUrl}-${shieldEnabled}`}
                     src={embedUrl}
                     className="absolute inset-0 w-full h-full"
                     allowFullScreen
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                     referrerPolicy="no-referrer"
                     title="Video Player"
+                    {...(shieldEnabled ? {
+                      sandbox: "allow-scripts allow-same-origin allow-forms allow-presentation allow-top-navigation-by-user-activation"
+                    } : {})}
                     onLoad={handleIframeLoad}
                     onError={() => {
-                      // Track stall count for smarter fallback
                       setIframeStallCount(prev => prev + 1);
                       if (iframeStallCount >= 1) {
-                        // After 2 fails on same server, auto-switch
                         handleAutoFallback();
                         setIframeStallCount(0);
                       } else {
