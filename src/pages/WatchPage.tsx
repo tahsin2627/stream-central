@@ -59,6 +59,12 @@ const WatchPage = () => {
   const [useNativePlayer, setUseNativePlayer] = useState(false);
   const [nativeSources, setNativeSources] = useState<StreamSource[]>([]);
   const [externalEmbedUrl, setExternalEmbedUrl] = useState<string | null>(null);
+  const [userGestureGiven, setUserGestureGiven] = useState(false);
+  const [iframeStallCount, setIframeStallCount] = useState(0);
+  
+  // iOS detection
+  const { needsUserGesture } = useIOSDetection();
+  const showTapToPlay = needsUserGesture && !userGestureGiven;
   
   // Stream extraction hook
   const { extractStreams, isExtracting, sources: extractedSources } = useStreamExtraction();
