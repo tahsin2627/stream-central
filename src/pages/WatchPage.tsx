@@ -237,6 +237,7 @@ const WatchPage = () => {
     iframeLoadedRef.current = false;
     setIsLoading(true);
     setIsFallbackTriggered(false);
+    setClickShieldActive(true); // Re-arm click shield on source change
     clearFallbackTimer();
 
     // Start fallback timer if auto-fallback is enabled
