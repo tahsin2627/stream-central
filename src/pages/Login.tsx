@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { Eye, EyeOff, User, Lock } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -22,12 +22,14 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
 
+    // Convert username to email format for Supabase
+    const email = `${username.toLowerCase().trim()}@wellplayer.app`;
     const { error } = await signIn(email, password);
 
     if (error) {
       toast({
         title: 'Login failed',
-        description: error.message,
+        description: 'Invalid username or password.',
         variant: 'destructive',
       });
     } else {
@@ -59,15 +61,15 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="username">Username</Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="username"
+                  type="text"
+                  placeholder="your_username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   className="pl-10"
                   required
                 />
@@ -103,7 +105,10 @@ const Login = () => {
           </form>
 
           <p className="text-center text-sm text-muted-foreground mt-6">
-            Admin access only
+            Don't have an account?{' '}
+            <Link to="/signup" className="text-primary hover:underline font-medium">
+              Sign up
+            </Link>
           </p>
         </div>
       </motion.div>

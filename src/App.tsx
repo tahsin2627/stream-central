@@ -13,6 +13,7 @@ import MovieDetail from "./pages/MovieDetail";
 import TVShowDetail from "./pages/TVShowDetail";
 import Diary from "./pages/Diary";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 
 import Search from "./pages/Search";
 import Movies from "./pages/Movies";
@@ -65,6 +66,7 @@ const App = () => {
                 <Route path="/movie/:id" element={<MovieDetail />} />
                 <Route path="/tv/:id" element={<TVShowDetail />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/movies" element={<Movies />} />
                 <Route path="/tv-shows" element={<TVShows />} />
