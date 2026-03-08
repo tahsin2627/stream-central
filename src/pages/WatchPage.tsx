@@ -326,18 +326,14 @@ const WatchPage = () => {
     <div className="fixed inset-0 bg-background z-50 flex flex-col overflow-hidden">
       {/* Header */}
       <header className="flex items-center justify-between px-2 sm:px-4 py-2 sm:py-3 bg-background/80 backdrop-blur-sm border-b border-border/50 z-20">
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+        <div className="flex items-center shrink-0">
           <Button variant="ghost" size="icon" onClick={handleClose} className="h-8 w-8 sm:h-9 sm:w-9">
             <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <img src={wellplayerLogo} alt="Wellplayer" className="h-5 w-5 sm:h-6 sm:w-6 rounded" />
-            <span className="text-xs sm:text-sm font-medium text-muted-foreground hidden md:inline">Wellplayer</span>
-          </div>
         </div>
 
-        {/* Scrollable controls container for small screens */}
-        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto hide-scrollbar max-w-[calc(100%-80px)] sm:max-w-none">
+        {/* Scrollable controls container */}
+        <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto hide-scrollbar max-w-[calc(100%-48px)] sm:max-w-none">
           {/* Native Player Toggle Button */}
           <Button
             variant={useNativePlayer ? "default" : "ghost"}
