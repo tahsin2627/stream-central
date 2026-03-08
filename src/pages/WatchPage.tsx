@@ -36,7 +36,8 @@ import wellplayerLogo from '@/assets/wellplayer-logo.png';
 import { AddCustomStreamDialog } from '@/components/player/AddCustomStreamDialog';
 import { useCustomStreams } from '@/hooks/useCustomStreams';
 import { useStreamExtraction, StreamSource } from '@/hooks/useStreamExtraction';
-// AI Engine removed - was not functional
+import { useIOSDetection } from '@/hooks/useIOSDetection';
+import { TapToPlayOverlay } from '@/components/player/TapToPlayOverlay';
 const FALLBACK_TIMEOUT_MS = 10000; // 10 seconds
 
 const WatchPage = () => {
