@@ -136,11 +136,14 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
 
         hlsRef.current = hls;
       } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        // Safari native HLS support
+        // Safari native HLS support - start muted for iOS
         video.src = currentSource.url;
+        video.muted = true;
         video.addEventListener('loadedmetadata', () => {
           setIsLoading(false);
-          video.play().catch(() => {});
+          video.play().then(() => {
+            if (hasUserInteracted) video.muted = false;
+          }).catch(() => {});
         });
       } else {
         setError('HLS not supported in this browser');
