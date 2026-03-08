@@ -21,8 +21,7 @@ const navLinks = [
   { href: '/tv-shows', label: 'TV Shows' },
   { href: '/genres', label: 'Genres' },
   { href: '/diary', label: 'Diary' },
-  { href: '/my-list', label: 'My List' },
-  { href: '/favorites', label: 'Favorites' },
+  { href: '/library', label: 'Library' },
 ];
 
 export const Navbar = () => {
@@ -115,13 +114,7 @@ export const Navbar = () => {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/my-list">My List</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/favorites" className="flex items-center gap-2">
-                    <Heart className="h-4 w-4" />
-                    Favorites
-                  </Link>
+                  <Link to="/library">My Library</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
