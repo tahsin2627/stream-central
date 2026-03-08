@@ -20,6 +20,7 @@ import TVShows from "./pages/TVShows";
 import Genres from "./pages/Genres";
 import MyList from "./pages/MyList";
 import Favorites from "./pages/Favorites";
+import Library from "./pages/Library";
 import WatchPage from "./pages/WatchPage";
 import NotFound from "./pages/NotFound";
 
