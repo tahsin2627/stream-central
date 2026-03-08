@@ -185,10 +185,11 @@ export const getServerTestUrls = (tmdbId: number = 550): { id: string; testUrl: 
   { id: 'smashystream', testUrl: 'https://player.smashy.stream/movie/550' },
   // Hindi/Dubbed servers
   { id: 'vembed', testUrl: 'https://vembed.stream/play/550' },
-  { id: '2embedcc', testUrl: 'https://www.2embed.cc/embed/550' },
-  { id: '123embed', testUrl: 'https://play2.123embed.net/movie/550' },
-  { id: 'embedplay', testUrl: 'https://embedplayapi.site/embed/550' },
+  { id: 'embedsu', testUrl: 'https://embed.su/embed/movie/550' },
+  { id: 'moviesapi', testUrl: 'https://moviesapi.club/movie/550' },
+  { id: 'nontongo', testUrl: 'https://nontongo.win/embed/movie/550' },
   { id: 'autoembed2', testUrl: 'https://autoembed.cc/embed/movie/550' },
+  { id: 'multiembed_hindi', testUrl: 'https://multiembed.mov/?video_id=550&tmdb=1&lang=hindi' },
   // Backup servers
   { id: '2embed', testUrl: 'https://2embed.org/embed/movie/550' },
   { id: 'vidbinge', testUrl: 'https://vidbinge.dev/embed/movie/550' },
