@@ -288,9 +288,9 @@ export const getDefaultServerForLanguage = (lang: LanguagePreference): VideoServ
     case 'hindi':
       return VIDEO_SERVERS.find(s => s.id === 'vembed') || VIDEO_SERVERS[0];
     case 'bengali':
-      return VIDEO_SERVERS.find(s => s.id === 'vembed') || VIDEO_SERVERS[0]; // Viking handles Bengali content well
+      return VIDEO_SERVERS.find(s => s.id === 'multiembed_bangla') || VIDEO_SERVERS.find(s => s.id === 'vembed') || VIDEO_SERVERS[0];
     case 'asian':
-      return VIDEO_SERVERS.find(s => s.id === 'embedplay') || VIDEO_SERVERS[0];
+      return VIDEO_SERVERS.find(s => s.id === 'embedplayapi') || VIDEO_SERVERS[0];
     case 'dubbed':
       return VIDEO_SERVERS.find(s => s.id === 'autoembed2') || VIDEO_SERVERS[0];
     default:
