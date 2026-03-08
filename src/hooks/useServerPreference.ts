@@ -90,66 +90,66 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://player.smashy.stream/movie/${tmdbId}`;
     },
   },
-  // HINDI / DUBBED - Regional content servers (fixed: removed expired vidsrc.in)
+  // HINDI / DUBBED - Regional content servers (Updated March 2026)
+  // Removed: vidsrc.pro (sandbox errors), vidsrc.in (expired), vidlink.pro (blank screen)
   {
-    id: 'vidsrcpro',
-    name: 'Hindi',
+    id: 'vembed',
+    name: 'Viking',
     flag: '🇮🇳',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.pro/embed/tv/${tmdbId}/${season}/${episode}`;
+        return `https://vembed.stream/play/${tmdbId}?s=${season}&e=${episode}`;
       }
-      return `https://vidsrc.pro/embed/movie/${tmdbId}`;
+      return `https://vembed.stream/play/${tmdbId}`;
     },
   },
   {
-    id: 'superembed',
+    id: '2embedcc',
     name: 'Desi',
     flag: '🇮🇳',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1&s=${season}&e=${episode}`;
+        return `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`;
       }
-      return `https://multiembed.mov/directstream.php?video_id=${tmdbId}&tmdb=1`;
+      return `https://www.2embed.cc/embed/${tmdbId}`;
     },
   },
   {
-    id: 'vidlink',
+    id: '123embed',
     name: 'Prime',
     flag: '🎬',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://vidlink.pro/tv/${tmdbId}/${season}/${episode}`;
+        return `https://play2.123embed.net/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://vidlink.pro/movie/${tmdbId}`;
+      return `https://play2.123embed.net/movie/${tmdbId}`;
+    },
+  },
+  {
+    id: 'embedplay',
+    name: 'Max',
+    flag: '🌏',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://embedplayapi.site/embed/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://embedplayapi.site/embed/${tmdbId}`;
     },
   },
   {
     id: 'autoembed2',
-    name: 'Max',
-    flag: '🌏',
+    name: 'Global',
+    flag: '🌍',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
         return `https://autoembed.cc/embed/tv/${tmdbId}/${season}/${episode}`;
       }
       return `https://autoembed.cc/embed/movie/${tmdbId}`;
-    },
-  },
-  // NEW - VidSrc WTF (Multi-language support)
-  {
-    id: 'vidsrcwtf',
-    name: 'Global',
-    flag: '🌍',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc.wtf/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://vidsrc.wtf/embed/movie/${tmdbId}`;
     },
   },
   // BACKUP - Alternative sources
