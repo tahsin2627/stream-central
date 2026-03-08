@@ -184,14 +184,14 @@ export const getServerTestUrls = (tmdbId: number = 550): { id: string; testUrl: 
   { id: 'multiembed', testUrl: 'https://multiembed.mov/?video_id=550&tmdb=1' },
   { id: 'smashystream', testUrl: 'https://player.smashy.stream/movie/550' },
   // Hindi/Dubbed servers
-  { id: 'vidsrcpro', testUrl: 'https://vidsrc.pro/embed/movie/550' },
-  { id: 'superembed', testUrl: 'https://multiembed.mov/directstream.php?video_id=550&tmdb=1' },
-  { id: 'vidlink', testUrl: 'https://vidlink.pro/movie/550' },
+  { id: 'vembed', testUrl: 'https://vembed.stream/play/550' },
+  { id: '2embedcc', testUrl: 'https://www.2embed.cc/embed/550' },
+  { id: '123embed', testUrl: 'https://play2.123embed.net/movie/550' },
+  { id: 'embedplay', testUrl: 'https://embedplayapi.site/embed/550' },
   { id: 'autoembed2', testUrl: 'https://autoembed.cc/embed/movie/550' },
   // Backup servers
   { id: '2embed', testUrl: 'https://2embed.org/embed/movie/550' },
   { id: 'vidbinge', testUrl: 'https://vidbinge.dev/embed/movie/550' },
   { id: 'vidsrcicu', testUrl: 'https://vidsrc.icu/embed/movie/550' },
-  { id: 'vidsrcwtf', testUrl: 'https://vidsrc.wtf/embed/movie/550' },
   { id: 'vidsrcme', testUrl: 'https://vidsrc-embed.su/embed/movie?tmdb=550' },
 ];
