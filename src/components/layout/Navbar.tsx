@@ -22,6 +22,7 @@ const navLinks = [
   { href: '/genres', label: 'Genres' },
   { href: '/diary', label: 'Diary' },
   { href: '/my-list', label: 'My List' },
+  { href: '/favorites', label: 'Favorites' },
 ];
 
 export const Navbar = () => {
