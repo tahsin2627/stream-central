@@ -38,6 +38,7 @@ import { useCustomStreams } from '@/hooks/useCustomStreams';
 import { useStreamExtraction, StreamSource } from '@/hooks/useStreamExtraction';
 import { useIOSDetection } from '@/hooks/useIOSDetection';
 import { TapToPlayOverlay } from '@/components/player/TapToPlayOverlay';
+import { UnmuteBanner } from '@/components/player/UnmuteBanner';
 const FALLBACK_TIMEOUT_MS = 10000; // 10 seconds
 
 const WatchPage = () => {
@@ -620,6 +621,18 @@ const WatchPage = () => {
                         handleAutoFallback();
                       }
                     }}
+                  />
+                )}
+
+                {/* Unmute hint for iOS - iframe audio may be muted by browser */}
+                {needsUserGesture && userGestureGiven && !isLoading && (
+                  <UnmuteBanner
+                    isMuted={true}
+                    onUnmute={() => {
+                      // Can't directly unmute iframe, but dismiss the banner
+                      // The tap gesture itself helps iOS allow audio
+                    }}
+                    autoDismissMs={6000}
                   />
                 )}
 

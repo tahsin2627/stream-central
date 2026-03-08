@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
+import { UnmuteBanner } from './UnmuteBanner';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
 
 interface StreamSource {
@@ -334,6 +335,17 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
         playsInline
         muted
         crossOrigin="anonymous"
+      />
+
+      {/* Unmute Banner for iOS autoplay */}
+      <UnmuteBanner
+        isMuted={isMuted}
+        onUnmute={() => {
+          if (videoRef.current) {
+            videoRef.current.muted = false;
+            setHasUserInteracted(true);
+          }
+        }}
       />
 
       {/* Loading Overlay */}
