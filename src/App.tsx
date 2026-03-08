@@ -74,6 +74,7 @@ const App = () => {
                 <Route path="/genres" element={<Genres />} />
                 <Route path="/my-list" element={<MyList />} />
                 <Route path="/favorites" element={<Favorites />} />
+                <Route path="/library" element={<Library />} />
                 <Route path="/watch/:type/:id" element={<WatchPage />} />
                 <Route path="/diary" element={<Diary />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
