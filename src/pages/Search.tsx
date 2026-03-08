@@ -146,10 +146,11 @@ const SearchPage = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
               {searchResults.results
                 .filter((item): item is TMDBMovie | TMDBTVShow => 
-                  ('title' in item || 'name' in item) && item.poster_path !== null
+                  ('title' in item || 'name' in item) && 
+                  (item as any).media_type !== 'person'
                 )
                 .map((item, index) => (
-                  <MovieCard key={item.id} item={item} index={index} />
+                  <MovieCard key={`${item.id}-${index}`} item={item} index={index} />
                 ))}
             </div>
           </div>
