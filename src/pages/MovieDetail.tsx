@@ -127,7 +127,13 @@ const MovieDetail = () => {
                     <Clock className="h-3 w-3 md:h-4 md:w-4" />
                     {runtime}
                   </span>
-                )}
+              )}
+
+              {/* Letterboxd Rating */}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-4 md:mb-6">
+                <LetterboxdRating rating={movie.vote_average} size="md" />
+                <LetterboxdLink title={movie.title} year={releaseYear} />
+              </div>
               </div>
 
               {/* Genres */}

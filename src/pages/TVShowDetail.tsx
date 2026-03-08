@@ -131,6 +131,12 @@ const TVShowDetail = () => {
                 </div>
               )}
 
+              {/* Letterboxd Rating */}
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-4 md:mb-6">
+                <LetterboxdRating rating={show.vote_average} size="md" />
+                <LetterboxdLink title={show.name} year={releaseYear} />
+              </div>
+
               {/* Season/Episode Selector */}
               <div className="flex flex-wrap justify-center md:justify-start gap-3 md:gap-4 mb-4 md:mb-6">
                 <div className="flex items-center gap-2">
