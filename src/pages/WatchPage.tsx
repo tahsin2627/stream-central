@@ -544,8 +544,8 @@ const WatchPage = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Video Player Area */}
-        <div className="flex-shrink-0 w-full lg:flex-1 bg-black relative flex flex-col player-container">
-          <div className="relative w-full aspect-video lg:flex-1">
+        <div className="flex-shrink-0 w-full lg:flex-1 bg-black relative flex flex-col player-container" style={{ overflow: 'hidden' }}>
+          <div className="relative w-full aspect-video lg:flex-1" style={{ overflow: 'hidden' }}>
             {/* Native Player Mode */}
             {useNativePlayer && nativeSources.length > 0 ? (
               <NativePlayer
