@@ -70,6 +70,10 @@ const WatchPage = () => {
   const [userGestureGiven, setUserGestureGiven] = useState(false);
   const [iframeStallCount, setIframeStallCount] = useState(0);
   const [clickShieldActive, setClickShieldActive] = useState(true);
+  const [shieldEnabled, setShieldEnabled] = useState(() => {
+    const stored = localStorage.getItem('wellplayer_element_blocker');
+    return stored !== null ? stored === 'true' : true;
+  });
   
   // iOS detection
   const { needsUserGesture } = useIOSDetection();
