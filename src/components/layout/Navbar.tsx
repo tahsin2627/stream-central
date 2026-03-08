@@ -21,8 +21,7 @@ const navLinks = [
   { href: '/tv-shows', label: 'TV Shows' },
   { href: '/genres', label: 'Genres' },
   { href: '/diary', label: 'Diary' },
-  { href: '/my-list', label: 'My List' },
-  { href: '/favorites', label: 'Favorites' },
+  { href: '/library', label: 'Library' },
 ];
 
 export const Navbar = () => {
