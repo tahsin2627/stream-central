@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Play, Star, Calendar, Share2 } from 'lucide-react';
+import { ArrowLeft, Play, Star, Calendar, Share2, BookOpen } from 'lucide-react';
 import { LetterboxdLink } from '@/components/content/LetterboxdLink';
 import { LetterboxdRating } from '@/components/content/LetterboxdRating';
 import { motion } from 'framer-motion';
