@@ -571,9 +571,19 @@ const WatchPage = () => {
               />
             ) : (
               <>
+                {/* iOS/Brave Tap-to-Play Overlay */}
+                {showTapToPlay && (
+                  <TapToPlayOverlay
+                    title={title}
+                    serverName={selectedServer.name}
+                    serverFlag={selectedServer.flag}
+                    onPlay={() => setUserGestureGiven(true)}
+                  />
+                )}
+
                 {/* Loading Overlay */}
                 <AnimatePresence>
-                  {isLoading && !useNativePlayer && (
+                  {isLoading && !useNativePlayer && !showTapToPlay && (
                     <LoadingOverlay
                       mediaType={mediaType as 'movie' | 'tv'}
                       season={selectedSeason}
@@ -587,25 +597,34 @@ const WatchPage = () => {
                   )}
                 </AnimatePresence>
 
-                {/* Video Iframe - NO SANDBOX to prevent "sandbox not allowed" errors from Hindi/dubbed providers */}
-                <iframe
-                  ref={iframeRef}
-                  key={embedUrl}
-                  src={embedUrl}
-                  className="absolute inset-0 w-full h-full"
-                  allowFullScreen
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
-                  referrerPolicy="no-referrer"
-                  title="Video Player"
-                  onLoad={handleIframeLoad}
-                  onError={() => {
-                    // Auto-fallback on error
-                    handleAutoFallback();
-                  }}
-                />
+                {/* Video Iframe - Only load after user gesture on iOS */}
+                {!showTapToPlay && (
+                  <iframe
+                    ref={iframeRef}
+                    key={embedUrl}
+                    src={embedUrl}
+                    className="absolute inset-0 w-full h-full"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
+                    referrerPolicy="no-referrer"
+                    title="Video Player"
+                    onLoad={handleIframeLoad}
+                    onError={() => {
+                      // Track stall count for smarter fallback
+                      setIframeStallCount(prev => prev + 1);
+                      if (iframeStallCount >= 1) {
+                        // After 2 fails on same server, auto-switch
+                        handleAutoFallback();
+                        setIframeStallCount(0);
+                      } else {
+                        handleAutoFallback();
+                      }
+                    }}
+                  />
+                )}
 
                 {/* Video Controls Overlay - Tap to show/hide */}
-                {!isLoading && (
+                {!isLoading && !showTapToPlay && (
                   <VideoOverlay showInitially={false} />
                 )}
               </>
