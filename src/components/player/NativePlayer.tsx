@@ -332,6 +332,7 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
         poster={poster}
         className="w-full h-full object-contain"
         playsInline
+        muted
         crossOrigin="anonymous"
       />
 
