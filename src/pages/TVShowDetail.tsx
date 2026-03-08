@@ -190,6 +190,7 @@ const TVShowDetail = () => {
                     </Button>
                   }
                 />
+                <LogFilmDialog tmdbId={show.id} mediaType="tv" title={show.name} posterPath={show.poster_path} />
               </div>
             </motion.div>
           </div>

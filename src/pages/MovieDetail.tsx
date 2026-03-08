@@ -166,6 +166,7 @@ const MovieDetail = () => {
                   releaseDate={movie.release_date}
                   size="default"
                 />
+                <LogFilmDialog tmdbId={movie.id} mediaType="movie" title={movie.title} posterPath={movie.poster_path} />
                 <ShareStoryDialog
                   title={movie.title}
                   posterUrl={posterUrl}

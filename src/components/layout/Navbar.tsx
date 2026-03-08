@@ -20,6 +20,7 @@ const navLinks = [
   { href: '/movies', label: 'Movies' },
   { href: '/tv-shows', label: 'TV Shows' },
   { href: '/genres', label: 'Genres' },
+  { href: '/diary', label: 'Diary' },
   { href: '/my-list', label: 'My List' },
 ];
 
