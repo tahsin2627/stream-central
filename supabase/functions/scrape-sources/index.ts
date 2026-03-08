@@ -143,9 +143,16 @@ const REGIONAL_SITES = [
   {
     domain: 'movielinkbd',
     name: '🇧🇩 MovieLinkBD',
-    searchDomains: ['movielinkbd.li', 'mlink99d.movielinkbd.li'],
+    searchDomains: ['movielinkbd.li', 'mlink99d.movielinkbd.li', '7uyrbq.movielinkbd.li'],
     languages: ['Bengali', 'Hindi', 'Hindi Dubbed', 'Dual Audio', 'English'],
-    type: 'download',
+    type: 'streaming',
+  },
+  {
+    domain: 'netmirr',
+    name: '🇮🇳 NetMirr',
+    searchDomains: ['netmirr.net'],
+    languages: ['Hindi', 'Telugu', 'Tamil', 'Bengali', 'Multi'],
+    type: 'streaming',
   },
 ];
 
