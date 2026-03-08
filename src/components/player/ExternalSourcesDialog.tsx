@@ -87,9 +87,9 @@ const SourceCard = ({
               {result.sourceName}
             </span>
             {result.isTmdbSource && (
-              <Badge variant="secondary" className="text-[10px] bg-blue-500/20 text-blue-400 border-blue-500/30">
+              <Badge variant="secondary" className="text-[10px] bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
                 <Database className="h-2.5 w-2.5 mr-1" />
-                TMDB
+                ID Match
               </Badge>
             )}
           </div>
@@ -213,7 +213,7 @@ export const ExternalSourcesDialog = ({
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
             <Loader2 className="h-8 w-8 animate-spin mb-3" />
             <p className="text-sm">Searching external sources...</p>
-            <p className="text-xs mt-1">Checking TamilBlasters & TMDB sources</p>
+            <p className="text-xs mt-1">Checking streaming & regional sources</p>
           </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -227,7 +227,7 @@ export const ExternalSourcesDialog = ({
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="tmdb" className="gap-2">
                 <Database className="h-3.5 w-3.5" />
-                TMDB ({tmdbSources.length})
+                Streaming ({tmdbSources.length})
               </TabsTrigger>
               <TabsTrigger value="scraped" className="gap-2">
                 <Link2 className="h-3.5 w-3.5" />
@@ -252,7 +252,7 @@ export const ExternalSourcesDialog = ({
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
                     <Database className="h-10 w-10 mb-3 opacity-50" />
-                    <p className="text-sm">No TMDB sources found</p>
+                    <p className="text-sm">No streaming sources found</p>
                     <p className="text-xs mt-1">Check regional sources tab</p>
                   </div>
                 )}
@@ -277,7 +277,7 @@ export const ExternalSourcesDialog = ({
                   <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
                     <Link2 className="h-10 w-10 mb-3 opacity-50" />
                     <p className="text-sm">No regional sources found</p>
-                    <p className="text-xs mt-1">Check TMDB sources tab</p>
+                    <p className="text-xs mt-1">Check streaming sources tab</p>
                   </div>
                 )}
               </ScrollArea>
@@ -294,7 +294,7 @@ export const ExternalSourcesDialog = ({
         <div className="rounded-lg bg-muted/50 border border-border p-3 text-xs text-muted-foreground mt-2">
           <p className="font-medium mb-1">💡 About External Sources</p>
           <p>
-            Click any source to open it. TMDB sources use reliable ID-based lookups, 
+            Click any source to open it. Streaming sources use reliable ID-based lookups, 
             while Regional sources are search-based and may vary in accuracy.
           </p>
         </div>

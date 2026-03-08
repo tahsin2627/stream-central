@@ -110,9 +110,10 @@ const TVShowDetail = () => {
               <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold mb-3 md:mb-4 tracking-tight">{show.name}</h1>
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-4 text-xs md:text-sm text-muted-foreground mb-4 md:mb-6">
-                <span className="flex items-center gap-1">
-                  <Star className="h-3 w-3 md:h-4 md:w-4 text-yellow-500" fill="currentColor" />
-                  <span className="text-foreground font-medium">{show.vote_average.toFixed(1)}</span>
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded bg-yellow-500/90">
+                  <Star className="h-3 w-3 md:h-4 md:w-4 text-black" fill="currentColor" />
+                  <span className="text-black font-bold">{show.vote_average.toFixed(1)}</span>
+                  <span className="text-black/70 font-medium text-[10px] md:text-xs">IMDb</span>
                 </span>
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3 w-3 md:h-4 md:w-4" />

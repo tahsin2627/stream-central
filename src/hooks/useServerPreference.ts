@@ -273,6 +273,19 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://vidsrc-embed.su/embed/movie?tmdb=${tmdbId}`;
     },
   },
+  // NetMirr - Regional Indian content (Hindi/Telugu/Tamil/Bengali), uses TMDB IDs
+  {
+    id: 'netmirr',
+    name: 'NetMirr',
+    flag: '🇮🇳',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://netmirr.net/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://netmirr.net/movie/${tmdbId}`;
+    },
+  },
 ];
 
 // Get servers by category
