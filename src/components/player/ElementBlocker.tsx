@@ -60,8 +60,8 @@ export const ElementBlocker = ({ isActive: controlledActive, onToggle, className
       return null;
     };
 
-    // 2. Block navigation via beforeunload — if an iframe triggers top navigation,
-    // the browser fires beforeunload. We can't block it but we can refocus.
+    // 2. Navigation protection — location.assign/replace are read-only,
+    // so we rely on click interception and window.open blocking instead
     // (location.assign/replace are read-only and cannot be overridden)
 
     // 3. Block all new-tab link clicks that weren't user-initiated on our UI
