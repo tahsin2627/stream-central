@@ -74,6 +74,26 @@ const WatchPage = () => {
     const stored = localStorage.getItem('wellplayer_element_blocker');
     return stored !== null ? stored === 'true' : true;
   });
+  // Track servers that don't work with sandbox — persist across session
+  const [sandboxIncompatible, setSandboxIncompatible] = useState<Set<string>>(() => {
+    try {
+      const stored = localStorage.getItem('wellplayer_sandbox_incompatible');
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  });
+  const [sandboxRetrying, setSandboxRetrying] = useState(false);
+
+  // Whether to actually apply sandbox for current server
+  const applySandbox = shieldEnabled && !sandboxIncompatible.has(selectedServer?.id || '');
+
+  const markSandboxIncompatible = useCallback((serverId: string) => {
+    setSandboxIncompatible(prev => {
+      const next = new Set(prev);
+      next.add(serverId);
+      localStorage.setItem('wellplayer_sandbox_incompatible', JSON.stringify([...next]));
+      return next;
+    });
+  }, []);
   
   // iOS detection
   const { needsUserGesture } = useIOSDetection();
