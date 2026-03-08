@@ -93,15 +93,6 @@ const Index = () => {
     return pool.filter(item => item.backdrop_path);
   }, [trending, bollywood, tamil, telugu, malayalam, kannada, bengali, bengaliWeb, hindiWeb]);
 
-  // Random selection from diverse pool
-  const [featuredIndex, setFeaturedIndex] = useState(0);
-  
-  useEffect(() => {
-    if (heroPool.length > 0) {
-      setFeaturedIndex(Math.floor(Math.random() * heroPool.length));
-    }
-  }, [heroPool.length]);
-
   const isHeroLoading = trendingLoading && bollywoodLoading && tamilLoading && bengaliLoading;
 
   return (
