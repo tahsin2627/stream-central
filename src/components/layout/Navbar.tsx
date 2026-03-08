@@ -114,13 +114,7 @@ export const Navbar = () => {
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link to="/my-list">My List</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/favorites" className="flex items-center gap-2">
-                    <Heart className="h-4 w-4" />
-                    Favorites
-                  </Link>
+                  <Link to="/library">My Library</Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
