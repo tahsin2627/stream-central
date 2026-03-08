@@ -49,7 +49,7 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
 
   const [currentSource, setCurrentSource] = useState<StreamSource | null>(sources[0] || null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true); // Start muted for iOS autoplay compliance
   const [volume, setVolume] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -60,6 +60,7 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
   const [error, setError] = useState<string | null>(null);
   const [availableQualities, setAvailableQualities] = useState<{ label: string; level: number }[]>([]);
   const [selectedQuality, setSelectedQuality] = useState<number>(-1);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
 
   // Format time helper
   const formatTime = (seconds: number): string => {
