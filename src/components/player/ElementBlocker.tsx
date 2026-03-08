@@ -142,8 +142,6 @@ export const ElementBlocker = ({ isActive: controlledActive, onToggle, className
 
     return () => {
       window.open = originalOpen;
-      window.location.assign = originalAssign;
-      window.location.replace = originalReplace;
       document.removeEventListener('click', handleClick, true);
       window.removeEventListener('message', handleMessage);
       window.removeEventListener('blur', handleBlur);
