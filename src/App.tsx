@@ -14,7 +14,6 @@ import TVShowDetail from "./pages/TVShowDetail";
 import Diary from "./pages/Diary";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-
 import Search from "./pages/Search";
 import Movies from "./pages/Movies";
 import TVShows from "./pages/TVShows";
