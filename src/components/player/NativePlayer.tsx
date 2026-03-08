@@ -249,10 +249,15 @@ export const NativePlayer = ({ sources, title, poster, onError, onBack }: Native
   // Control handlers
   const togglePlay = () => {
     if (videoRef.current) {
+      setHasUserInteracted(true);
       if (isPlaying) {
         videoRef.current.pause();
       } else {
-        videoRef.current.play();
+        // Unmute on first user-initiated play (iOS compliance)
+        if (videoRef.current.muted && !isMuted) {
+          videoRef.current.muted = false;
+        }
+        videoRef.current.play().catch(() => {});
       }
     }
   };
