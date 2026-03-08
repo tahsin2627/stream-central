@@ -447,6 +447,9 @@ const WatchPage = () => {
             }}
           />
 
+          {/* Element Blocker - Blocks ads/popups */}
+          <ElementBlocker />
+
           {/* Language Selector - Prominent in header */}
           <LanguageSelector compact />
 
