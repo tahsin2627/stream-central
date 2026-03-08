@@ -25,6 +25,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
+import { UnmuteBanner } from './UnmuteBanner';
 import wellplayerLogo from '@/assets/wellplayer-logo.png';
 
 interface StreamSource {
