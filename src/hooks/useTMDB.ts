@@ -182,6 +182,48 @@ export const useBengaliTVShows = (page = 1) => {
   });
 };
 
+// Bengali Web Series (Hoichoi, Chorki style) - Popular
+export const useBengaliWebSeries = (page = 1) => {
+  return useQuery({
+    queryKey: ['tv', 'bengali-web', page],
+    queryFn: async () => {
+      const response = await tmdbApi.getBengaliWebSeries(page);
+      if (!response.success) throw new Error(response.error);
+      return response.data as TMDBPaginatedResponse<TMDBTVShow>;
+    },
+    staleTime: STALE_TIME_SHORT,
+    gcTime: GC_TIME,
+  });
+};
+
+// Bengali Popular (all time)
+export const useBengaliPopular = (page = 1) => {
+  return useQuery({
+    queryKey: ['movies', 'bengali-popular', page],
+    queryFn: async () => {
+      const response = await tmdbApi.getBengaliPopular(page);
+      if (!response.success) throw new Error(response.error);
+      return response.data as TMDBPaginatedResponse<TMDBMovie>;
+    },
+    staleTime: STALE_TIME_SHORT,
+    gcTime: GC_TIME,
+  });
+};
+
+// Hindi Web Series (OTT content)
+export const useHindiWebSeries = (page = 1) => {
+  return useQuery({
+    queryKey: ['tv', 'hindi-web', page],
+    queryFn: async () => {
+      const response = await tmdbApi.getHindiWebSeries(page);
+      if (!response.success) throw new Error(response.error);
+      return response.data as TMDBPaginatedResponse<TMDBTVShow>;
+    },
+    staleTime: STALE_TIME_SHORT,
+    gcTime: GC_TIME,
+  });
+};
+
 // Malayalam Movies - Latest first
 export const useMalayalamMovies = (page = 1) => {
   return useQuery({
