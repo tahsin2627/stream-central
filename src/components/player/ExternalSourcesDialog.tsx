@@ -87,9 +87,9 @@ const SourceCard = ({
               {result.sourceName}
             </span>
             {result.isTmdbSource && (
-              <Badge variant="secondary" className="text-[10px] bg-blue-500/20 text-blue-400 border-blue-500/30">
+              <Badge variant="secondary" className="text-[10px] bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
                 <Database className="h-2.5 w-2.5 mr-1" />
-                TMDB
+                ID Match
               </Badge>
             )}
           </div>
