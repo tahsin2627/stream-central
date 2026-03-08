@@ -644,6 +644,21 @@ const WatchPage = () => {
                   />
                 )}
 
+                {/* Click Shield: absorbs the first click (which triggers ad popups), 
+                    then disables itself so second click reaches the actual player */}
+                {!showTapToPlay && clickShieldActive && !isLoading && (
+                  <div
+                    className="absolute inset-0 z-[5] cursor-pointer"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setClickShieldActive(false);
+                      console.log('[Shield] Absorbed ad-trigger click, player now interactive');
+                      toast('🛡️ Ad click blocked — tap again to play', { duration: 2000 });
+                    }}
+                  />
+                )}
+
                 {/* Unmute hint for iOS - iframe audio may be muted by browser */}
                 {needsUserGesture && userGestureGiven && !isLoading && (
                   <UnmuteBanner
