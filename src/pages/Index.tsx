@@ -102,12 +102,11 @@ const Index = () => {
     }
   }, [heroPool.length]);
 
-  const featured = heroPool[featuredIndex] || null;
   const isHeroLoading = trendingLoading && bollywoodLoading && tamilLoading && bengaliLoading;
 
   return (
     <Layout>
-      <HeroSection featured={featured} isLoading={isHeroLoading} />
+      <HeroSection items={heroPool} isLoading={isHeroLoading} />
       
       <div className="relative -mt-16 sm:-mt-24 md:-mt-32 z-10 pb-16">
         {user && <ContinueWatchingCarousel />}
