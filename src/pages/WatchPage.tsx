@@ -652,8 +652,10 @@ const WatchPage = () => {
               <NativePlayer
                 sources={nativeSources}
                 title={title}
+                episodeInfo={mediaType === 'tv' ? `S${selectedSeason} · E${selectedEpisode}` : undefined}
                 poster={content?.backdrop_path ? `https://image.tmdb.org/t/p/w1280${content.backdrop_path}` : undefined}
                 isTV={mediaType === 'tv'}
+                onBack={handleClose}
                 onPrevEpisode={() => {
                   if (selectedEpisode > 1) setSelectedEpisode(selectedEpisode - 1);
                 }}
