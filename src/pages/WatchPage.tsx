@@ -97,6 +97,10 @@ const WatchPage = () => {
   const { needsUserGesture } = useIOSDetection();
   const showTapToPlay = needsUserGesture && !userGestureGiven;
   
+  // In native Capacitor app, disable iframe sandbox entirely —
+  // Android/iOS WebView handles security natively and sandbox breaks video servers
+  const { isNative } = useNativeApp();
+  
   // Stream extraction hook
   const { extractStreams, isExtracting, sources: extractedSources } = useStreamExtraction();
 
