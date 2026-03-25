@@ -16,12 +16,36 @@ const config: CapacitorConfig = {
     allowMixedContent: true,
     captureInput: true,
     webContentsDebuggingEnabled: true,
+    // Allow navigation to video streaming domains
+    allowNavigation: [
+      '*.vidsrc.xyz',
+      '*.vidsrc.to',
+      '*.vidsrc.me',
+      '*.vidsrc.cc',
+      '*.embed.su',
+      '*.superembed.stream',
+      '*.multiembed.mov',
+      '*.2embed.cc',
+      '*.autoembed.cc',
+      '*.vidlink.pro',
+      '*.moviesapi.club',
+      '*.smashystream.com',
+      '*.netmirr.xyz',
+      '*.hin2.xyz',
+      '*.hindi2.xyz',
+    ],
   },
   plugins: {
     CapacitorHttp: {
       enabled: true,
     },
+    // Improve status bar appearance for native look
+    StatusBar: {
+      style: 'Dark',
+      backgroundColor: '#0a0a0a',
+    },
   },
 };
 
 export default config;
+
