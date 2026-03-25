@@ -4,24 +4,21 @@ const config: CapacitorConfig = {
   appId: 'com.wellplayer.app',
   appName: 'Wellplayer',
   webDir: 'dist',
-  // NOTE: Remove the server.url block for production APK builds.
-  // Uncomment below ONLY for live development/hot-reload:
-  // server: {
-  //   url: 'https://51ed6916-a37a-425d-bdd2-75f8bae4ebb7.lovableproject.com?forceHideBadge=true',
-  //   cleartext: true,
-  // },
+  // Live URL — APK loads directly from the hosted app for always-up-to-date content
+  server: {
+    url: 'https://51ed6916-a37a-425d-bdd2-75f8bae4ebb7.lovableproject.com?forceHideBadge=true',
+    cleartext: true,
+  },
   android: {
-    // Allow mixed content and all HTTPS origins in the WebView
-    // This bypasses the browser iframe sandbox restrictions that break embed servers
     allowMixedContent: true,
     captureInput: true,
-    webContentsDebuggingEnabled: true,
-    // Allow navigation to video streaming domains
+    webContentsDebuggingEnabled: false,
     allowNavigation: [
       '*.vidsrc.xyz',
       '*.vidsrc.to',
       '*.vidsrc.me',
       '*.vidsrc.cc',
+      '*.vidsrc.wtf',
       '*.embed.su',
       '*.superembed.stream',
       '*.multiembed.mov',
@@ -31,21 +28,34 @@ const config: CapacitorConfig = {
       '*.moviesapi.club',
       '*.smashystream.com',
       '*.netmirr.xyz',
+      '*.netmirr.net',
       '*.hin2.xyz',
       '*.hindi2.xyz',
+      '*.filmaxy.com',
+      '*.videasy.net',
+      '*.letsembed.cc',
+      '*.vidembed.site',
+      '*.moviesapi.to',
+      '*.cineby.app',
+      '*.tmovies.tv',
+      '*.embedder.net',
     ],
   },
   plugins: {
     CapacitorHttp: {
       enabled: true,
     },
-    // Improve status bar appearance for native look
     StatusBar: {
       style: 'Dark',
-      backgroundColor: '#0a0a0a',
+      backgroundColor: '#000000',
+      overlaysWebView: false,
+    },
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: '#000000',
+      showSpinner: false,
     },
   },
 };
 
 export default config;
-
