@@ -378,9 +378,10 @@ export const getAllServers = () => VIDEO_SERVERS;
 export const getDefaultServerForLanguage = (lang: LanguagePreference): VideoServer => {
   switch (lang) {
     case 'hindi':
-      return VIDEO_SERVERS.find(s => s.id === 'vembed') || VIDEO_SERVERS[0];
+      // filmaxy = new Viking (replaced dead vembed.stream), fallback to videasy
+      return VIDEO_SERVERS.find(s => s.id === 'filmaxy') || VIDEO_SERVERS.find(s => s.id === 'videasy') || VIDEO_SERVERS[0];
     case 'bengali':
-      return VIDEO_SERVERS.find(s => s.id === 'multiembed_bangla') || VIDEO_SERVERS.find(s => s.id === 'vembed') || VIDEO_SERVERS[0];
+      return VIDEO_SERVERS.find(s => s.id === 'multiembed_bangla') || VIDEO_SERVERS.find(s => s.id === 'filmaxy') || VIDEO_SERVERS[0];
     case 'asian':
       return VIDEO_SERVERS.find(s => s.id === 'embedplayapi') || VIDEO_SERVERS[0];
     case 'dubbed':
