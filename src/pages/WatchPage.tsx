@@ -146,7 +146,9 @@ const WatchPage = () => {
   const isReported = isServerReported(selectedServer.id, tmdbId, mediaType as 'movie' | 'tv');
 
   // Whether to actually apply sandbox for current server
-  const applySandbox = shieldEnabled && !sandboxIncompatible.has(selectedServer.id);
+  // NEVER apply sandbox in native Capacitor app — Android WebView handles security natively
+  // and video servers detect the sandbox attribute and show "Iframe Sandbox Detected" errors
+  const applySandbox = !isNative && shieldEnabled && !sandboxIncompatible.has(selectedServer.id);
 
   // Auto-select My Server if available and not already selected
   useEffect(() => {
