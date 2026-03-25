@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.51ed6916a37a425dbdd275f8bae4ebb7',
+  appId: 'com.wellplayer.app',
   appName: 'Wellplayer',
   webDir: 'dist',
   // Hot-reload from sandbox while developing
