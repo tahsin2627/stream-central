@@ -4,18 +4,18 @@
  * since Android/iOS WebView handles security natively.
  */
 export const isNativeApp = (): boolean => {
-  // Capacitor sets window.Capacitor when running as a native app
-  return !!(window as any).Capacitor?.isNativePlatform?.() 
-    || !!(window as any).Capacitor?.platform === 'android'
-    || !!(window as any).Capacitor?.platform === 'ios'
-    // Fallback: check user agent for WebView
-    || /wv\)/.test(navigator.userAgent)
-    || /Android.*Version\/[\d.]+.*Chrome\/[\d.]+ Mobile/.test(navigator.userAgent) === false && /Android/.test(navigator.userAgent) && /; wv\)/.test(navigator.userAgent);
+  const cap = (window as any).Capacitor;
+  if (!cap) {
+    // Fallback: detect Android WebView by user agent
+    const ua = navigator.userAgent;
+    return /; wv\)/.test(ua) || (ua.includes('Android') && !ua.includes('Chrome'));
+  }
+  return cap.isNativePlatform?.() === true || cap.platform === 'android' || cap.platform === 'ios';
 };
 
 export const useNativeApp = () => {
   return {
     isNative: isNativeApp(),
-    platform: (window as any).Capacitor?.getPlatform?.() || 'web',
+    platform: (window as any).Capacitor?.getPlatform?.() as string || 'web',
   };
 };
