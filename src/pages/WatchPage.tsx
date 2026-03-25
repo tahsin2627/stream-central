@@ -107,6 +107,25 @@ const WatchPage = () => {
   const mediaType = type === 'tv' ? 'tv' : 'movie';
   const tmdbId = Number(id);
 
+  // Auto-start native player extraction when running as native APK
+  useEffect(() => {
+    if (!isNative || !tmdbId) return;
+    const autoExtract = async () => {
+      const result = await extractStreams({
+        tmdbId,
+        mediaType: mediaType as 'movie' | 'tv',
+        season: mediaType === 'tv' ? selectedSeason : undefined,
+        episode: mediaType === 'tv' ? selectedEpisode : undefined,
+      });
+      if (result.success && result.sources && result.sources.length > 0) {
+        setNativeSources(result.sources);
+        setUseNativePlayer(true);
+      }
+    };
+    autoExtract();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isNative, tmdbId, selectedSeason, selectedEpisode]);
+
   // Get title for AI engine (needs to be declared before using in hook)
   const { data: movieData } = useMovieDetails(type === 'movie' ? Number(id) : 0);
   const { data: tvData } = useTVShowDetails(type === 'tv' ? Number(id) : 0);
