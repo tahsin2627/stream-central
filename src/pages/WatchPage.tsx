@@ -40,6 +40,7 @@ import { useIOSDetection } from '@/hooks/useIOSDetection';
 import { TapToPlayOverlay } from '@/components/player/TapToPlayOverlay';
 import { UnmuteBanner } from '@/components/player/UnmuteBanner';
 import { ElementBlocker } from '@/components/player/ElementBlocker';
+import { useNativeApp } from '@/hooks/useNativeApp';
 const FALLBACK_TIMEOUT_MS = 10000; // 10 seconds
 
 const WatchPage = () => {
@@ -96,6 +97,10 @@ const WatchPage = () => {
   const { needsUserGesture } = useIOSDetection();
   const showTapToPlay = needsUserGesture && !userGestureGiven;
   
+  // In native Capacitor app, disable iframe sandbox entirely —
+  // Android/iOS WebView handles security natively and sandbox breaks video servers
+  const { isNative } = useNativeApp();
+  
   // Stream extraction hook
   const { extractStreams, isExtracting, sources: extractedSources } = useStreamExtraction();
 
@@ -141,7 +146,9 @@ const WatchPage = () => {
   const isReported = isServerReported(selectedServer.id, tmdbId, mediaType as 'movie' | 'tv');
 
   // Whether to actually apply sandbox for current server
-  const applySandbox = shieldEnabled && !sandboxIncompatible.has(selectedServer.id);
+  // NEVER apply sandbox in native Capacitor app — Android WebView handles security natively
+  // and video servers detect the sandbox attribute and show "Iframe Sandbox Detected" errors
+  const applySandbox = !isNative && shieldEnabled && !sandboxIncompatible.has(selectedServer.id);
 
   // Auto-select My Server if available and not already selected
   useEffect(() => {
@@ -510,14 +517,16 @@ const WatchPage = () => {
             }}
           />
 
-          {/* Element Blocker - Blocks ads/popups via iframe sandbox */}
-          <ElementBlocker
-            isActive={shieldEnabled}
-            onToggle={(active) => {
-              setShieldEnabled(active);
-              setClickShieldActive(true); // Re-arm click shield
-            }}
-          />
+          {/* Element Blocker - Blocks ads/popups via iframe sandbox (not shown in native app) */}
+          {!isNative && (
+            <ElementBlocker
+              isActive={shieldEnabled}
+              onToggle={(active) => {
+                setShieldEnabled(active);
+                setClickShieldActive(true); // Re-arm click shield
+              }}
+            />
+          )}
 
           {/* Language Selector - Prominent in header */}
           <LanguageSelector compact />

@@ -109,6 +109,21 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-feature-settings: "rlig" 1, "calt" 1;
+    /* Native app feel: disable overscroll bounce, text selection on UI elements */
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent pull-to-refresh and overscroll glow in native WebView */
+  html, body {
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Disable text selection on interactive UI (but allow in content areas) */
+  button, a, [role="button"], nav, header, .player-container {
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   /* Custom scrollbar for webkit browsers */
