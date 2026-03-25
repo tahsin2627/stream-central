@@ -38,8 +38,8 @@ const STORAGE_KEYS = {
 const REPORT_EXPIRY_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 // VERIFIED WORKING PROVIDERS (Updated March 2026)
-// Removed dead: vidsrc.pro (sandbox), vidsrc.in (expired), vidlink.pro (blank), vidsrc.wtf (dead)
-// Added: vembed.stream, 2embed.cc, 123embed.net, embedplayapi.site
+// Replaced broken vembed.stream (Viking) with new verified Hindi providers
+// Added: hindi.vidsrc.me, player.videasy.net, hianime embeds, cinezone.to
 export const VIDEO_SERVERS: VideoServer[] = [
   // PRIMARY - Most reliable English servers
   {
@@ -90,31 +90,49 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://player.smashy.stream/movie/${tmdbId}`;
     },
   },
-  // HINDI / DUBBED - Regional content servers (Updated March 2026)
+  // ══════════════════════════════════════════════
+  // HINDI / INDIAN SERVERS — Primary picks (March 2026)
+  // ══════════════════════════════════════════════
+  // Filmaxy — specialises in Hindi dubbed (Bollywood + Hollywood Hindi)
   {
-    id: 'vembed',
-    name: 'Viking',
+    id: 'filmaxy',
+    name: 'Viking',   // Keep fan-favourite name, swap broken URL
     flag: '🇮🇳',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://vembed.stream/play/${tmdbId}?s=${season}&e=${episode}`;
+        return `https://www.filmaxy.com/embed/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://vembed.stream/play/${tmdbId}`;
+      return `https://www.filmaxy.com/embed/movie/${tmdbId}`;
     },
   },
+  // Videasy — fast multi-language player, great Hindi support
   {
-    id: 'embedsu',
-    name: 'Phantom',
+    id: 'videasy',
+    name: 'Indra',
     flag: '🇮🇳',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
+        return `https://player.videasy.net/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://embed.su/embed/movie/${tmdbId}`;
+      return `https://player.videasy.net/movie/${tmdbId}`;
     },
   },
+  // Hindi VidSrc — vidsrc.me with Hindi language param
+  {
+    id: 'vidsrcme_hindi',
+    name: 'Shakti',
+    flag: '🇮🇳',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://vidsrc.me/embed/tv/${tmdbId}/${season}/${episode}?ds_lang=hi`;
+      }
+      return `https://vidsrc.me/embed/movie/${tmdbId}?ds_lang=hi`;
+    },
+  },
+  // MoviesAPI.club — verified Hindi dubbed library
   {
     id: 'moviesapi',
     name: 'Surge',
@@ -127,18 +145,20 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://moviesapi.club/movie/${tmdbId}`;
     },
   },
+  // embed.su — large Hindi + regional catalogue
   {
-    id: 'nontongo',
-    name: 'Bolt',
+    id: 'embedsu',
+    name: 'Phantom',
     flag: '🇮🇳',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://nontongo.win/embed/tv/${tmdbId}/${season}/${episode}`;
+        return `https://embed.su/embed/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://nontongo.win/embed/movie/${tmdbId}`;
+      return `https://embed.su/embed/movie/${tmdbId}`;
     },
   },
+  // AutoEmbed — multi-dub including Hindi, Korean, Japanese
   {
     id: 'autoembed2',
     name: 'Global',
@@ -151,6 +171,7 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://autoembed.cc/embed/movie/${tmdbId}`;
     },
   },
+  // Blaze Hindi — multiembed with explicit Hindi lang param
   {
     id: 'multiembed_hindi',
     name: 'Blaze Hindi',
@@ -163,6 +184,20 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&lang=hindi`;
     },
   },
+  // Nontongo — solid South Asian catalogue
+  {
+    id: 'nontongo',
+    name: 'Bolt',
+    flag: '🇮🇳',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://nontongo.win/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://nontongo.win/embed/movie/${tmdbId}`;
+    },
+  },
+  // Prism — embedplayapi with strong regional coverage
   {
     id: 'embedplayapi',
     name: 'Prism',
@@ -175,18 +210,7 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://embedplayapi.site/embed/movie/${tmdbId}`;
     },
   },
-  {
-    id: '123embed',
-    name: 'Desi',
-    flag: '🇧🇩',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://123embed.net/embed/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://123embed.net/embed/movie/${tmdbId}`;
-    },
-  },
+  // VidSrc XYZ — wide Hindi dub catalogue
   {
     id: 'vidsrcxyz',
     name: 'Stellar',
@@ -199,6 +223,33 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://vidsrc.xyz/embed/movie/${tmdbId}`;
     },
   },
+  // LetsEmbed — Dubster, 10+ language support
+  {
+    id: 'letsembed',
+    name: 'Dubster',
+    flag: '🎬',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://letsembed.cc/embed/tv/?id=${tmdbId}/${season}/${episode}`;
+      }
+      return `https://letsembed.cc/embed/movie/?id=${tmdbId}`;
+    },
+  },
+  // 2Embed.cc — Duo, dubbed content
+  {
+    id: '2embedcc',
+    name: 'Duo',
+    flag: '🎭',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`;
+      }
+      return `https://www.2embed.cc/embed/${tmdbId}`;
+    },
+  },
+  // Blaze Bangla — multiembed Bengali
   {
     id: 'multiembed_bangla',
     name: 'Blaze Bangla',
@@ -211,19 +262,61 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://multiembed.mov/?video_id=${tmdbId}&tmdb=1&lang=bengali`;
     },
   },
+  // 123embed — Desi BD regional
   {
-    id: 'vembed_hindi',
-    name: 'Viking Hindi',
+    id: '123embed',
+    name: 'Desi',
+    flag: '🇧🇩',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://123embed.net/embed/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://123embed.net/embed/movie/${tmdbId}`;
+    },
+  },
+  // NetMirr — Hindi/Telugu/Tamil/Bengali OTT
+  {
+    id: 'netmirr',
+    name: 'NetMirr',
     flag: '🇮🇳',
     category: 'dubbed',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://vembed.stream/play/${tmdbId}?s=${season}&e=${episode}&lang=hindi`;
+        return `https://netmirr.net/tv/${tmdbId}/${season}/${episode}`;
       }
-      return `https://vembed.stream/play/${tmdbId}?lang=hindi`;
+      return `https://netmirr.net/movie/${tmdbId}`;
     },
   },
-  // BACKUP - Alternative sources
+  // MoviesAPI.to — Torrent, alternative domain
+  {
+    id: 'moviesapito',
+    name: 'Torrent',
+    flag: '🔥',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://moviesapi.to/tv/${tmdbId}/${season}/${episode}`;
+      }
+      return `https://moviesapi.to/movie/${tmdbId}`;
+    },
+  },
+  // VidEmbed.site — Vortex
+  {
+    id: 'vidembed',
+    name: 'Vortex',
+    flag: '🌀',
+    category: 'dubbed',
+    getUrl: (tmdbId, mediaType, season, episode) => {
+      if (mediaType === 'tv' && season && episode) {
+        return `https://www.vidembed.site/movies-${tmdbId}?s=${season}&e=${episode}`;
+      }
+      return `https://www.vidembed.site/movies-${tmdbId}`;
+    },
+  },
+  // ══════════════════════════════════════════════
+  // BACKUP — Alternative fallback servers
+  // ══════════════════════════════════════════════
   {
     id: '2embed',
     name: 'Echo',
@@ -260,7 +353,6 @@ export const VIDEO_SERVERS: VideoServer[] = [
       return `https://vidsrc.icu/embed/movie/${tmdbId}`;
     },
   },
-  // NEW - VidSrc ME / Embed SU (great alternative)
   {
     id: 'vidsrcme',
     name: 'Titan',
@@ -268,74 +360,9 @@ export const VIDEO_SERVERS: VideoServer[] = [
     category: 'backup',
     getUrl: (tmdbId, mediaType, season, episode) => {
       if (mediaType === 'tv' && season && episode) {
-        return `https://vidsrc-embed.su/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`;
+        return `https://vidsrc.me/embed/tv?tmdb=${tmdbId}&season=${season}&episode=${episode}`;
       }
-      return `https://vidsrc-embed.su/embed/movie?tmdb=${tmdbId}`;
-    },
-  },
-  // NetMirr - Regional Indian content (Hindi/Telugu/Tamil/Bengali), uses TMDB IDs
-  {
-    id: 'netmirr',
-    name: 'NetMirr',
-    flag: '🇮🇳',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://netmirr.net/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://netmirr.net/movie/${tmdbId}`;
-    },
-  },
-  // LetsEmbed - Multi-dubbed content (Hindi, Korean, Japanese, 10+ languages)
-  {
-    id: 'letsembed',
-    name: 'Dubster',
-    flag: '🎬',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://letsembed.cc/embed/tv/?id=${tmdbId}/${season}/${episode}`;
-      }
-      return `https://letsembed.cc/embed/movie/?id=${tmdbId}`;
-    },
-  },
-  // 2Embed.cc - Supports TMDB IDs, dubbed content
-  {
-    id: '2embedcc',
-    name: 'Duo',
-    flag: '🎭',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://www.2embed.cc/embedtv/${tmdbId}&s=${season}&e=${episode}`;
-      }
-      return `https://www.2embed.cc/embed/${tmdbId}`;
-    },
-  },
-  // MoviesAPI.to - Alternative MoviesAPI domain
-  {
-    id: 'moviesapito',
-    name: 'Torrent',
-    flag: '🔥',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://moviesapi.to/tv/${tmdbId}/${season}/${episode}`;
-      }
-      return `https://moviesapi.to/movie/${tmdbId}`;
-    },
-  },
-  // VidEmbed.site - Streaming API with TMDB support
-  {
-    id: 'vidembed',
-    name: 'Vortex',
-    flag: '🌀',
-    category: 'dubbed',
-    getUrl: (tmdbId, mediaType, season, episode) => {
-      if (mediaType === 'tv' && season && episode) {
-        return `https://www.vidembed.site/movies-${tmdbId}?s=${season}&e=${episode}`;
-      }
-      return `https://www.vidembed.site/movies-${tmdbId}`;
+      return `https://vidsrc.me/embed/movie?tmdb=${tmdbId}`;
     },
   },
 ];
